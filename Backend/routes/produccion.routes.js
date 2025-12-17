@@ -1,48 +1,66 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const db = require("../db");
+const db = require('../db');
 
-/* ================= TABLA PRINCIPAL ================= */
+// ===============================
+// DETALLES DE PRODUCCIÓN (RECHAZOS)
+// ===============================
+router.get('/detalles', async (req, res) => {
+  try {
+    const sem = Number(req.query.sem);
+    const tipo = (req.query.tipo || '').trim().toUpperCase(); // RECHAZOS
 
-router.get("/", async (req, res) => {
-  const { empresa = "GLOBAL", hacienda = "GLOBAL" } = req.query;
+    const empresaRaw = (req.query.empresa || '').trim();
+    const haciendaRaw = (req.query.hacienda || '').trim();
 
-  const [rows] = await db.query(
-    `SELECT * FROM produccion
-     WHERE (? = 'GLOBAL' OR empresa = ?)
-       AND (? = 'GLOBAL' OR hacienda = ?)
-     ORDER BY semana`
-    , [empresa, empresa, hacienda, hacienda]
-  );
+    const empresa = (!empresaRaw || empresaRaw.toUpperCase() === 'GLOBAL') ? null : empresaRaw;
+    const hacienda = (!haciendaRaw || haciendaRaw.toUpperCase() === 'GLOBAL') ? null : haciendaRaw;
 
-  res.json(rows);
-});
+    if (!sem || !tipo) {
+      return res.json({ ok: false, msg: 'Parámetros obligatorios: sem, tipo' });
+    }
 
-/* ================= DETALLES ================= */
+    const where = ['sem = ?', 'tipo = ?'];
+    const params = [sem, tipo];
 
-router.get("/detalles", async (req, res) => {
-  const { semana, empresa = "GLOBAL", hacienda = "GLOBAL" } = req.query;
+    if (empresa) { where.push('empresa = ?'); params.push(empresa); }
+    if (hacienda) { where.push('hacienda = ?'); params.push(hacienda); }
 
-  const [rows] = await db.query(
-    `SELECT tipo, detalle, SUM(valor) AS valor
-     FROM produccion_detalle
-     WHERE semana = ?
-       AND (? = 'GLOBAL' OR empresa = ?)
-       AND (? = 'GLOBAL' OR hacienda = ?)
-     GROUP BY tipo, detalle
-     ORDER BY valor DESC`,
-    [semana, empresa, empresa, hacienda, hacienda]
-  );
+    const whereSql = where.join(' AND ');
 
-  const total = rows.reduce((s, r) => s + Number(r.valor), 0);
+    const [rows] = await db.query(
+      `
+      SELECT
+        tipo AS tipo,
+        detalle AS detalle,
+        valor AS valor
+      FROM detalle_produccion
+      WHERE ${whereSql}
+      ORDER BY id ASC
+      `,
+      params
+    );
 
-  rows.push({
-    tipo: "TOTAL",
-    detalle: "",
-    valor: total
-  });
+    const [tot] = await db.query(
+      `
+      SELECT COALESCE(SUM(valor), 0) AS total
+      FROM detalle_produccion
+      WHERE ${whereSql}
+      `,
+      params
+    );
 
-  res.json(rows);
+    return res.json({
+      ok: true,
+      filtros: { sem, empresa: empresa || 'GLOBAL', hacienda: hacienda || 'GLOBAL', tipo },
+      items: rows,
+      total: Number(tot[0].total || 0),
+    });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ ok: false, msg: 'Error interno', error: String(err) });
+  }
 });
 
 module.exports = router;

@@ -1,20 +1,19 @@
-require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
+
 const app = express();
 
-const gastosRoutes = require("./routes/gastos.routes");
-const produccionRoutes = require("./routes/produccion.routes");
-
+app.use(cors());
 app.use(express.json());
 
-app.use("/api/gastos", gastosRoutes);
-app.use("/api/produccion", produccionRoutes);
-
-app.get("/", (req, res) => {
-  res.json({ status: "API Minisistema OK" });
+app.get("/api/health", (req, res) => {
+  res.json({ ok: true, message: "Backend activo" });
 });
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
-});
+// Rutas
+app.use("/api/gastos", require("./routes/gastos.routes"));
+app.use("/api/produccion", require("./routes/produccion.routes"));
+
+const PORT = process.env.PORT || 3000; // Railway usa la variable PORT
+app.listen(PORT, () => console.log(`✅ API corriendo en http://localhost:${PORT}`));
