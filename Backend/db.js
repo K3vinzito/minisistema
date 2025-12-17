@@ -3,9 +3,9 @@ const mysql = require("mysql2/promise");
 
 let pool;
 
-if (process.env.MYSQL_PUBLIC_URL) {
+if (process.env.MYSQL_URL) {
   // PRODUCCIÓN (Railway / Render)
-  pool = mysql.createPool(process.env.MYSQL_PUBLIC_URL);
+  pool = mysql.createPool(process.env.MYSQL_URL);
 } else {
   // LOCAL
   pool = mysql.createPool({
