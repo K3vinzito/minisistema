@@ -1,7 +1,6 @@
 /* ================================================================
    MINI SISTEMA AGRÍCOLA — SCRIPT PRINCIPAL (CORREGIDO)
 ================================================================ */
-// Quitamos la barra final para evitar errores de doble slash en las peticiones
 const API_BASE = "https://minisistema-production.up.railway.app";
 
 import { state, dom, num, showLoader, hideLoader } from "./core.js";
@@ -48,10 +47,7 @@ function cargarEmpresas() {
 function cargarHaciendas() {
   const e = dom.empresaSelect.value;
   const data = state.dataModules[state.currentModule] || {};
-  
-  // Si es GLOBAL, no hay haciendas específicas que mostrar
   const listaHaciendas = (e !== "GLOBAL" && data[e]) ? Object.keys(data[e]) : [];
-  
   dom.haciendaSelect.innerHTML =
     ["GLOBAL", ...listaHaciendas].map(h => `<option value="${h}">${h}</option>`).join("");
 }
@@ -98,15 +94,11 @@ async function cargarDatosModulo(modulo) {
 
 function refrescarUI() {
   actualizarTituloModulo();
-  
-  // Llenamos empresas si está vacío
   if (dom.empresaSelect.options.length <= 1) {
     cargarEmpresas();
-    dom.empresaSelect.value = "GLOBAL"; // Forzamos GLOBAL al inicio
+    dom.empresaSelect.value = "GLOBAL";
   }
-  
-  cargarHaciendas(); // Aseguramos que cargue las haciendas de GLOBAL
-  
+  cargarHaciendas();
   actualizarKPIs();
   renderTabla();
   renderGrafico();
@@ -120,9 +112,7 @@ function actualizarKPIs() {
   const h = dom.haciendaSelect.value;
 
   let filasParaSumar = [];
-
   if (e === "GLOBAL") {
-    // Si es GLOBAL, buscamos la fila "0" de CADA hacienda y empresa
     Object.values(data).forEach(empresas => {
       Object.values(empresas).forEach(haciendas => {
         const filaCero = haciendas.find(r => r[headers[0]] === "0");
@@ -130,20 +120,17 @@ function actualizarKPIs() {
       });
     });
   } else if (h === "GLOBAL") {
-    // GLOBAL dentro de una empresa específica
     Object.values(data[e] || {}).forEach(haciendas => {
       const filaCero = haciendas.find(r => r[headers[0]] === "0");
       if (filaCero) filasParaSumar.push(filaCero);
     });
   } else {
-    // Una hacienda específica
     const fila = (data[e]?.[h] || []).find(r => r[headers[0]] === "0");
     if (fila) filasParaSumar.push(fila);
   }
 
   dom.kpisContainer.innerHTML = "";
   headers.slice(3).forEach(head => {
-    // Sumamos los valores de todas las filas encontradas
     const totalKpi = filasParaSumar.reduce((acc, curr) => acc + num(curr[head]), 0);
     dom.kpisContainer.innerHTML += `
       <div class="kpi">
@@ -188,6 +175,8 @@ function renderTabla() {
   dom.tituloTabla.innerText = `${state.currentModule} - ${e} / ${h}${hect}`;
 }
 
+//============== GRAFICO ============================ //
+
 function renderGrafico(tipo = state.tipoGrafico) {
   const headers = state.headersModules[state.currentModule] || [];
   if (!state.datosFiltrados.length || headers.length < 4) return;
@@ -198,29 +187,97 @@ function renderGrafico(tipo = state.tipoGrafico) {
   const labels = state.datosFiltrados.map(r => `Sem ${r[headers[0]]}`);
   const valores = state.datosFiltrados.map(r => num(r[tipo]));
 
-  const max = Math.max(...valores);
-  const margen = max * 0.1;
+  const maxReal = Math.max(...valores);
+  const minReal = Math.min(...valores);
+  let yMin, yMax;
 
-  if (!state.chart) {
-    const ctx = document.getElementById("grafico");
-    if (!ctx) return;
-    state.chart = new Chart(ctx, {
-      type: "line",
-      data: { labels, datasets: [{ label: tipo, data: valores, fill: true, tension: 0.4,
-        borderColor: "rgba(186,2,125,0.4)", backgroundColor: "rgba(186,2,125,0.25)",
-        pointRadius: 0, pointHoverRadius: 5 }] },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: { x: { grid: { display: false } }, y: { suggestedMax: max + margen } }
-      }
-    });
-  } else {
-    state.chart.data.labels = labels;
-    state.chart.data.datasets[0].label = tipo;
-    state.chart.data.datasets[0].data = valores;
-    state.chart.update();
+  // --- LÓGICA DE ESCALA DINÁMICA ULTRA-INTELIGENTE ---
+  if (maxReal <= 2.5) {
+    // Caso RATIO: Escala decimal muy fina
+    yMin = Math.max(0, minReal - 0.1);
+    yMax = maxReal + 0.1;
+  } 
+  else if (maxReal <= 50) {
+    // Caso PRECIO: Valores bajos de Liquidaciones (ej: $7 - $10)
+    // Redondeamos al entero más cercano para dar "Zoom" como en la versión vieja
+    yMin = Math.floor(minReal) - 1;
+    yMax = Math.ceil(maxReal) + 1;
   }
+  else if (maxReal <= 5000) {
+    // Caso RECHAZADOS: Saltos de 500 en 500
+    yMin = Math.floor(minReal / 500) * 500;
+    yMax = Math.ceil((maxReal * 1.1) / 500) * 500;
+  }
+  else {
+    // Caso COSECHADOS / GASTOS: Bloques de 5.000
+    yMin = Math.floor(minReal / 5000) * 5000;
+    if (minReal - yMin < 1000) yMin -= 5000;
+    yMax = Math.ceil((maxReal * 1.05) / 5000) * 5000;
+  }
+
+  if (yMin < 0) yMin = 0;
+
+  if (state.chart) {
+    state.chart.destroy();
+    state.chart = null;
+  }
+
+  const ctx = document.getElementById("grafico");
+  if (!ctx) return;
+
+  state.chart = new Chart(ctx, {
+    type: "line",
+    plugins: [ChartDataLabels],
+    data: { 
+      labels, 
+      datasets: [{ 
+        label: tipo, 
+        data: valores, 
+        fill: true, 
+        tension: 0.4,
+        borderColor: "rgba(186,2,125,0.4)", 
+        backgroundColor: "rgba(186,2,125,0.25)",
+        pointRadius: 4, 
+        pointHoverRadius: 6 
+      }] 
+    },
+    options: {
+      responsive: true, 
+      maintainAspectRatio: false,
+      animation: { duration: 800, easing: 'easeOutQuart' },
+      plugins: { 
+        legend: { display: false },
+        datalabels: {
+          anchor: 'end',
+          align: 'top',
+          formatter: (value) => {
+            // Si es Ratio o Precio, mostramos 2 decimales
+            if (maxReal <= 50) {
+              return value.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+            return Math.round(value).toLocaleString('es-EC');
+          },
+          font: { weight: 'bold', size: 10 },
+          color: '#484848'
+        }
+      },
+      scales: { 
+        x: { grid: { display: false } }, 
+        y: { 
+          beginAtZero: false, 
+          min: yMin, 
+          max: yMax,
+          ticks: {
+            // Formato de moneda para Precio o Ratio, normal para el resto
+            callback: (value) => {
+                if (maxReal <= 50) return value.toLocaleString('es-EC', { minimumFractionDigits: 1 });
+                return value.toLocaleString('es-EC');
+            }
+          }
+        } 
+      }
+    }
+  });
 
   dom.tabsContainer.innerHTML = "";
   headers.slice(3).forEach(h => {
@@ -249,27 +306,22 @@ dom.moduloBtns.forEach(btn => {
   btn.onclick = () => {
     dom.moduloBtns.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-    state.currentModule = btn.innerText.charAt(0) + btn.innerText.slice(1).toLowerCase();
-    if (state.currentModule.includes("Producción")) state.currentModule = "Producción";
-    if (state.currentModule.includes("Gastos")) state.currentModule = "Gastos";
     
-    // Limpiar selectores al cambiar de módulo
+    // CORRECCIÓN AQUÍ: Aseguramos que el nombre coincida con las llaves de sheetURLs
+    const nombreBoton = btn.innerText.trim();
+    if (nombreBoton.includes("PRODUCCIÓN")) state.currentModule = "Producción";
+    else if (nombreBoton.includes("GASTOS")) state.currentModule = "Gastos";
+    else if (nombreBoton.includes("LIQUIDACIONES")) state.currentModule = "Liquidaciones";
+    else state.currentModule = nombreBoton;
+    
     dom.empresaSelect.innerHTML = "";
     dom.haciendaSelect.innerHTML = "";
     cargarDatosModulo(state.currentModule);
   };
 });
 
-dom.empresaSelect.onchange = () => {
-  cargarHaciendas();
-  refrescarUI();
-};
-
-dom.haciendaSelect.onchange = () => {
-  actualizarKPIs();
-  renderTabla();
-  renderGrafico();
-};
+dom.empresaSelect.onchange = () => { cargarHaciendas(); refrescarUI(); };
+dom.haciendaSelect.onchange = () => { actualizarKPIs(); renderTabla(); renderGrafico(); };
 
 /* ===================== INICIO ===================== */
 cargarDatosModulo(state.currentModule);

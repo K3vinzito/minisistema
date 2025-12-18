@@ -30,8 +30,7 @@ export const dom = {
 
 /* ===================== UTILIDADES ===================== */
 
-export const num = v =>
-  +((v || "0").toString().replace(/[$,%\s]/g, "")) || 0;
+export const num = v => +((v || "0").toString().replace(/[$,%\s]/g, "")) || 0;
 
 /* ===================== LOADER ===================== */
 
