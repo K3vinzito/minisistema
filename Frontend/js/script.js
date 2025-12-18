@@ -38,7 +38,7 @@ const MAPA_RUBROS_GASTOS = {
 };
 
 /* ===================== TITULO ===================== */
-/*
+
 function actualizarTituloModulo() {
   dom.tituloPrincipal.innerText =
     state.currentModule === "Producción" ? "PRODUCCIÓN AGRÍCOLA" :
@@ -46,7 +46,7 @@ function actualizarTituloModulo() {
     state.currentModule === "Liquidaciones" ? "LIQUIDACIONES COMERCIALES" :
     state.currentModule;
 }
-*/
+
 /* ===================== CARGA DE DATOS ===================== */
 
 async function cargarDatosModulo(modulo) {
@@ -89,7 +89,7 @@ async function cargarDatosModulo(modulo) {
 /* ===================== UI ===================== */
 
 function refrescarUI() {
-  // actualizarTituloModulo();
+  actualizarTituloModulo();
   cargarEmpresas();
   dom.empresaSelect.value = "GLOBAL";
 
@@ -259,13 +259,15 @@ dom.moduloBtns.forEach(btn => {
   };
 });
 
-dom.empresaSelect.onchange = refrescarUI;
+dom.empresaSelect.onchange = () => {
+    refrescarUI(); 
+};
+
 dom.haciendaSelect.onchange = () => {
   actualizarKPIs();
   renderTabla();
   renderGrafico();
 };
-
 /* ===================== INICIO ===================== */
 
 cargarDatosModulo(state.currentModule);
