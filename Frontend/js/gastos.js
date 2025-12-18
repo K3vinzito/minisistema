@@ -1,7 +1,7 @@
 /* ================================================================
    GASTOS — DETALLES (OPTIMIZADO)
 ================================================================ */
-const API_BASE = "https://minisistema-production.up.railway.app/";
+const API_BASE = "https://minisistema-production.up.railway.app";
 
 import { dom } from "./core.js";
 
@@ -14,7 +14,7 @@ export async function cargarDetallesGastos(semana, rubro) {
   `;
 
   try {
-    const url = new URL("http://localhost:3001/api/gastos/detalles");
+    const url = new URL(`${API_BASE}/api/gastos/detalles`);
     url.search = new URLSearchParams({
       sem: semana,
       empresa,

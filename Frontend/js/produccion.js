@@ -1,7 +1,7 @@
 /* ================================================================
    PRODUCCIÓN — DETALLES DE RECHAZOS (OPTIMIZADO)
 ================================================================ */
-const API_BASE = "https://minisistema-production.up.railway.app/";
+const API_BASE = "https://minisistema-production.up.railway.app";
 
 import { dom } from "./core.js";
 
@@ -14,7 +14,7 @@ export async function cargarDetallesProduccion(semana) {
   `;
 
   try {
-    const url = new URL("http://localhost:3001/api/produccion/detalles");
+    const url = new URL(`${API_BASE}/api/produccion/detalles`);
     url.search = new URLSearchParams({
       sem: semana,
       empresa,
