@@ -360,3 +360,228 @@
   z-index: 1001;
   text-align: center;
 }
+
+/* ================= GASTOS BI ================= */
+
+.gasto-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gasto-label {
+  width: 140px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gasto-bullet {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.gasto-barra {
+  flex: 1;
+  height: 12px;
+  background: #f2f2f2;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.gasto-barra-color {
+  height: 100%;
+  width: 0%;
+  border-radius: 6px;
+  transition: width 0.6s ease;
+}
+
+.gasto-porcentaje {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  font-weight: 600;
+  color: #888;
+}
+/* ================= MODAL GRÁFICO FLUJO ================= */
+
+.modal-flujo {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-flujo.hidden {
+  display: none;
+}
+
+.modal-box {
+  background: #ffffff;
+  border-radius: 14px;
+  width: 75vw;
+  max-width: 1200px;
+  max-height: 85vh;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header strong {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.btn-cerrar {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.modal-body {
+  height: 600px;
+}
+/* ================= CARTERA MINIMALISTA ================= */
+
+.cartera-minimalista {
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fafafa;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.17);
+  font-family: "Segoe UI", sans-serif;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+/* Header */
+.cartera-header {
+  display: flex;
+  font-weight: 600;
+  background: #ffffff;
+  color: #555;
+  padding: 6px 8px;
+  border-bottom: 1px solid #ccc;
+}
+
+.cartera-header > div {
+  flex: 1;
+  text-align: center;
+}
+
+.cartera-header .col-empresa {
+  flex: 2;
+  text-align: left;
+}
+
+.cartera-header .col-total {
+  font-weight: 700;
+}
+
+/* Filas */
+.cartera-row {
+  display: flex;
+  padding: 6px 8px;
+  border-bottom: 1px solid #ddd;
+  background: #fff;
+}
+
+.cartera-row > div {
+  flex: 1;
+  text-align: center;
+}
+
+/* Empresa */
+.col-empresa {
+  flex: 2;
+  font-weight: 500;
+  text-align: left;
+}
+
+/* Valores */
+.valor-ok {
+  color: #0b5394;
+}
+
+.valor-cero {
+  color: #999;
+}
+
+/* Totales */
+.col-total {
+  font-weight: 600;
+}
+
+.valor-total {
+  color: #000;
+}
+
+/* Fila total */
+.cartera-total {
+  display: flex;
+  padding: 6px 8px;
+  background: #f5f5f5;
+  font-weight: 700;
+  border-top: 1px solid #ccc;
+}
+
+.cartera-total > div {
+  flex: 1;
+  text-align: center;
+}
+
+.cartera-total .col-empresa {
+  text-align: right;
+}
+
+/* ================= BANNER INFORMATIVO ================= */
+
+.cartera-banner {
+  background: #fff1f8;
+  color: #757474;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+.banner-icon {
+  color: #db0871;
+  font-size: 18px;
+  line-height: 1;
+}
+/* ================= BARrita DECORATIVA KPI ================= */
+
+.barrita-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 10px ;
+}
+
+.barrita-imagen {
+  width: px;
+  height: auto;
+  object-fit: contain;
+}

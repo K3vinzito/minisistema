@@ -37,23 +37,27 @@ export const num = v => +((v || "0").toString().replace(/[$,%\s]/g, "")) || 0;
 const moduloCargado = {
   "Producción": false,
   "Gastos": false,
-  "Liquidaciones": false
+  "Liquidaciones": false,
+  "Resumen": false   // 👈 NUEVO
 };
 
+
 export function showLoader(modulo) {
-  if (moduloCargado[modulo]) return;
   dom.loader.style.display = "flex";
   requestAnimationFrame(() => {
     dom.loader.style.opacity = "1";
   });
 }
 
+
 export function hideLoader(modulo) {
-  if (moduloCargado[modulo]) return;
   dom.loader.style.opacity = "0";
   setTimeout(() => {
     dom.loader.style.display = "none";
-    moduloCargado[modulo] = true;
+    if (modulo) {
+      moduloCargado[modulo] = true;
+    }
   }, 350);
 }
+
 

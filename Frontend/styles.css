@@ -580,3 +580,68 @@ canvas {
   font-weight: bold;
   border-top: 2px solid #ccc;
 }
+
+/* ================= CELDAS CON DETALLE ================= */
+.detalle-clic {
+  cursor: pointer;
+  font-weight: 600;
+  color: #0057b8;
+  position: relative;
+  padding-right: 14px;
+}
+
+/* Icono lupa */
+.detalle-clic::after {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+/* Hover UX */
+.detalle-clic:hover {
+  color: #c2185b;
+  text-decoration: underline;
+}
+
+.detalle-clic:hover::after {
+  opacity: 1;
+}
+
+.detalle-clic::before {
+  content: "Ver detalle";
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: #fff;
+  font-size: 10px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.detalle-clic:hover::before {
+  opacity: 1;
+}
+
+.bannerZoom{
+    display: flex;
+          justify-content: center;
+          margin: 8px auto 16px auto;
+          max-width: 320px;
+           background: #fff4c2;
+            color: #7a5f00;
+            font-size: 14px;
+            text-align: center;
+            padding: 12px 18px;
+            border-radius: 6px;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 100%;
+}

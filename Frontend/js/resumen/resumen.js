@@ -2,6 +2,35 @@
    MÓDULO RESUMEN — KPIs IZQUIERDA + GASTOS DERECHA COMPACTO
 ================================================================ */
 
+import { showLoader, hideLoader } from "../core.js";
+// ================= CLAVES INTERNAS DE COLUMNAS =================
+const COL = {
+  SEM: "SEM",
+  DEV_IVA: "DEV. IVA",
+  V_RECH: "V. RECHAZO",
+  ARR_VILLA: "ARR. VILLA/ECHEV.",
+  REEMB: "REFEMB. OLSOS",
+  TOTAL_FRUTA: "TOTAL FRUTA",
+  TOTAL_INGRESOS: "TOTAL INGRESOS",
+
+  ARRIENDO: "ARRIENDO",
+  MO_ADM: "M.O ADM",
+  MO_AGRIC: "M.O AGRIC.",
+  MO_EMBAR: "M.O EMBAR.",
+  SRI: "SRI",
+  IESS: "IESS",
+  MRL: "MRL",
+  LUZ: "LUZ",
+  ACTIVOS_FIJOS: "ACTIVOS FIJOS",
+  RIEGO: "RIEGO",
+  COMBUSTIBLE: "COMBUSTIBLE",
+  COMPRAS: "COMPRAS",
+
+  TOTAL_GASTOS: "TOTAL GASTOS",
+  UTILIDAD: "UTILIDAD PRODUCTIVA"
+};
+
+
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRk5A0GczheFss5URcUT0kHoaCEQvnPlLHBYJNjKULyhfLgolqwjqwttJlNTr50_mzxEByQ6yaCNCPS/pub?gid=0&single=true&output=csv";
 
 const tablaFlujo = document.querySelector(".tabla-flujo tbody");
@@ -30,6 +59,7 @@ function formatoUSD(valor) {
 }
 
 // ================= CARGA CSV =================
+/*
 export function cargarResumen() {
 
     Papa.parse(SHEET_URL, {
@@ -52,6 +82,39 @@ export function cargarResumen() {
             insertarCarteraMinimalista();
         }
     });
+}
+*/
+export function cargarResumen() {
+
+  showLoader("Resumen");
+
+  Papa.parse(SHEET_URL, {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: ({ data, meta }) => {
+
+      datosOriginales = data
+        .map(f => ({
+          ...f,
+          EMPRESA: (f.EMPRESA || "").trim(),
+          HACIENDA: (f.HACIENDA || "").trim()
+        }))
+        .filter(f => f.EMPRESA && f.HACIENDA);
+
+      headers = meta.fields;
+
+      llenarEmpresas();
+      renderTablaResumen();
+      insertarCarteraMinimalista();
+
+      hideLoader("Resumen");
+    },
+    error: () => {
+      hideLoader("Resumen");
+      alert("Error cargando resumen");
+    }
+  });
 }
 
 function llenarEmpresas() {
@@ -98,29 +161,30 @@ function filtrarDatos() {
 
 
 // ================= TABLA + KPIs =================
-
 const HEADER_MAP = {
-  "SEM": "SEM",
-  "DEV. IVA": "DEV. IVA",
-  "V. RECHAZO": "V. RECH",
-  "ARR. VILLA/ECHEV.": "ARR.<br>VILLA/CHEV. ",
-  "REFEMB. OLSOS": "REFEMB.<br>OLS",
-  "TOTAL FRUTA": "TOTAL FRUTA",
-  "TOTAL INGRESOS": "TOTAL<br>INGRESOS",
-  "ARRIENDO": "ARRIENDO",
-  "M.O ADM": "M.O ADM",
-  "M.O AGRIC.": "M.O AGRIC",
-  "M.O EMBAR.": "M.O EMB",
-  "SRI": "SRI",
-  "IESS": "IESS",
-  "MRL": "MRL",
-  "LUZ": "LUZ",
-  "ACTIVOS FIJOS": "ACTIVOS<br>FIJOS",
-  "RIEGO": "RIEGO",
-  "COMBUSTIBLE": "COMBUSTIBLE",
-  "COMPRAS": "COMPRAS",
-  "TOTAL GASTOS": "TOTAL<br>GASTOS",
-  "UTILIDAD PRODUCTIVA": "UTILIDAD<br>PRODUCTIVA"
+  [COL.SEM]: "SEM",
+  [COL.DEV_IVA]: "DEV. IVA",
+  [COL.V_RECH]: "V. RECH",
+  [COL.ARR_VILLA]: "ARR.<br>VILLA/CHEV.",
+  [COL.REEMB]: "REFEMB.<br>OLS",
+  [COL.TOTAL_FRUTA]: "TOTAL FRUTA",
+  [COL.TOTAL_INGRESOS]: "TOTAL<br>INGRESOS",
+
+  [COL.ARRIENDO]: "ARRIENDO",
+  [COL.MO_ADM]: "M.O ADM",
+  [COL.MO_AGRIC]: "M.O AGRIC",
+  [COL.MO_EMBAR]: "M.O EMB",
+  [COL.SRI]: "SRI",
+  [COL.IESS]: "IESS",
+  [COL.MRL]: "MRL",
+  [COL.LUZ]: "LUZ",
+  [COL.ACTIVOS_FIJOS]: "ACTIVOS<br>FIJOS",
+  [COL.RIEGO]: "RIEGO",
+  [COL.COMBUSTIBLE]: "COMBUSTIBLE",
+  [COL.COMPRAS]: "COMPRAS",
+
+  [COL.TOTAL_GASTOS]: "TOTAL<br>GASTOS",
+  [COL.UTILIDAD]: "UTILIDAD<br>PRODUCTIVA"
 };
 
 // En resumen.js
@@ -238,7 +302,7 @@ function renderTablaResumen() {
         const v = totales[c] || 0;
         const k = c.toLowerCase();
         
-        if (k.includes("ingresos")) {
+if (c === COL.TOTAL_INGRESOS) {
             ingresosElem.textContent = formatoUSD(v);
             ingresosElem.style.color = "#1b5e20";
             totalIngresos = v; // ¡Guardamos este valor para el gráfico!
@@ -247,7 +311,7 @@ function renderTablaResumen() {
             egresosElem.textContent = formatoUSD(v);
             egresosElem.style.color = "#7a1f1f";
         }
-        if (k.includes("utilidad")) {
+if (c === COL.UTILIDAD) {
             totalUtilidadElem.textContent = formatoUSD(v);
             totalUtilidadElem.style.color = colorValor(v);
         }
@@ -260,6 +324,7 @@ function renderTablaResumen() {
 
 
 // ================= FUNCION LISTA DE GASTOS CON PORCENTAJES SUAVES =================
+/*
 function renderGastos(totalIngresos, datos, cols) {
     const derecha = document.querySelector(".card-saldo .gastos-lista");
     derecha.innerHTML = "";
@@ -356,10 +421,92 @@ function renderGastos(totalIngresos, datos, cols) {
         crearBarra(col, valor, colorGasto);
     });
 }
+*/
+function renderGastos(totalIngresos, datos, cols) {
+  const derecha = document.querySelector(".card-saldo .gastos-lista");
+  if (!derecha) return;
+
+  derecha.innerHTML = "";
+
+  const idxTotalIngreso = cols.indexOf(COL.TOTAL_INGRESOS);
+
+  const idxTotalEgreso = cols.findIndex(c =>
+    c.toLowerCase().includes("total egresos") ||
+    c.toLowerCase().includes("total gastos")
+  );
+
+  if (idxTotalIngreso === -1 || idxTotalEgreso === -1) return;
+
+  const gastosCols = cols.slice(idxTotalIngreso + 1, idxTotalEgreso);
+
+  const totalGastos = gastosCols.reduce((sum, col) =>
+    sum + datos.reduce((a, f) =>
+      a + (parseFloat((f[col] || "0").replace(/[$,]/g, "")) || 0), 0
+    ), 0
+  );
+
+  const maxValor = Math.max(totalIngresos, totalGastos);
+
+  // ===== helper =====
+  function crearFila(labelText, valor, color) {
+    const fila = document.createElement("div");
+    fila.className = "gasto-item";
+
+    const label = document.createElement("div");
+    label.className = "gasto-label";
+
+    const bullet = document.createElement("span");
+    bullet.className = "gasto-bullet";
+    bullet.style.backgroundColor = color;
+
+    label.appendChild(bullet);
+    label.appendChild(document.createTextNode(labelText));
+
+    const barra = document.createElement("div");
+    barra.className = "gasto-barra";
+
+    const barraColor = document.createElement("div");
+    barraColor.className = "gasto-barra-color";
+    barraColor.style.backgroundColor = color;
+
+    const porcentaje = document.createElement("span");
+    porcentaje.className = "gasto-porcentaje";
+    porcentaje.textContent =
+      totalIngresos > 0
+        ? `${Math.round((valor / totalIngresos) * 100)}%`
+        : "0%";
+
+    barra.appendChild(barraColor);
+    barra.appendChild(porcentaje);
+
+    fila.appendChild(label);
+    fila.appendChild(barra);
+    derecha.appendChild(fila);
+
+    // animación
+    requestAnimationFrame(() => {
+      barraColor.style.width =
+        maxValor > 0 ? `${(valor / maxValor) * 100}%` : "0%";
+    });
+  }
+
+  // ===== render =====
+  crearFila("Total Ingresos", totalIngresos, "#a8d5ba");
+
+  gastosCols.forEach(col => {
+    const valor = datos.reduce(
+      (sum, f) =>
+        sum + (parseFloat((f[col] || "0").replace(/[$,]/g, "")) || 0),
+      0
+    );
+    crearFila(col, valor, "#f4c2c2");
+  });
+}
 
 
 
 // ================= CARTERA MINIMALISTA + BANNER =================
+/*
 function insertarCarteraMinimalista() {
     const card = document.querySelector(".card-actividad");
     if (!card || card.querySelector(".cartera-minimalista")) return;
@@ -470,7 +617,81 @@ function insertarCarteraMinimalista() {
 
     card.insertAdjacentHTML("beforeend", html);
 }
+*/
+function insertarCarteraMinimalista() {
+  const card = document.querySelector(".card-actividad");
+  if (!card || card.querySelector(".cartera-minimalista")) return;
 
+  // ⚠️ Datos simulados (luego pueden venir del backend)
+  const empresas = [
+    { nombre: "TECNIAGREX S.A.", semanas: [0, 55714.88, 0, 0] },
+    { nombre: "KRASNAYA S.A.", semanas: [2264.64, 108256.51, 0, 0] }
+  ];
+
+  const totalColumnas = empresas[0].semanas.map((_, i) =>
+    empresas.reduce((sum, e) => sum + e.semanas[i], 0)
+  );
+
+  const totalGlobal = totalColumnas.reduce((a, b) => a + b, 0);
+
+  let html = `
+    <div class="cartera-minimalista">
+
+      <div class="cartera-header">
+        <div class="col-empresa">EMPRESA</div>
+        <div>SEM 48</div>
+        <div>SEM 49</div>
+        <div>SEM 50</div>
+        <div>SEM 51</div>
+        <div class="col-total">TOTAL</div>
+      </div>
+  `;
+
+  empresas.forEach(e => {
+    const total = e.semanas.reduce((a, b) => a + b, 0);
+
+    html += `
+      <div class="cartera-row">
+        <div class="col-empresa">${e.nombre}</div>
+
+        ${e.semanas.map(s => `
+          <div class="col-semana ${s === 0 ? "valor-cero" : "valor-ok"}">
+            ${formatoUSD(s)}
+          </div>
+        `).join("")}
+
+        <div class="col-total valor-total">
+          ${formatoUSD(total)}
+        </div>
+      </div>
+    `;
+  });
+
+  html += `
+      <div class="cartera-total">
+        <div class="col-empresa">TOTAL</div>
+
+        ${totalColumnas.map(t => `
+          <div class="col-semana">
+            ${formatoUSD(t)}
+          </div>
+        `).join("")}
+
+        <div class="col-total">
+          ${formatoUSD(totalGlobal)}
+        </div>
+      </div>
+
+    </div>
+
+    <div class="cartera-banner">
+      <span class="banner-icon">🛈</span>
+      <span>Semanas 50-51 en proceso de liquidación.</span>
+    </div>
+  `;
+
+  card.insertAdjacentHTML("beforeend", html);
+}
 
 resumenEmpresaSelect.addEventListener("change", () => {
     actualizarHaciendas();
@@ -481,6 +702,7 @@ resumenHaciendaSelect.addEventListener("change", renderTablaResumen);
 //document.addEventListener("DOMContentLoaded", cargarResumen);
 
 // ================= AGREGAR IMAGEN ENTRE TOTAL UTILIDAD E INGRESOS/EGRESOS, PEGADA A LA IZQUIERDA =================
+/*
 function insertarBarritaImagen() {
     const contenedor = document.querySelector(".card-saldo");
 
@@ -506,6 +728,29 @@ function insertarBarritaImagen() {
     // Insertar justo **entre Total Utilidad y Ingresos/Egresos**
     const totalUtilidadElem = contenedor.querySelector(".saldo-principal");
     totalUtilidadElem.insertAdjacentElement("afterend", imgWrapper);
+}
+*/
+function insertarBarritaImagen() {
+  const contenedor = document.querySelector(".card-saldo");
+  if (!contenedor) return;
+
+  // Evitar duplicados
+  if (contenedor.querySelector(".barrita-wrapper")) return;
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "barrita-wrapper";
+
+  const img = document.createElement("img");
+  img.src = "img/barrita.png";
+  img.alt = "Barrita decorativa";
+  img.className = "barrita-imagen";
+
+  wrapper.appendChild(img);
+
+  const bloqueUtilidad = contenedor.querySelector(".saldo-principal");
+  if (bloqueUtilidad) {
+    bloqueUtilidad.insertAdjacentElement("afterend", wrapper);
+  }
 }
 
 // Llamar función después de cargar KPIs
@@ -549,129 +794,19 @@ function imprimirFlujoDetallado() {
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<title>${titulo}</title>
-
-<style>
-@page {
-    size: A4 landscape;
-    margin: 10mm;
-}
-
-* {
-    box-sizing: border-box;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-}
-
-body {
-    font-family: Comfortaa, "Segoe UI", sans-serif;
-    background: #fff;
-    color: #000;
-    zoom: 0.82;
-}
-
-/* ================= ENCABEZADO ================= */
-.print-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 22px;
-}
-
-.ph-top {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    color: #555;
-    margin-bottom: 6px;
-}
-
-.ph-title {
-    font-size: 19px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-}
-
-/* ================= SEPARADOR ================= */
-.print-separador {
-    height: 14px;
-}
-
-/* ================= TARJETAS ================= */
-.card {
-    box-shadow: none !important;
-    border-radius: 8px !important;
-    border: 1px solid #444 !important;
-    margin-bottom: 22px;
-    padding: 10px;
-}
-
-/* ================= TABLAS ================= */
-table {
-    width: 100% !important;
-    border-collapse: collapse !important;
-}
-
-th {
-    background: #f2f2f2 !important;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .4px;
-    border: 1px solid #444 !important;
-    padding: 5px 6px !important;
-}
-
-td {
-    font-size: 11px;
-    padding: 4px 6px !important;
-    border: 1px solid #555 !important;
-}
-
-tbody tr:nth-child(even) {
-    background: #fafafa !important;
-}
-
-/* ================= TOTALES ================= */
-tr.total td {
-    font-weight: 700 !important;
-    border-top: 2px solid #000 !important;
-    background: #eaeaea !important;
-}
-
-/* ================= CONSOLIDADO ================= */
-.saldo-principal strong {
-    font-size: 16px !important;
-}
-
-.saldo-detalle span {
-    font-size: 12px !important;
-}
-
-.gastos-lista div {
-    page-break-inside: avoid;
-}
-
-/* ================= LIMPIEZA ================= */
-button,
-select,
-input,
-canvas {
-    display: none !important;
-}
-</style>
+  <meta charset="utf-8">
+  <title>${titulo}</title>
+  <link rel="stylesheet" href="js/resumen/resumen.print.css">
 </head>
 
 <body>
 
 <div class="print-header">
-    <div class="ph-top">
-        <span>MINI SISTEMA AGRÍCOLA</span>
-        <span>${fecha}</span>
-    </div>
-    <div class="ph-title">${titulo}</div>
+  <div class="ph-top">
+    <span>MINI SISTEMA AGRÍCOLA</span>
+    <span>${fecha}</span>
+  </div>
+  <div class="ph-title">${titulo}</div>
 </div>
 
 <div class="print-separador"></div>
@@ -681,21 +816,24 @@ ${tablaFlujo.outerHTML}
 ${consolidado.outerHTML}
 
 <script>
-    window.onload = () => {
-        window.print();
-        window.onafterprint = () => window.close();
-    };
+  window.onload = () => {
+    window.print();
+    window.onafterprint = () => window.close();
+  };
 </script>
 
 </body>
 </html>
-    `);
+`);
 
+
+    
     ventana.document.close();
 }
 
 
 // ================= GRÁFICO FLUJO PRODUCTIVO (INGRESOS, GASTOS, UTILIDAD) =================
+/*
 function crearModalGrafico() {
   if (document.getElementById("modalGraficoFlujo")) return;
 
@@ -715,7 +853,32 @@ function crearModalGrafico() {
 
   document.body.appendChild(modal);
 }
+*/
+function crearModalGrafico() {
+  if (document.getElementById("modalGraficoFlujo")) return;
 
+  const modal = document.createElement("div");
+  modal.id = "modalGraficoFlujo";
+  modal.className = "modal-flujo hidden";
+
+  modal.innerHTML = `
+    <div class="modal-box">
+      <div class="modal-header">
+        <strong>Gráfica Lineal de Flujo Productivo</strong>
+        <button class="btn-cerrar" id="btnCerrarGrafico">✖</button>
+      </div>
+      <div class="modal-body">
+        <canvas id="graficoFlujo"></canvas>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  document
+    .getElementById("btnCerrarGrafico")
+    .addEventListener("click", cerrarGraficoFlujo);
+}
 
 let chartFlujo = null;
 
@@ -740,7 +903,8 @@ function mostrarGraficoFlujo() {
     const gastos = datosFiltrados.map(f => parseFloat((f["TOTAL GASTOS"] || f["TOTAL EGRESOS"] || "0").replace(/[^0-9.-]+/g, "")) || 0);
     const utilidad = datosFiltrados.map(f => parseFloat((f["UTILIDAD PRODUCTIVA"] || "0").replace(/[^0-9.-]+/g, "")) || 0);
 
-    document.getElementById("modalGraficoFlujo").style.display = "flex";
+document.getElementById("modalGraficoFlujo")
+  .classList.remove("hidden");
 
     const canvas = document.getElementById("graficoFlujo");
     canvas.style.width = "70%";
@@ -869,8 +1033,10 @@ function mostrarGraficoFlujo() {
 }
 
 function cerrarGraficoFlujo() {
-    document.getElementById("modalGraficoFlujo").style.display = "none";
+  const modal = document.getElementById("modalGraficoFlujo");
+  if (modal) modal.classList.add("hidden");
 }
+
 // === EXPONER FUNCIONES AL HTML ===
 window.mostrarGraficoFlujo = mostrarGraficoFlujo;
 window.cerrarGraficoFlujo = cerrarGraficoFlujo;
