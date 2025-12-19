@@ -101,35 +101,29 @@ function filtrarDatos() {
 
 const HEADER_MAP = {
   "SEM": "SEM",
-  "DEV. IVA": "DEV<br>IVA",
-  "V. RECHAZO": "V.<br>RECH",
-  "ARR. VILLA/CHEV.": "ARR.<br>V/C",
+  "DEV. IVA": "DEV. IVA",
+  "V. RECHAZO": "V. RECH",
+  "ARR. VILLA/ECHEV.": "ARR.<br>VILLA/CHEV. ",
   "REFEMB. OLSOS": "REFEMB.<br>OLS",
-  "TOTAL FRUTA": "TOTAL<br>FRUTA",
+  "TOTAL FRUTA": "TOTAL FRUTA",
   "TOTAL INGRESOS": "TOTAL<br>INGRESOS",
   "ARRIENDO": "ARRIENDO",
-  "M.O ADM": "M.O<br>ADM",
-  "M.O AGRIC.": "M.O<br>AGRIC",
-  "M.O EMBAR.": "M.O<br>EMB",
+  "M.O ADM": "M.O ADM",
+  "M.O AGRIC.": "M.O AGRIC",
+  "M.O EMBAR.": "M.O EMB",
   "SRI": "SRI",
   "IESS": "IESS",
   "MRL": "MRL",
   "LUZ": "LUZ",
   "ACTIVOS FIJOS": "ACTIVOS<br>FIJOS",
   "RIEGO": "RIEGO",
-  "COMBUSTIBLE": "COMBUS-<br>TIBLE",
+  "COMBUSTIBLE": "COMBUSTIBLE",
   "COMPRAS": "COMPRAS",
   "TOTAL GASTOS": "TOTAL<br>GASTOS",
   "UTILIDAD PRODUCTIVA": "UTILIDAD<br>PRODUCTIVA"
 };
 
-const COL_WIDTH = {
-  "SEM": "55px",
-  "TOTAL INGRESOS": "95px",
-  "TOTAL GASTOS": "95px",
-  "UTILIDAD PRODUCTIVA": "140px"
-};
-
+// En resumen.js
 function renderTablaResumen() {
     const datos = filtrarDatos();
     const cols = headers.filter(h =>
@@ -137,36 +131,26 @@ function renderTablaResumen() {
         !h.toLowerCase().includes("hacienda")
     );
 
+    // 1. RENDERIZADO DE HEADERS
     theadFlujo.innerHTML = "";
     let idxSEM = -1;
     let idxUtilProd = -1;
 
     cols.forEach((c, i) => {
-    const th = document.createElement("th");
+        const th = document.createElement("th");
+        th.dataset.col = c;
+        th.innerHTML = HEADER_MAP[c] || c; // Usamos el mapa bonito con <br>
 
-    const label = HEADER_MAP[c] || c;
-    th.innerHTML = label;
+        const name = c.toLowerCase();
+        if (name === "sem") idxSEM = i;
+        if (name.includes("utilidad productiva")) {
+            idxUtilProd = i;
+            th.style.background = "#fff6cc";
+        }
+        theadFlujo.appendChild(th);
+    });
 
-    if (COL_WIDTH[c]) {
-        th.style.width = COL_WIDTH[c];
-    }
-
-    const name = c.toLowerCase();
-
-    if (name === "sem") {
-        idxSEM = i;
-        th.style.background = "#eeeeee";
-    }
-
-    if (name.includes("utilidad productiva")) {
-        idxUtilProd = i;
-        th.style.background = "#fff6cc";
-    }
-
-    theadFlujo.appendChild(th);
-});
-
-
+    // 2. RENDERIZADO DE FILAS Y CÁLCULO DE TOTALES
     const totales = Object.fromEntries(cols.map(c => [c, 0]));
     tablaFlujo.innerHTML = "";
 
@@ -177,17 +161,23 @@ function renderTablaResumen() {
         const tr = document.createElement("tr");
         cols.forEach((c, i) => {
             const td = document.createElement("td");
+            td.dataset.col = c;
             const txt = fila[c] || "$0.00";
             const num = parseFloat(txt.replace(/[$,]/g, "")) || 0;
             totales[c] += num;
             td.textContent = txt;
 
             const name = c.toLowerCase();
-            if (i === idxSEM) td.style.width = "55px";
-            if (i === idxUtilProd) td.style.width = "160px";
+            
+            // Colores de fondo suaves
             if (name.includes("total ingresos")) td.style.background = "#d8f0d8";
             if (name.includes("total egresos") || name.includes("total gastos")) td.style.background = "#f8d8d8";
-            if (i === idxSEM) { td.style.background = "#f3f3f3"; td.style.fontWeight = "600"; }
+
+            // Estilos especiales SEM y Utilidad
+            if (i === idxSEM) { 
+                td.style.background = "#f3f3f3"; 
+                td.style.fontWeight = "600"; 
+            }
             if (i === idxUtilProd) {
                 td.style.background = num < 0 ? "#f8d8d8" : "#fff9d9";
                 td.style.fontWeight = "600";
@@ -199,8 +189,8 @@ function renderTablaResumen() {
         tablaFlujo.appendChild(tr);
     });
 
-    // ================= TEXTO DINÁMICO JUNTO AL TÍTULO =================
-    const titulo = document.querySelector(".card-tabla h3, .card-tabla h2");
+    // 3. ACTUALIZAR INFO DE SEMANAS (Ganancia vs Pérdida)
+    const titulo = document.querySelector(".card-tabla h3, .card-tabla h2, .card-tabla .tabla-header h3");
     if (titulo) {
         let info = titulo.querySelector(".semanas-info");
         if (!info) {
@@ -215,7 +205,7 @@ function renderTablaResumen() {
         info.textContent = `Semanas en Ganancia: ${semanasGanancia} - Semanas en Pérdida: ${semanasPerdida}`;
     }
 
-    // ================= FILA TOTAL =================
+    // 4. FILA TOTAL (Sticky al final)
     const trTotal = document.createElement("tr");
     trTotal.className = "total";
 
@@ -225,48 +215,37 @@ function renderTablaResumen() {
 
         if (i === 0) {
             td.textContent = "TOTAL";
-            td.style.fontWeight = "700";
         } else {
             const v = totales[c];
             td.textContent = formatoUSD(v);
             td.style.color = colorValor(v);
+            
             if (name.includes("total ingresos")) td.style.background = "#b3e6b3";
             if (name.includes("total egresos") || name.includes("total gastos")) td.style.background = "#f0b3b3";
             if (i === idxUtilProd) {
                 td.style.background = v < 0 ? "#f0b3b3" : "#ffe699";
-                td.style.fontWeight = "700";
                 td.style.fontSize = "15px";
             }
         }
-
-        if (i === idxSEM) {
-            td.style.width = "55px";
-            td.style.background = "#dfdfdf";
-            td.style.fontWeight = "700";
-        }
-        if (i === idxUtilProd) td.style.width = "160px";
-
         trTotal.appendChild(td);
     });
-
     tablaFlujo.appendChild(trTotal);
 
-    // ================= KPIs =================
+    // 5. RESTAURACIÓN DE GRÁFICOS Y KPIs
     let totalIngresos = 0;
-    let totalEgresos = 0;
 
     cols.forEach(c => {
         const v = totales[c] || 0;
         const k = c.toLowerCase();
+        
         if (k.includes("ingresos")) {
             ingresosElem.textContent = formatoUSD(v);
             ingresosElem.style.color = "#1b5e20";
-            totalIngresos = v;
+            totalIngresos = v; // ¡Guardamos este valor para el gráfico!
         }
         if (k.includes("egresos") || k.includes("gastos")) {
             egresosElem.textContent = formatoUSD(v);
             egresosElem.style.color = "#7a1f1f";
-            totalEgresos = v;
         }
         if (k.includes("utilidad")) {
             totalUtilidadElem.textContent = formatoUSD(v);
@@ -274,7 +253,8 @@ function renderTablaResumen() {
         }
     });
 
-    // ================= GASTOS =================
+    // === AQUÍ ESTÁ LA MAGIA QUE FALTABA ===
+    // Llamamos a la función que dibuja las barras pasándole los datos correctos
     renderGastos(totalIngresos, datos, cols);
 }
 

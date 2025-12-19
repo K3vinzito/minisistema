@@ -46,17 +46,30 @@ function actualizarTituloModulo() {
 
 function cargarEmpresas() {
   const data = state.dataModules[state.currentModule] || {};
+
+  const empresas = Object.keys(data).filter(e => e && e !== "GLOBAL");
+
   dom.empresaSelect.innerHTML =
-    ["GLOBAL", ...Object.keys(data)].map(e => `<option value="${e}">${e}</option>`).join("");
+    ["GLOBAL", ...empresas]
+      .map(e => `<option value="${e}">${e}</option>`)
+      .join("");
 }
 
 function cargarHaciendas() {
   const e = dom.empresaSelect.value;
   const data = state.dataModules[state.currentModule] || {};
-  const listaHaciendas = (e !== "GLOBAL" && data[e]) ? Object.keys(data[e]) : [];
+
+  const listaHaciendas =
+    e !== "GLOBAL" && data[e]
+      ? Object.keys(data[e]).filter(h => h && h !== "GLOBAL")
+      : [];
+
   dom.haciendaSelect.innerHTML =
-    ["GLOBAL", ...listaHaciendas].map(h => `<option value="${h}">${h}</option>`).join("");
+    ["GLOBAL", ...listaHaciendas]
+      .map(h => `<option value="${h}">${h}</option>`)
+      .join("");
 }
+
 
 /* ===================== CARGA DE DATOS ===================== */
 

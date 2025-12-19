@@ -159,84 +159,103 @@
 }
 
 /* ================= TABLA FLUJO ================= */
+/* ================= TABLA FLUJO – CORRECCIÓN FINAL (SCROLL X + Y) ================= */
 
-/* === TABLA FLUJO – CORRECCIÓN PROFESIONAL === */
-
-.tabla-flujo {
-  table-layout: fixed;
-  width: 100%;
-}
-
-/* HEADERS */
-.tabla-flujo thead th {
-  white-space: normal;
-  word-break: break-word;
-  line-height: 1.15;
-  font-size: 11px;
-  text-align: center;
-}
-
-/* CELDAS */
-.tabla-flujo td {
-  white-space: normal;          /* 🔑 permite salto */
-  overflow-wrap: anywhere;      /* evita invasión */
-  font-size: 12px;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-/* PRIMERA COLUMNA */
-.tabla-flujo td:first-child,
-.tabla-flujo th:first-child {
-  text-align: center;
-  font-weight: 600;
-}
-
-/* COLUMNAS MONETARIAS IMPORTANTES */
-.tabla-flujo th[data-col="TOTAL INGRESOS"],
-.tabla-flujo td[data-col="TOTAL INGRESOS"],
-.tabla-flujo th[data-col="TOTAL GASTOS"],
-.tabla-flujo td[data-col="TOTAL GASTOS"],
-.tabla-flujo th[data-col="TOTAL FRUTA"],
-.tabla-flujo td[data-col="TOTAL FRUTA"] {
-  min-width: 95px;
-}
-
-/* UTILIDAD */
-.tabla-flujo th[data-col="UTILIDAD PRODUCTIVA"],
-.tabla-flujo td[data-col="UTILIDAD PRODUCTIVA"] {
-  min-width: 130px;
-  font-weight: 700;
-}
-
+/* 1. El contenedor principal (La tarjeta blanca) */
 .card-tabla {
   display: flex;
   flex-direction: column;
-  height: 420px;
+  height: 420px; /* Altura fija necesaria para que exista el scroll vertical */
   border-radius: 16px;
   background-color: #fff;
   padding: 10px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  overflow: hidden; /* Importante: evita que la tabla rompa la tarjeta */
 }
 
+/* 2. El área que hace scroll (La ventana mágica) */
 .tabla-scroll {
-  overflow-y: auto;
-  height: 100%;
+  flex: 1;           /* Ocupa todo el espacio disponible en la tarjeta */
+  overflow: auto;    /* 🔑 CLAVE: Activa barras de scroll horizontal Y vertical automáticamente */
+  width: 100%;       /* Ancho total disponible */
+  position: relative; /* Necesario para que lo 'sticky' funcione */
+}
+
+/* 3. La tabla en sí */
+.tabla-flujo {
+  width: max-content; /* 🔑 CLAVE: Fuerza a la tabla a tomar el ancho real de sus columnas, no apretarse */
+  border-collapse: separate; /* Mejor para sticky headers/footers */
+  border-spacing: 0;
+  zoom: 0.84; /* Reduce la tabla al 85% de su tamaño real */
+}
+
+/* 4. Estilo de los encabezados (Sticky Arriba) */
+.tabla-flujo thead th {
+  position: sticky;
+  top: 0;
+  z-index: 20; /* Capa superior */
+  background: #f2f2f2; /* Color de fondo para tapar lo que pasa por debajo */
+  white-space: normal;
+  font-size: 11px;
+  padding: 8px 4px;
+  border-bottom: 1px solid #ccc;
+  border-right: 1px solid #ddd;
+}
+
+/* 5. Estilo de las celdas normales */
+.tabla-flujo td {
+  white-space: nowrap; /* Mantiene los números en una línea */
+  font-size: 12px;
+  padding: 6px 8px;
+  border-bottom: 1px solid #eee;
+  border-right: 1px solid #eee;
+}
+
+/* 6. PRIMERA COLUMNA (Sticky a la Izquierda - Opcional pero recomendado) */
+/* Si quieres que la columna "SEM" se quede fija al hacer scroll a la derecha, descomenta esto: */
+/* ================= CORRECCIÓN ESQUINA INMÓVIL ================= */
+
+/* 1. PRIMERA COLUMNA (SEM) - Fija a la izquierda */
+.tabla-flujo td:first-child,
+.tabla-flujo th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 10; /* Nivel 1: Por encima de las celdas normales */
+  background: #ffffff; /* Fondo blanco para tapar lo que pasa por debajo */
+  border-right: 2px solid #ddd; /* Borde para separar visualmente */
+}
+
+/* Header específico de SEM (Arriba a la izquierda) */
+.tabla-flujo th:first-child {
+  z-index: 30; /* Nivel 3: Para que tape a la columna cuando haces scroll vertical */
+  background: #f2f2f2;
 }
 
 
-
-/* ===== FILA TOTAL ===== */
+/* 2. FILA TOTAL - Fija abajo */
 .tabla-flujo tr.total td {
   position: sticky;
   bottom: 0;
-  z-index: 9;
+  z-index: 20; /* Nivel 2: Por encima de la columna SEM normal */
   background: #e1e1e1;
-  box-shadow: 0 -1px 0 #bbb;
   font-weight: 700;
+  border-top: 1px solid #999;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
 }
 
 
+/* 3. LA MAGIA: LA ESQUINA INFERIOR IZQUIERDA (Donde dice "TOTAL") */
+/* Esta celda es la intersección, debe ser la REINA de las capas */
+.tabla-flujo tr.total td:first-child {
+  position: sticky;
+  left: 0;      /* Fija a la izquierda */
+  bottom: 0;    /* Fija abajo */
+  z-index: 50;  /* Nivel MÁXIMO: Encima de todo */
+  
+  background: #dfdfdf; /* Un gris un pelín más oscuro para destacar la esquina */
+  border-right: 2px solid #999; /* Continuidad del borde de la columna */
+  border-top: 1px solid #999;   /* Continuidad del borde de la fila */
+}
 
 
 /* ================= ACCIONES TABLA ================= */
@@ -301,4 +320,43 @@
   background: none;
   cursor: pointer;
   font-size: 18px;
+}
+/* ================= EFECTO LUPA (ZOOM) EN CELDAS ================= */
+
+/* Cuando pasas el mouse por encima de CUALQUIER celda de datos */
+.tabla-flujo td:hover {
+  /* 1. EL TRUCO DEL TAMAÑO */
+  transform: scale(2); /* Aumenta al doble de tamaño (200%) */
+  transform-origin: center; /* Crece desde el centro */
+  
+  /* 2. SUPERPOSICIÓN (Importante para que no la tapen las vecinas) */
+  position: relative;
+  z-index: 1000; /* Prioridad máxima, encima de todo */
+  
+  /* 3. MEJORA VISUAL INSTANTÁNEA */
+  background-color: #ffffff; /* Fondo blanco puro */
+  box-shadow: 0 15px 30px rgba(0,0,0,0.4); /* Sombra fuerte para efecto 3D */
+  border: 1px solid #333; /* Borde oscuro para resaltar */
+  border-radius: 4px; /* Bordes un poco redondeados */
+  
+  /* 4. TEXTO LEGIBLE */
+  color: #000 !important; /* Texto negro fuerte */
+  font-weight: bold; /* Negrita */
+  font-size: 12px; /* Recuperamos un tamaño decente */
+  letter-spacing: normal; /* Quitamos el espaciado apretado */
+  text-align: center;
+  
+  /* 5. DETALLES DE UX */
+  cursor: crosshair; /* Cambia el cursor para indicar precisión */
+  min-width: 80px; /* Asegura que el número se vea entero */
+  
+  /* Animación súper rápida pero suave */
+  transition: transform 0.1s ease-out, box-shadow 0.1s ease;
+}
+
+/* Evitar que el efecto lupa rompa la primera columna fija (SEM) */
+.tabla-flujo td:first-child:hover {
+  transform: scale(1.5); /* La semana crece un poco menos */
+  z-index: 1001;
+  text-align: center;
 }
