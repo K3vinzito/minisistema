@@ -56,3 +56,4 @@ export function hideLoader(modulo) {
     moduloCargado[modulo] = true;
   }, 350);
 }
+

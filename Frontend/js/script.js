@@ -1,13 +1,19 @@
+
 /* ================================================================
    MINI SISTEMA AGRÍCOLA — SCRIPT PRINCIPAL (CORREGIDO)
 ================================================================ */
 const API_BASE = "https://minisistema-production.up.railway.app";
+let cssResumen = null;
 
 import { state, dom, num, showLoader, hideLoader } from "./core.js";
 import { cargarDetallesProduccion } from "./produccion.js";
 import { cargarDetallesGastos } from "./gastos.js";
+import { cargarResumen } from "./resumen/resumen.js";
+
 
 /* ===================== CONSTANTES ===================== */
+export const MODULOS_SIN_SELECTORES = ["Resumen"];
+
 
 const HECTAREAS = {
   PORVENIR: 94, ESPERANZA: 36, "EL CISNE": 13, VAQUERIA: 61.4,
@@ -312,11 +318,39 @@ dom.moduloBtns.forEach(btn => {
     if (nombreBoton.includes("PRODUCCIÓN")) state.currentModule = "Producción";
     else if (nombreBoton.includes("GASTOS")) state.currentModule = "Gastos";
     else if (nombreBoton.includes("LIQUIDACIONES")) state.currentModule = "Liquidaciones";
+        else if (nombreBoton.includes("RESUMEN")) state.currentModule = "Resumen";
+        
     else state.currentModule = nombreBoton;
     
     dom.empresaSelect.innerHTML = "";
     dom.haciendaSelect.innerHTML = "";
-    cargarDatosModulo(state.currentModule);
+   if (state.currentModule === "Resumen") {
+  // Ocultar UI normal
+  document.querySelector(".selectores").style.display = "none";
+  dom.kpisContainer.style.display = "none";
+  document.querySelector(".zona-superior").style.display = "none";
+  document.querySelector(".zona-inferior").style.display = "none";
+
+  // Activar CSS resumen
+  cssResumen.disabled = false;
+
+  // Mostrar resumen
+  document.getElementById("modulo-resumen").style.display = "flex";
+  dom.tituloPrincipal.innerText = "RESUMEN GENERAL";
+   cargarResumen();
+  return;
+}
+
+// === salir del resumen ===
+cssResumen.disabled = true;
+document.getElementById("modulo-resumen").style.display = "none";
+document.querySelector(".selectores").style.display = "flex";
+dom.kpisContainer.style.display = "flex";
+document.querySelector(".zona-superior").style.display = "grid";
+document.querySelector(".zona-inferior").style.display = "flex";
+
+cargarDatosModulo(state.currentModule);
+
   };
 });
 
@@ -324,4 +358,13 @@ dom.empresaSelect.onchange = () => { cargarHaciendas(); refrescarUI(); };
 dom.haciendaSelect.onchange = () => { actualizarKPIs(); renderTabla(); renderGrafico(); };
 
 /* ===================== INICIO ===================== */
+// Restaurar UI normal
+document.getElementById("modulo-resumen").style.display = "none";
+document.querySelector(".selectores").style.display = "flex";
+dom.kpisContainer.style.display = "flex";
+document.querySelector(".zona-superior").style.display = "grid";
+document.querySelector(".zona-inferior").style.display = "flex";
+cssResumen = document.getElementById("css-resumen");
+if (cssResumen) cssResumen.disabled = true;
+
 cargarDatosModulo(state.currentModule);

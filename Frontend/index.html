@@ -1,19 +1,23 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="utf-8">
   <title>Minisistema</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    
-    <link rel="stylesheet" href="styles.css">
-    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous"> -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link id="css-resumen" rel="stylesheet" href="js/resumen/resumen.css" disabled>
+  <link id="css-resumen-print" rel="stylesheet" href="js/resumen/resumen.print.css" media="print" disabled>
+
+  <link rel="stylesheet" href="styles.css">
+  <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous"> -->
   <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script> -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  </head>
-  <body>
-    <div class="contenedor-principal">
+</head>
+
+<body>
+  <div class="contenedor-principal">
 
     <!-- Loader -->
     <div id="loader" class="loader-overlay">
@@ -28,16 +32,16 @@
       <!-- Sidebar -->
       <aside class="sidebar">
         <div class="brand">
-  <span class="brand-title">𒆙 MINISISTEMA</span><br>
-   <span class="brand-subtitle">___________________________</span><br>
-  <span class="brand-subtitle">Usuario:   Administrador</span><br>
-  <span class="brand-subtitle">Desarrollador:®  𝄃𝄃𝄂𝄂𝄀𝄁𝄃𝄂𝄂𝄃</span>
-</div>
+          <span class="brand-title">𒆙 MINISISTEMA</span><br>
+          <span class="brand-subtitle">___________________________</span><br>
+          <span class="brand-subtitle">Usuario: Administrador</span><br>
+          <span class="brand-subtitle">Desarrollador:® 𝄃𝄃𝄂𝄂𝄀𝄁𝄃𝄂𝄂𝄃</span>
+        </div>
         <nav class="menu">
           <a class="menu-item active" data-modulo="produccion">PRODUCCIÓN</a>
           <a class="menu-item" data-modulo="gastos">GASTOS</a>
           <a class="menu-item" data-modulo="liquidaciones">💰 LIQUIDACIONES</a>
-          <a class="menu-item" data-modulo="cxc">CUENTAS POR COBRAR</a>
+          <a class="menu-item" data-modulo="resumen">🗃️ RESUMEN</a>
         </nav>
       </aside>
 
@@ -54,10 +58,98 @@
         </div>
 
         <!-- Contenido -->
-        <div id="contenido" class="contenido-principal" style="display:none; flex-direction:column; gap:24px; height:100%;">
+        <div id="contenido" class="contenido-principal"
+          style="display:none; flex-direction:column; gap:24px; height:100%;">
 
           <!-- Header -->
-          <header class="header"><h1 id="titulo">PRODUCCIÓN</h1></header>
+          <header class="header">
+            <h1 id="titulo">PRODUCCIÓN</h1>
+          </header>
+          
+<!-- Modulo resumen -->
+          <section id="modulo-resumen" class="modulo-resumen" data-vista="resumen" style="display:none;">
+
+            <!-- SELECTORES -->
+            <div class="selectores-resumen">
+              <div class="selector-item">
+                <label>Empresa:</label>
+                <select id="resumenEmpresaSelect"></select>
+              </div>
+              <div class="selector-item">
+                <label>Hacienda:</label>
+                <select id="resumenHaciendaSelect"></select>
+              </div>
+            </div>
+
+            <!-- TOP BI -->
+            <div class="resumen-top resumen-flex">
+
+              <!-- CONSOLIDADO -->
+              <div class="card card-saldo">
+
+                <!-- KPIs -->
+                <div class="kpis-wrapper">
+                  <h3>📈 Consolidado de Flujo Productivo</h3>
+
+                  <div class="saldo-principal">
+                    <span>Total Utilidad</span>
+                    <strong>$0.00</strong>
+                  </div>
+
+                  <div class="saldo-detalle">
+                    <div>
+                      <small>Ingresos</small>
+                      <span>$0.00</span>
+                    </div>
+                    <div>
+                      <small>Egresos</small>
+                      <span>$0.00</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- GASTOS BI -->
+                <div class="gastos-lista">
+                  <!-- JS inyecta barras -->
+                </div>
+
+              </div>
+
+              <!-- CARTERA -->
+              <div class="card card-actividad">
+                <h3>⎙ Cartera Fruta por Cobrar</h3>
+                <!-- futuro BI -->
+              </div>
+
+            </div>
+
+            <!-- TABLA BI -->
+            <div class="card card-tabla">
+
+              <div class="tabla-header">
+                <h3>▤ Flujo Detallado</h3>
+
+                <div class="acciones-tabla">
+                  <button onclick="mostrarGraficoFlujo()">📊 Ver gráfico</button>
+                  <button onclick="imprimirFlujoDetallado()">🖨 Imprimir</button>
+                </div>
+              </div>
+
+              <div class="tabla-scroll">
+                <table class="tabla-flujo">
+                  <thead>
+                    <tr id="thead-flujo"></tr>
+                  </thead>
+                  <tbody id="tbody-flujo"></tbody>
+                </table>
+              </div>
+
+            </div>
+
+          </section>
+
+
+
 
           <!-- Selectores -->
           <div class="selectores">
@@ -69,11 +161,21 @@
 
           <!-- KPIs -->
           <div class="kpis">
-            <div class="kpi"><h4>KPI 1</h4><span id="kpi1">0</span></div>
-            <div class="kpi"><h4>KPI 2</h4><span id="kpi2">0</span></div>
-            <div class="kpi"><h4>KPI 3</h4><span id="kpi3">0</span></div>
-            <div class="kpi"><h4>KPI 4</h4><span id="kpi4">0</span></div>
-            <div class="kpi"><h4>KPI 5</h4><span id="kpi5">0</span></div>
+            <div class="kpi">
+              <h4>KPI 1</h4><span id="kpi1">0</span>
+            </div>
+            <div class="kpi">
+              <h4>KPI 2</h4><span id="kpi2">0</span>
+            </div>
+            <div class="kpi">
+              <h4>KPI 3</h4><span id="kpi3">0</span>
+            </div>
+            <div class="kpi">
+              <h4>KPI 4</h4><span id="kpi4">0</span>
+            </div>
+            <div class="kpi">
+              <h4>KPI 5</h4><span id="kpi5">0</span>
+            </div>
           </div>
 
           <!-- Zona superior: tablas y detalles -->
@@ -82,7 +184,9 @@
               <div class="titulo-tabla" id="titulo-tabla">TABLA PRINCIPAL</div>
               <div class="tabla-scroll">
                 <table class="tabla-produccion">
-                  <thead><tr id="theadTabla"></tr></thead>
+                  <thead>
+                    <tr id="theadTabla"></tr>
+                  </thead>
                   <tbody id="tablaBody"></tbody>
                 </table>
               </div>
@@ -120,11 +224,12 @@
     </div>
   </div>
 
-<script src="js/core.js" type="module"></script>
-<script src="js/gastos.js" type="module"></script>
-<script src="js/produccion.js" type="module"></script>
-<script src="js/liquidaciones.js" type="module"></script>
-<script src="js/script.js" type="module"></script>
+  <script src="js/core.js" type="module"></script>
+  <script src="js/gastos.js" type="module"></script>
+  <script src="js/produccion.js" type="module"></script>
+  <script src="js/liquidaciones.js" type="module"></script>
+  <script src="js/script.js" type="module"></script>
+  <script src="js/resumen/resumen.js"></script>
 
 
   <script>
@@ -137,13 +242,14 @@
     const loginError = document.getElementById('loginError');
 
     btnLogin.addEventListener('click', () => {
-      if(usuarioInput.value.trim()==="Administrador" && passwordInput.value.trim()==="123"){
-        loginBox.style.display='none';
-        contenido.style.display='flex';
-      } else loginError.textContent="⚠︎ Usuario o contraseña incorrectos";
+      if (usuarioInput.value.trim() === "Administrador" && passwordInput.value.trim() === "123") {
+        loginBox.style.display = 'none';
+        contenido.style.display = 'flex';
+      } else loginError.textContent = "⚠︎ Usuario o contraseña incorrectos";
     });
 
-    [usuarioInput,passwordInput].forEach(i=>i.addEventListener('keyup',e=>{if(e.key==="Enter") btnLogin.click();}));
+    [usuarioInput, passwordInput].forEach(i => i.addEventListener('keyup', e => { if (e.key === "Enter") btnLogin.click(); }));
   </script>
 </body>
+
 </html>

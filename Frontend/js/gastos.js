@@ -53,3 +53,4 @@ export async function cargarDetallesGastos(semana, rubro) {
       `<tr><td colspan="3">Error al cargar detalles</td></tr>`;
   }
 }
+
