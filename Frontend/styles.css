@@ -49,6 +49,8 @@ body {
 
 /* ================= SIDEBAR ================= */
 .sidebar {
+      position: relative; /* CLAVE para ubicar el botón dentro del sidebar */
+
     width: 230px;
     padding: 26px 20px;
     background: rgba(255,255,255,0.4);
@@ -72,6 +74,10 @@ body {
 }
 
 .brand {
+    position: relative;
+      margin-top: 46px;  /* baja todo el bloque del título para dejar espacio al ☰ */
+
+  padding-top: 0px; /* espacio para el botón ☰ */
     padding-left: 4px;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
 }
@@ -121,8 +127,8 @@ body {
 
 .menu-item[data-modulo="produccion"]::before { content:"📊"; }
 .menu-item[data-modulo="gastos"]::before { content:"💼"; }
-.menu-item[data-modulo="rrhh"]::before { content:"👥"; }
-.menu-item[data-modulo="cxc"]::before { content:"📄"; }
+.menu-item[data-modulo="liquidaciones"]::before { content:"💰"; }
+.menu-item[data-modulo="resumen"]::before { content:"🗃️"; }
 
 .menu-item.active::after {
     content: "";
@@ -644,4 +650,99 @@ canvas {
             font-weight: 500;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             width: 100%;
+}
+
+/* ================= SIDEBAR COLLAPSE ================= */
+/* ===== SIDEBAR COLLAPSE REAL ===== */
+.sidebar{ transition: width 0.25s ease; }
+
+.sidebar.min{
+  width: 70px;
+  padding: 18px 10px;
+}
+
+.sidebar.min .brand{
+  display:none;
+}
+
+.sidebar.min .menu{
+  gap: 10px;
+  align-items:center;
+}
+
+/* El item se vuelve un botón cuadrado centrado */
+.sidebar.min .menu-item{
+  justify-content:center;
+  padding: 12px 0;
+  font-size: 0;              /* 🔴 OCULTA TEXTO REAL */
+  width: 100%;
+  border-radius: 12px;
+}
+
+/* Solo queda el icono */
+.sidebar.min .menu-item::before{
+  font-size: 20px;
+}
+
+/* Ajuste del “activo” para que no se vea raro */
+.sidebar.min .menu-item.active::after{
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+/* Botón ☰ por defecto (desktop / sidebar abierto) */
+.sidebar-toggle{
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10001;
+
+  width: 36px;
+  height: 36px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 6px 16px rgba(0,0,0,.20);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  font-size: 18px;
+}
+
+.sidebar.min .menu{
+  margin-top: 70px; /* antes tenías 46px, súbelo para que respiren */
+  gap: 14px;
+  align-items: center;
+}
+
+
+/* En móvil cuando sidebar está CERRADO -> mover ☰ al main (esquina) */
+@media (max-width: 768px){
+  .sidebar:not(.mobile-open) .sidebar-toggle{
+    position: fixed;
+    top: 18px;
+    left: 18px;
+    right: auto;
+  }
+
+  /* En móvil cuando sidebar está ABIERTO -> que quede arriba derecha del sidebar */
+  .sidebar.mobile-open .sidebar-toggle{
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    left: auto;
+  }
+}
+
+/* ===== SIDEBAR OVERLAY BASE ===== */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 9997;
 }

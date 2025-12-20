@@ -183,7 +183,7 @@
   width: max-content; /* 🔑 CLAVE: Fuerza a la tabla a tomar el ancho real de sus columnas, no apretarse */
   border-collapse: separate; /* Mejor para sticky headers/footers */
   border-spacing: 0;
-  zoom: 0.84; /* Reduce la tabla al 85% de su tamaño real */
+  zoom: 0.92; /* Reduce la tabla al 85% de su tamaño real */
 }
 
 /* 4. Estilo de los encabezados (Sticky Arriba) */
@@ -582,4 +582,32 @@
   height: 600px;
   display: block;
   margin: 0 auto;
+}
+/* Estado normal (positivo) */
+.barrita-imagen {
+  transform: rotate(0deg);
+  filter: none;
+}
+
+/* Estado negativo */
+.barrita-negativa {
+  transform: rotate(180deg);
+  filter: hue-rotate(140deg) saturate(1.2);
+}
+
+@media (max-width: 768px) {
+
+  .card-tabla {
+    height: auto;
+  }
+
+  .tabla-flujo {
+    zoom: 0.75;
+  }
+
+  .tabla-scroll {
+    overflow-x: auto;
+    overflow-y: auto;
+  }
+
 }

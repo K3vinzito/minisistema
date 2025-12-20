@@ -283,10 +283,21 @@ function renderTablaResumen() {
       egresosElem.textContent = formatoUSD(v);
       egresosElem.style.color = "#7a1f1f";
     }
-    if (c === COL.UTILIDAD) {
-      totalUtilidadElem.textContent = formatoUSD(v);
-      totalUtilidadElem.style.color = colorValor(v);
+   if (c === COL.UTILIDAD) {
+  totalUtilidadElem.textContent = formatoUSD(v);
+  totalUtilidadElem.style.color = colorValor(v);
+
+  // ===== BAR RITA SEGÚN UTILIDAD =====
+  const barrita = document.querySelector(".barrita-imagen");
+  if (barrita) {
+    if (v < 0) {
+      barrita.classList.add("barrita-negativa");
+    } else {
+      barrita.classList.remove("barrita-negativa");
     }
+  }
+}
+
   });
 
   renderGastos(totalIngresos, datos, cols);

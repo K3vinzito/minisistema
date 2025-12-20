@@ -23,8 +23,8 @@ export const dom = {
   tituloPrincipal: document.getElementById("titulo"),
   tabsContainer: document.querySelector(".tabs"),
   kpisContainer: document.querySelector(".kpis"),
-  tablaDetalle: document.getElementById("tablaDetalle"),
-  panelDetalles: document.getElementById("panel-detalles"),
+  tablaDetalle: document.getElementById("tablaDetalle") || null,
+  panelDetalles: document.getElementById("panel-detalles") || null,
   loader: document.getElementById("loader")
 };
 

@@ -37,12 +37,18 @@ const MAPA_RUBROS_GASTOS = {
 /* ===================== FUNCIONES DE APOYO ===================== */
 
 function actualizarTituloModulo() {
+  if (state.currentModule === "Resumen") {
+    dom.tituloPrincipal.innerText = "RESUMEN EJECUTIVO";
+    return;
+  }
+
   dom.tituloPrincipal.innerText =
     state.currentModule === "Producción" ? "PRODUCCIÓN AGRÍCOLA" :
-      state.currentModule === "Gastos" ? "CONTROL DE GASTOS" :
-        state.currentModule === "Liquidaciones" ? "LIQUIDACIONES COMERCIALES" :
-          state.currentModule;
+    state.currentModule === "Gastos" ? "CONTROL DE GASTOS" :
+    state.currentModule === "Liquidaciones" ? "LIQUIDACIONES COMERCIALES" :
+    state.currentModule;
 }
+
 
 function cargarEmpresas() {
   const data = state.dataModules[state.currentModule] || {};
@@ -113,10 +119,18 @@ async function cargarDatosModulo(modulo) {
 
 function refrescarUI() {
   actualizarTituloModulo();
+
+  // 🔴 SI ES RESUMEN, NO EJECUTAR UI GLOBAL
+  if (state.currentModule === "Resumen") {
+    ajustarLayoutPorModulo();
+    return;
+  }
+
   if (dom.empresaSelect.options.length <= 1) {
     cargarEmpresas();
     dom.empresaSelect.value = "GLOBAL";
   }
+
   cargarHaciendas();
   actualizarKPIs();
   renderTabla();
@@ -197,6 +211,7 @@ function renderTabla() {
 //============== GRAFICO ============================ //
 
 function renderGrafico(tipo = state.tipoGrafico) {
+  if (state.currentModule === "Resumen") return;
   const headers = state.headersModules[state.currentModule] || [];
   if (!state.datosFiltrados.length || headers.length < 4) return;
 
@@ -307,20 +322,83 @@ function renderGrafico(tipo = state.tipoGrafico) {
 }
 
 function ajustarLayoutPorModulo() {
-  const zona = document.querySelector(".zona-superior");
-  if (MODULOS_CON_DETALLES.includes(state.currentModule)) {
-    zona.classList.remove("sin-detalles");
-    dom.panelDetalles.style.display = "flex";
+  const esResumen = state.currentModule === "Resumen";
+
+  // ===== 1) VISTA GLOBAL (selectores, KPIs, tablas, gráfico) =====
+  const selectores = document.querySelector(".selectores");
+  const kpis = document.querySelector(".kpis");
+  const zonaSuperior = document.querySelector(".zona-superior");
+  const zonaInferior = document.querySelector(".zona-inferior");
+
+  if (selectores) selectores.style.display = esResumen ? "none" : "flex";
+  if (kpis) kpis.style.display = esResumen ? "none" : "flex";
+  if (zonaSuperior) zonaSuperior.style.display = esResumen ? "none" : "grid";
+  if (zonaInferior) zonaInferior.style.display = esResumen ? "none" : "flex";
+
+  // ===== 2) PANEL DETALLES (solo para Producción y Gastos) =====
+  if (!esResumen) {
+    const zona = document.querySelector(".zona-superior");
+    if (zona) {
+      if (MODULOS_CON_DETALLES.includes(state.currentModule)) {
+        zona.classList.remove("sin-detalles");
+        if (dom.panelDetalles) dom.panelDetalles.style.display = "flex";
+      } else {
+        zona.classList.add("sin-detalles");
+        if (dom.panelDetalles) dom.panelDetalles.style.display = "none";
+      }
+    }
   } else {
-    zona.classList.add("sin-detalles");
-    dom.panelDetalles.style.display = "none";
+    // En Resumen, no existe sentido para detalles
+    if (dom.panelDetalles) dom.panelDetalles.style.display = "none";
+  }
+
+  // ===== 3) MÓDULO RESUMEN (se muestra solo aquí) =====
+  const resumen = document.getElementById("modulo-resumen");
+  if (resumen) resumen.style.display = esResumen ? "flex" : "none";
+
+  // ===== 4) CSS DEL RESUMEN (tú lo tienes en index.html con disabled) =====
+  const cssResumen = document.getElementById("css-resumen");
+  const cssResumenPrint = document.getElementById("css-resumen-print");
+  if (cssResumen) cssResumen.disabled = !esResumen;
+  if (cssResumenPrint) cssResumenPrint.disabled = !esResumen;
+}
+
+function toggleSidebar() {
+  const sidebar = document.querySelector(".sidebar");
+
+  if (window.innerWidth <= 768) {
+    // 📱 MÓVIL: mostrar / ocultar
+    sidebar.classList.toggle("mobile-open");
+  } else {
+    // 💻 DESKTOP: colapsar
+    sidebar.classList.toggle("min");
   }
 }
+
+const sidebarToggleBtn = document.querySelector(".sidebar-toggle");
+if (sidebarToggleBtn) {
+  sidebarToggleBtn.addEventListener("click", toggleSidebar);
+}
+
+// ====== Toggle sidebar (click en botón y overlay) ======
+const btnToggle = document.querySelector(".sidebar-toggle");
+const overlay = document.querySelector(".sidebar-overlay");
+
+btnToggle?.addEventListener("click", toggleSidebar);
+overlay?.addEventListener("click", () => {
+  document.querySelector(".sidebar")?.classList.remove("mobile-open");
+});
+
 
 /* ===================== EVENTOS ===================== */
 
 dom.moduloBtns.forEach(btn => {
   btn.onclick = () => {
+
+    if (window.innerWidth <= 768) {
+  document.querySelector(".sidebar")?.classList.remove("mobile-open");
+}
+
     dom.moduloBtns.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 
@@ -334,32 +412,15 @@ dom.moduloBtns.forEach(btn => {
 
     dom.empresaSelect.innerHTML = "";
     dom.haciendaSelect.innerHTML = "";
-    if (state.currentModule === "Resumen") {
-      // Ocultar UI normal
-      document.querySelector(".selectores").style.display = "none";
-      dom.kpisContainer.style.display = "none";
-      document.querySelector(".zona-superior").style.display = "none";
-      document.querySelector(".zona-inferior").style.display = "none";
+    actualizarTituloModulo(); 
+  if (state.currentModule === "Resumen") {
+  cargarResumen();
+} else {
+  cargarDatosModulo(state.currentModule);
+}
 
-      // Activar CSS resumen
-      cssResumen.disabled = false;
+ajustarLayoutPorModulo();
 
-      // Mostrar resumen
-      document.getElementById("modulo-resumen").style.display = "flex";
-      dom.tituloPrincipal.innerText = "RESUMEN GENERAL";
-      cargarResumen();
-      return;
-    }
-
-    // === salir del resumen ===
-    cssResumen.disabled = true;
-    document.getElementById("modulo-resumen").style.display = "none";
-    document.querySelector(".selectores").style.display = "flex";
-    dom.kpisContainer.style.display = "flex";
-    document.querySelector(".zona-superior").style.display = "grid";
-    document.querySelector(".zona-inferior").style.display = "flex";
-
-    cargarDatosModulo(state.currentModule);
 
   };
 });
