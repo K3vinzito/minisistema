@@ -91,8 +91,6 @@
   display: flex; 
   gap: 6px; 
   margin-right: 12px;
-  
-  /* Agrega esto para que el cambio de color no sea brusco */
   transition: background 0.2s ease, border-color 0.2s ease;
 }
 .card button:hover {
@@ -159,7 +157,6 @@
 }
 
 /* ================= TABLA FLUJO ================= */
-/* ================= TABLA FLUJO – CORRECCIÓN FINAL (SCROLL X + Y) ================= */
 
 /* 1. El contenedor principal (La tarjeta blanca) */
 .card-tabla {
@@ -211,8 +208,6 @@
   border-right: 1px solid #eee;
 }
 
-/* 6. PRIMERA COLUMNA (Sticky a la Izquierda - Opcional pero recomendado) */
-/* Si quieres que la columna "SEM" se quede fija al hacer scroll a la derecha, descomenta esto: */
 /* ================= CORRECCIÓN ESQUINA INMÓVIL ================= */
 
 /* 1. PRIMERA COLUMNA (SEM) - Fija a la izquierda */
@@ -244,8 +239,6 @@
 }
 
 
-/* 3. LA MAGIA: LA ESQUINA INFERIOR IZQUIERDA (Donde dice "TOTAL") */
-/* Esta celda es la intersección, debe ser la REINA de las capas */
 .tabla-flujo tr.total td:first-child {
   position: sticky;
   left: 0;      /* Fija a la izquierda */
@@ -323,38 +316,30 @@
 }
 /* ================= EFECTO LUPA (ZOOM) EN CELDAS ================= */
 
-/* Cuando pasas el mouse por encima de CUALQUIER celda de datos */
 .tabla-flujo td:hover {
-  /* 1. EL TRUCO DEL TAMAÑO */
   transform: scale(2); /* Aumenta al doble de tamaño (200%) */
   transform-origin: center; /* Crece desde el centro */
   
-  /* 2. SUPERPOSICIÓN (Importante para que no la tapen las vecinas) */
   position: relative;
   z-index: 1000; /* Prioridad máxima, encima de todo */
   
-  /* 3. MEJORA VISUAL INSTANTÁNEA */
   background-color: #ffffff; /* Fondo blanco puro */
   box-shadow: 0 15px 30px rgba(0,0,0,0.4); /* Sombra fuerte para efecto 3D */
   border: 1px solid #333; /* Borde oscuro para resaltar */
   border-radius: 4px; /* Bordes un poco redondeados */
   
-  /* 4. TEXTO LEGIBLE */
   color: #000 !important; /* Texto negro fuerte */
   font-weight: bold; /* Negrita */
   font-size: 12px; /* Recuperamos un tamaño decente */
   letter-spacing: normal; /* Quitamos el espaciado apretado */
   text-align: center;
   
-  /* 5. DETALLES DE UX */
   cursor: crosshair; /* Cambia el cursor para indicar precisión */
   min-width: 80px; /* Asegura que el número se vea entero */
   
-  /* Animación súper rápida pero suave */
   transition: transform 0.1s ease-out, box-shadow 0.1s ease;
 }
 
-/* Evitar que el efecto lupa rompa la primera columna fija (SEM) */
 .tabla-flujo td:first-child:hover {
   transform: scale(1.5); /* La semana crece un poco menos */
   z-index: 1001;
@@ -589,4 +574,12 @@
   width: px;
   height: auto;
   object-fit: contain;
+}
+/* ================= GRÁFICO FLUJO ================= */
+
+#graficoFlujo {
+  width: 70%;
+  height: 600px;
+  display: block;
+  margin: 0 auto;
 }

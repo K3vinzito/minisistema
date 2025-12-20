@@ -39,9 +39,9 @@ const MAPA_RUBROS_GASTOS = {
 function actualizarTituloModulo() {
   dom.tituloPrincipal.innerText =
     state.currentModule === "Producción" ? "PRODUCCIÓN AGRÍCOLA" :
-    state.currentModule === "Gastos" ? "CONTROL DE GASTOS" :
-    state.currentModule === "Liquidaciones" ? "LIQUIDACIONES COMERCIALES" :
-    state.currentModule;
+      state.currentModule === "Gastos" ? "CONTROL DE GASTOS" :
+        state.currentModule === "Liquidaciones" ? "LIQUIDACIONES COMERCIALES" :
+          state.currentModule;
 }
 
 function cargarEmpresas() {
@@ -80,7 +80,7 @@ async function cargarDatosModulo(modulo) {
     const csv = await res.text();
     const parsed = Papa.parse(csv.trim(), { skipEmptyLines: true });
     const lines = parsed.data;
-    
+
     if (!lines.length) return;
 
     const headers = lines[0];
@@ -215,10 +215,8 @@ function renderGrafico(tipo = state.tipoGrafico) {
     // Caso RATIO: Escala decimal muy fina
     yMin = Math.max(0, minReal - 0.1);
     yMax = maxReal + 0.1;
-  } 
+  }
   else if (maxReal <= 50) {
-    // Caso PRECIO: Valores bajos de Liquidaciones (ej: $7 - $10)
-    // Redondeamos al entero más cercano para dar "Zoom" como en la versión vieja
     yMin = Math.floor(minReal) - 1;
     yMax = Math.ceil(maxReal) + 1;
   }
@@ -247,24 +245,24 @@ function renderGrafico(tipo = state.tipoGrafico) {
   state.chart = new Chart(ctx, {
     type: "line",
     plugins: [ChartDataLabels],
-    data: { 
-      labels, 
-      datasets: [{ 
-        label: tipo, 
-        data: valores, 
-        fill: true, 
+    data: {
+      labels,
+      datasets: [{
+        label: tipo,
+        data: valores,
+        fill: true,
         tension: 0.4,
-        borderColor: "rgba(186,2,125,0.4)", 
+        borderColor: "rgba(186,2,125,0.4)",
         backgroundColor: "rgba(186,2,125,0.25)",
-        pointRadius: 4, 
-        pointHoverRadius: 6 
-      }] 
+        pointRadius: 4,
+        pointHoverRadius: 6
+      }]
     },
     options: {
-      responsive: true, 
+      responsive: true,
       maintainAspectRatio: false,
       animation: { duration: 800, easing: 'easeOutQuart' },
-      plugins: { 
+      plugins: {
         legend: { display: false },
         datalabels: {
           anchor: 'end',
@@ -280,20 +278,20 @@ function renderGrafico(tipo = state.tipoGrafico) {
           color: '#484848'
         }
       },
-      scales: { 
-        x: { grid: { display: false } }, 
-        y: { 
-          beginAtZero: false, 
-          min: yMin, 
+      scales: {
+        x: { grid: { display: false } },
+        y: {
+          beginAtZero: false,
+          min: yMin,
           max: yMax,
           ticks: {
             // Formato de moneda para Precio o Ratio, normal para el resto
             callback: (value) => {
-                if (maxReal <= 50) return value.toLocaleString('es-EC', { minimumFractionDigits: 1 });
-                return value.toLocaleString('es-EC');
+              if (maxReal <= 50) return value.toLocaleString('es-EC', { minimumFractionDigits: 1 });
+              return value.toLocaleString('es-EC');
             }
           }
-        } 
+        }
       }
     }
   });
@@ -325,44 +323,43 @@ dom.moduloBtns.forEach(btn => {
   btn.onclick = () => {
     dom.moduloBtns.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-    
-    // CORRECCIÓN AQUÍ: Aseguramos que el nombre coincida con las llaves de sheetURLs
+
     const nombreBoton = btn.innerText.trim();
     if (nombreBoton.includes("PRODUCCIÓN")) state.currentModule = "Producción";
     else if (nombreBoton.includes("GASTOS")) state.currentModule = "Gastos";
     else if (nombreBoton.includes("LIQUIDACIONES")) state.currentModule = "Liquidaciones";
-        else if (nombreBoton.includes("RESUMEN")) state.currentModule = "Resumen";
-        
+    else if (nombreBoton.includes("RESUMEN")) state.currentModule = "Resumen";
+
     else state.currentModule = nombreBoton;
-    
+
     dom.empresaSelect.innerHTML = "";
     dom.haciendaSelect.innerHTML = "";
-   if (state.currentModule === "Resumen") {
-  // Ocultar UI normal
-  document.querySelector(".selectores").style.display = "none";
-  dom.kpisContainer.style.display = "none";
-  document.querySelector(".zona-superior").style.display = "none";
-  document.querySelector(".zona-inferior").style.display = "none";
+    if (state.currentModule === "Resumen") {
+      // Ocultar UI normal
+      document.querySelector(".selectores").style.display = "none";
+      dom.kpisContainer.style.display = "none";
+      document.querySelector(".zona-superior").style.display = "none";
+      document.querySelector(".zona-inferior").style.display = "none";
 
-  // Activar CSS resumen
-  cssResumen.disabled = false;
+      // Activar CSS resumen
+      cssResumen.disabled = false;
 
-  // Mostrar resumen
-  document.getElementById("modulo-resumen").style.display = "flex";
-  dom.tituloPrincipal.innerText = "RESUMEN GENERAL";
-   cargarResumen();
-  return;
-}
+      // Mostrar resumen
+      document.getElementById("modulo-resumen").style.display = "flex";
+      dom.tituloPrincipal.innerText = "RESUMEN GENERAL";
+      cargarResumen();
+      return;
+    }
 
-// === salir del resumen ===
-cssResumen.disabled = true;
-document.getElementById("modulo-resumen").style.display = "none";
-document.querySelector(".selectores").style.display = "flex";
-dom.kpisContainer.style.display = "flex";
-document.querySelector(".zona-superior").style.display = "grid";
-document.querySelector(".zona-inferior").style.display = "flex";
+    // === salir del resumen ===
+    cssResumen.disabled = true;
+    document.getElementById("modulo-resumen").style.display = "none";
+    document.querySelector(".selectores").style.display = "flex";
+    dom.kpisContainer.style.display = "flex";
+    document.querySelector(".zona-superior").style.display = "grid";
+    document.querySelector(".zona-inferior").style.display = "flex";
 
-cargarDatosModulo(state.currentModule);
+    cargarDatosModulo(state.currentModule);
 
   };
 });

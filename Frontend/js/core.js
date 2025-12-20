@@ -38,7 +38,7 @@ const moduloCargado = {
   "Producción": false,
   "Gastos": false,
   "Liquidaciones": false,
-  "Resumen": false   // 👈 NUEVO
+  "Resumen": false   
 };
 
 
