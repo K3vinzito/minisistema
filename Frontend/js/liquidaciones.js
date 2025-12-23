@@ -40,7 +40,6 @@ window.LiquidacionesModule = {
   /* ================= MANEJO DE CLICK ================= */
 
   manejarClickDetalle() {
-    // Si alguien hace click (por error), limpiamos el panel
     const tablaDetalle = document.getElementById("tablaDetalle");
     tablaDetalle.innerHTML = `
       <tr>

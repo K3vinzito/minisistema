@@ -94,8 +94,8 @@
   transition: background 0.2s ease, border-color 0.2s ease;
 }
 .card button:hover {
-  background: #e0e0e0; /* Un gris más oscuro */
-  border-color: #999;   /* Oscurecemos también el borde un poco */
+  background: #e0e0e0; 
+  border-color: #999;   
 }
 /* ================= CONSOLIDADO ================= */
 .card.card-saldo {
@@ -158,40 +158,37 @@
 
 /* ================= TABLA FLUJO ================= */
 
-/* 1. El contenedor principal (La tarjeta blanca) */
 .card-tabla {
   display: flex;
   flex-direction: column;
-  height: 420px; /* Altura fija necesaria para que exista el scroll vertical */
+  height: 420px; 
   border-radius: 16px;
   background-color: #fff;
   padding: 10px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
-  overflow: hidden; /* Importante: evita que la tabla rompa la tarjeta */
+  overflow: hidden; 
 }
 
-/* 2. El área que hace scroll (La ventana mágica) */
 .tabla-scroll {
-  flex: 1;           /* Ocupa todo el espacio disponible en la tarjeta */
-  overflow: auto;    /* 🔑 CLAVE: Activa barras de scroll horizontal Y vertical automáticamente */
-  width: 100%;       /* Ancho total disponible */
-  position: relative; /* Necesario para que lo 'sticky' funcione */
+  flex: 1;           
+  overflow: auto;    
+  width: 100%;       
+  position: relative; 
 }
 
-/* 3. La tabla en sí */
 .tabla-flujo {
-  width: max-content; /* 🔑 CLAVE: Fuerza a la tabla a tomar el ancho real de sus columnas, no apretarse */
-  border-collapse: separate; /* Mejor para sticky headers/footers */
+  width: max-content;
+  border-collapse: separate; 
   border-spacing: 0;
-  zoom: 0.93; /* Reduce la tabla al 85% de su tamaño real */
+  zoom: 0.93; 
 }
 
 /* 4. Estilo de los encabezados (Sticky Arriba) */
 .tabla-flujo thead th {
   position: sticky;
   top: 0;
-  z-index: 20; /* Capa superior */
-  background: #f2f2f2; /* Color de fondo para tapar lo que pasa por debajo */
+  z-index: 20; 
+  background: #f2f2f2; 
   white-space: normal;
   font-size: 11px;
   padding: 8px 4px;
@@ -201,7 +198,7 @@
 
 /* 5. Estilo de las celdas normales */
 .tabla-flujo td {
-  white-space: nowrap; /* Mantiene los números en una línea */
+  white-space: nowrap; 
   font-size: 12px;
   padding: 6px 8px;
   border-bottom: 1px solid #eee;
@@ -215,14 +212,14 @@
 .tabla-flujo th:first-child {
   position: sticky;
   left: 0;
-  z-index: 10; /* Nivel 1: Por encima de las celdas normales */
-  background: #ffffff; /* Fondo blanco para tapar lo que pasa por debajo */
-  border-right: 2px solid #ddd; /* Borde para separar visualmente */
+  z-index: 10; 
+  background: #ffffff; 
+  border-right: 2px solid #ddd; 
 }
 
 /* Header específico de SEM (Arriba a la izquierda) */
 .tabla-flujo th:first-child {
-  z-index: 30; /* Nivel 3: Para que tape a la columna cuando haces scroll vertical */
+  z-index: 30; 
   background: #f2f2f2;
 }
 
@@ -231,7 +228,7 @@
 .tabla-flujo tr.total td {
   position: sticky;
   bottom: 0;
-  z-index: 20; /* Nivel 2: Por encima de la columna SEM normal */
+  z-index: 20; 
   background: #e1e1e1;
   font-weight: 700;
   border-top: 1px solid #999;
@@ -241,13 +238,13 @@
 
 .tabla-flujo tr.total td:first-child {
   position: sticky;
-  left: 0;      /* Fija a la izquierda */
-  bottom: 0;    /* Fija abajo */
-  z-index: 50;  /* Nivel MÁXIMO: Encima de todo */
+  left: 0;      
+  bottom: 0;    
+  z-index: 50;  
   
-  background: #dfdfdf; /* Un gris un pelín más oscuro para destacar la esquina */
-  border-right: 2px solid #999; /* Continuidad del borde de la columna */
-  border-top: 1px solid #999;   /* Continuidad del borde de la fila */
+  background: #dfdfdf; 
+  border-right: 2px solid #999; 
+  border-top: 1px solid #999;   
 }
 
 
@@ -317,31 +314,30 @@
 /* ================= EFECTO LUPA (ZOOM) EN CELDAS ================= */
 
 .tabla-flujo td:hover {
-  transform: scale(2); /* Aumenta al doble de tamaño (200%) */
-  transform-origin: center; /* Crece desde el centro */
-  
+  transform: scale(2); 
+  transform-origin: center; 
   position: relative;
-  z-index: 1000; /* Prioridad máxima, encima de todo */
+  z-index: 1000; 
   
-  background-color: #ffffff; /* Fondo blanco puro */
-  box-shadow: 0 15px 30px rgba(0,0,0,0.4); /* Sombra fuerte para efecto 3D */
-  border: 1px solid #333; /* Borde oscuro para resaltar */
-  border-radius: 4px; /* Bordes un poco redondeados */
+  background-color: #ffffff; 
+  box-shadow: 0 15px 30px rgba(0,0,0,0.4); 
+  border: 1px solid #333; 
+  border-radius: 4px; 
   
-  color: #000 !important; /* Texto negro fuerte */
-  font-weight: bold; /* Negrita */
-  font-size: 12px; /* Recuperamos un tamaño decente */
-  letter-spacing: normal; /* Quitamos el espaciado apretado */
+  color: #000 !important; 
+  font-weight: bold; 
+  font-size: 12px; 
+  letter-spacing: normal; 
   text-align: center;
   
-  cursor: crosshair; /* Cambia el cursor para indicar precisión */
-  min-width: 80px; /* Asegura que el número se vea entero */
+  cursor: crosshair; 
+  min-width: 80px; 
   
   transition: transform 0.1s ease-out, box-shadow 0.1s ease;
 }
 
 .tabla-flujo td:first-child:hover {
-  transform: scale(1.5); /* La semana crece un poco menos */
+  transform: scale(1.5); 
   z-index: 1001;
   text-align: center;
 }

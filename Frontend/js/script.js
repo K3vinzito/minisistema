@@ -414,40 +414,6 @@ overlay?.addEventListener("click", cerrarSidebarMobile);
 
 
 /* ===================== EVENTOS ===================== */
-/*
-dom.moduloBtns.forEach(btn => {
-  btn.onclick = () => {
-
-    if (window.innerWidth <= 768) {
-  document.querySelector(".sidebar")?.classList.remove("mobile-open");
-}
-
-    dom.moduloBtns.forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-
-    const nombreBoton = btn.innerText.trim();
-    if (nombreBoton.includes("PRODUCCIÓN")) state.currentModule = "Producción";
-    else if (nombreBoton.includes("GASTOS")) state.currentModule = "Gastos";
-    else if (nombreBoton.includes("LIQUIDACIONES")) state.currentModule = "Liquidaciones";
-    else if (nombreBoton.includes("RESUMEN")) state.currentModule = "Resumen";
-
-    else state.currentModule = nombreBoton;
-
-    dom.empresaSelect.innerHTML = "";
-    dom.haciendaSelect.innerHTML = "";
-    actualizarTituloModulo(); 
-  if (state.currentModule === "Resumen") {
-  cargarResumen();
-} else {
-  cargarDatosModulo(state.currentModule);
-}
-
-ajustarLayoutPorModulo();
-
-
-  };
-});
-*/
 dom.moduloBtns.forEach(btn => {
   btn.onclick = () => {
 
