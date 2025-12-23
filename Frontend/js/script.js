@@ -352,11 +352,11 @@ function ajustarLayoutPorModulo() {
     if (dom.panelDetalles) dom.panelDetalles.style.display = "none";
   }
 
-  // ===== 3) MÓDULO RESUMEN (se muestra solo aquí) =====
+  // ===== 3) MÓDULO RESUMEN =====
   const resumen = document.getElementById("modulo-resumen");
   if (resumen) resumen.style.display = esResumen ? "flex" : "none";
 
-  // ===== 4) CSS DEL RESUMEN (tú lo tienes en index.html con disabled) =====
+  // ===== 4) CSS DEL RESUMEN  =====
   const cssResumen = document.getElementById("css-resumen");
   const cssResumenPrint = document.getElementById("css-resumen-print");
   if (cssResumen) cssResumen.disabled = !esResumen;
@@ -393,9 +393,9 @@ function cerrarSidebarMobile() {
   cerrarOverlaySiAplica();
 }
 
-/* Click en ☰ */
+
 btnToggle?.addEventListener("click", () => {
-  toggleSidebar(); // usa tu función actual
+  toggleSidebar(); 
 
   // sincronizar overlay con estado real del sidebar en móvil
   const sidebar = document.querySelector(".sidebar");
