@@ -375,23 +375,46 @@ function toggleSidebar() {
   }
 }
 
-const sidebarToggleBtn = document.querySelector(".sidebar-toggle");
-if (sidebarToggleBtn) {
-  sidebarToggleBtn.addEventListener("click", toggleSidebar);
-}
+/* ===================== SIDEBAR (UN SOLO CONTROL) ===================== */
 
-// ====== Toggle sidebar (click en botón y overlay) ======
 const btnToggle = document.querySelector(".sidebar-toggle");
 const overlay = document.querySelector(".sidebar-overlay");
 
-btnToggle?.addEventListener("click", toggleSidebar);
-overlay?.addEventListener("click", () => {
+function abrirOverlaySiAplica() {
+  if (window.innerWidth <= 768) overlay?.classList.add("active");
+}
+
+function cerrarOverlaySiAplica() {
+  overlay?.classList.remove("active");
+}
+
+function cerrarSidebarMobile() {
   document.querySelector(".sidebar")?.classList.remove("mobile-open");
+  cerrarOverlaySiAplica();
+}
+
+/* Click en ☰ */
+btnToggle?.addEventListener("click", () => {
+  toggleSidebar(); // usa tu función actual
+
+  // sincronizar overlay con estado real del sidebar en móvil
+  const sidebar = document.querySelector(".sidebar");
+  if (window.innerWidth <= 768) {
+    if (sidebar?.classList.contains("mobile-open")) abrirOverlaySiAplica();
+    else cerrarOverlaySiAplica();
+  } else {
+    // en desktop nunca overlay
+    cerrarOverlaySiAplica();
+  }
 });
+
+/* Click fuera (overlay) */
+overlay?.addEventListener("click", cerrarSidebarMobile);
+
 
 
 /* ===================== EVENTOS ===================== */
-
+/*
 dom.moduloBtns.forEach(btn => {
   btn.onclick = () => {
 
@@ -424,6 +447,54 @@ ajustarLayoutPorModulo();
 
   };
 });
+*/
+dom.moduloBtns.forEach(btn => {
+  btn.onclick = () => {
+
+    /* ================= LIMPIAR TABLA DETALLE AL CAMBIAR MÓDULO ================= */
+    if (dom.tablaDetalle) {
+      dom.tablaDetalle.innerHTML = `
+        <tr>
+          <td colspan="3" style="text-align:center; color:#888;">
+            Seleccione un registro para ver el detalle
+          </td>
+        </tr>
+      `;
+    }
+
+    // ⚠️ Cerrar sidebar SOLO después de seleccionar un módulo
+    if (window.innerWidth <= 768) {
+      setTimeout(() => {
+        document.querySelector(".sidebar")?.classList.remove("mobile-open");
+        document.querySelector(".sidebar-overlay")?.classList.remove("active");
+      }, 0);
+    }
+
+    dom.moduloBtns.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    const nombreBoton = btn.innerText.trim();
+    if (nombreBoton.includes("PRODUCCIÓN")) state.currentModule = "Producción";
+    else if (nombreBoton.includes("GASTOS")) state.currentModule = "Gastos";
+    else if (nombreBoton.includes("LIQUIDACIONES")) state.currentModule = "Liquidaciones";
+    else if (nombreBoton.includes("RESUMEN")) state.currentModule = "Resumen";
+    else state.currentModule = nombreBoton;
+
+    dom.empresaSelect.innerHTML = "";
+    dom.haciendaSelect.innerHTML = "";
+    actualizarTituloModulo();
+
+    if (state.currentModule === "Resumen") {
+      cargarResumen();
+    } else {
+      cargarDatosModulo(state.currentModule);
+    }
+
+    ajustarLayoutPorModulo();
+  };
+});
+
+
 
 dom.empresaSelect.onchange = () => { cargarHaciendas(); refrescarUI(); };
 dom.haciendaSelect.onchange = () => { actualizarKPIs(); renderTabla(); renderGrafico(); };
@@ -439,3 +510,4 @@ cssResumen = document.getElementById("css-resumen");
 if (cssResumen) cssResumen.disabled = true;
 
 cargarDatosModulo(state.currentModule);
+

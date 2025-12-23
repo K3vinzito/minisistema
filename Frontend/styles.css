@@ -720,29 +720,55 @@ canvas {
 }
 
 
-/* En móvil cuando sidebar está CERRADO -> mover ☰ al main (esquina) */
-@media (max-width: 768px){
-  .sidebar:not(.mobile-open) .sidebar-toggle{
-    position: fixed;
-    top: 18px;
-    left: 18px;
-    right: auto;
-  }
-
-  /* En móvil cuando sidebar está ABIERTO -> que quede arriba derecha del sidebar */
-  .sidebar.mobile-open .sidebar-toggle{
-    position: absolute;
-    top: 14px;
-    right: 14px;
-    left: auto;
-  }
-}
-
-/* ===== SIDEBAR OVERLAY BASE ===== */
-.sidebar-overlay {
-  display: none;
+/* ===== SIDEBAR OVERLAY (móvil) ===== */
+.sidebar-overlay{
+  display: none;               /* por defecto oculto */
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.35);
   z-index: 9997;
+}
+
+/* solo cuando esté activo */
+.sidebar-overlay.active{
+  display: block;
+}
+
+/* En desktop no lo uses nunca, aunque tenga active por error */
+@media (min-width: 769px){
+  .sidebar-overlay,
+  .sidebar-overlay.active{
+    display: none !important;
+  }
+}
+
+/* ================= SIDEBAR MOBILE — FIX FINAL ================= */
+@media (max-width: 768px){
+
+  /* Sidebar flotante */
+  .sidebar{
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    transform: translateX(-100%); /* OCULTO */
+    height: 100vh;
+    width: 230px;
+    z-index: 10000;
+    border-radius: 0 22px 22px 0;
+    transition: transform 0.25s ease;
+  }
+
+  /* Sidebar visible */
+  .sidebar.mobile-open{
+    transform: translateX(0);
+  }
+
+  /* El layout principal nunca se mueve */
+  .app{
+    overflow: hidden;
+  }
+
+  .main{
+    padding-left: 0 !important;
+  }
 }
