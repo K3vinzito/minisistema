@@ -1,5 +1,5 @@
 /* ================================================================
-   GASTOS — DETALLES (OPTIMIZADO)
+                      GASTOS — DETALLES
 ================================================================ */
 const API_BASE = "https://minisistema-production.up.railway.app";
 

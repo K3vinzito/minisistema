@@ -3,7 +3,7 @@
 ================================================================ */
 
 import { showLoader, hideLoader } from "../core.js";
-// ================= CLAVES INTERNAS DE COLUMNAS =================
+// ================= CLAVES INTERNAS DE COLUMNAS 
 const COL = {
   SEM: "SEM",
   DEV_IVA: "DEV. IVA",
@@ -58,7 +58,7 @@ function formatoUSD(valor) {
   }).format(valor);
 }
 
-// ================= CARGA CSV =================
+// ================= CARGA CSV
 
 export function cargarResumen() {
 
@@ -132,7 +132,7 @@ function filtrarDatos() {
   );
 }
 
-// ================= TABLA + KPIs =================
+// ================= TABLA + KPIs 
 const HEADER_MAP = {
   [COL.SEM]: "SEM",
   [COL.DEV_IVA]: "DEV. IVA",
@@ -283,20 +283,20 @@ function renderTablaResumen() {
       egresosElem.textContent = formatoUSD(v);
       egresosElem.style.color = "#7a1f1f";
     }
-   if (c === COL.UTILIDAD) {
-  totalUtilidadElem.textContent = formatoUSD(v);
-  totalUtilidadElem.style.color = colorValor(v);
+    if (c === COL.UTILIDAD) {
+      totalUtilidadElem.textContent = formatoUSD(v);
+      totalUtilidadElem.style.color = colorValor(v);
 
-  // ===== BAR RITA SEGÚN UTILIDAD =====
-  const barrita = document.querySelector(".barrita-imagen");
-  if (barrita) {
-    if (v < 0) {
-      barrita.classList.add("barrita-negativa");
-    } else {
-      barrita.classList.remove("barrita-negativa");
+      // ===== BAR RITA SEGÚN UTILIDAD 
+      const barrita = document.querySelector(".barrita-imagen");
+      if (barrita) {
+        if (v < 0) {
+          barrita.classList.add("barrita-negativa");
+        } else {
+          barrita.classList.remove("barrita-negativa");
+        }
+      }
     }
-  }
-}
 
   });
 
@@ -304,7 +304,7 @@ function renderTablaResumen() {
 }
 
 
-// ================= FUNCION LISTA DE GASTOS CON PORCENTAJES SUAVES =================
+// ================= FUNCION LISTA DE GASTOS CON PORCENTAJES SUAVES 
 
 function renderGastos(totalIngresos, datos, cols) {
   const derecha = document.querySelector(".card-saldo .gastos-lista");
@@ -331,7 +331,7 @@ function renderGastos(totalIngresos, datos, cols) {
 
   const maxValor = Math.max(totalIngresos, totalGastos);
 
-  // ===== helper =====
+  // ===== helper 
   function crearFila(labelText, valor, color) {
     const fila = document.createElement("div");
     fila.className = "gasto-item";
@@ -374,7 +374,7 @@ function renderGastos(totalIngresos, datos, cols) {
     });
   }
 
-  // ===== render =====
+  // ===== render 
   crearFila("Total Ingresos", totalIngresos, "#a8d5ba");
 
   gastosCols.forEach(col => {
@@ -388,7 +388,7 @@ function renderGastos(totalIngresos, datos, cols) {
 }
 
 
-// ================= CARTERA MINIMALISTA + BANNER =================
+// ================= CARTERA MINIMALISTA + BANNER 
 
 function insertarCarteraMinimalista() {
   const card = document.querySelector(".card-actividad");
@@ -471,7 +471,7 @@ resumenEmpresaSelect.addEventListener("change", () => {
 resumenHaciendaSelect.addEventListener("change", renderTablaResumen);
 
 
-// ================= AGREGAR IMAGEN ENTRE TOTAL UTILIDAD E INGRESOS/EGRESOS, PEGADA A LA IZQUIERDA =================
+// ================= AGREGAR IMAGEN ENTRE TOTAL UTILIDAD E INGRESOS/EGRESOS, PEGADA A LA IZQUIERDA 
 
 function insertarBarritaImagen() {
   const contenedor = document.querySelector(".card-saldo");
@@ -508,7 +508,7 @@ document.addEventListener("click", function (e) {
 });
 
 
-// ================= IMPRIMIR REPORTE DE FLUJOS =================
+// ================= IMPRIMIR REPORTE DE FLUJOS 
 function imprimirFlujoDetallado() {
 
   const tablaFlujo = document.querySelector(".card-tabla");
@@ -575,7 +575,7 @@ ${consolidado.outerHTML}
 }
 
 
-// ================= GRÁFICO FLUJO PRODUCTIVO (INGRESOS, GASTOS, UTILIDAD) =================
+// ================= GRÁFICO FLUJO PRODUCTIVO (INGRESOS, GASTOS, UTILIDAD)
 
 function crearModalGrafico() {
   if (document.getElementById("modalGraficoFlujo")) return;
@@ -750,7 +750,7 @@ function cerrarGraficoFlujo() {
   if (modal) modal.classList.add("hidden");
 }
 
-// === EXPONER FUNCIONES AL HTML ===
+// === EXPONER FUNCIONES AL HTML 
 window.mostrarGraficoFlujo = mostrarGraficoFlujo;
 window.cerrarGraficoFlujo = cerrarGraficoFlujo;
 window.imprimirFlujoDetallado = imprimirFlujoDetallado;

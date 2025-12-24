@@ -1,6 +1,6 @@
 
 /* ================================================================
-   MINI SISTEMA AGRÍCOLA — SCRIPT PRINCIPAL (CORREGIDO)
+            MINI SISTEMA AGRÍCOLA — SCRIPT PRINCIPAL
 ================================================================ */
 const API_BASE = "https://minisistema-production.up.railway.app";
 let cssResumen = null;
@@ -11,7 +11,7 @@ import { cargarDetallesGastos } from "./gastos.js";
 import { cargarResumen } from "./resumen/resumen.js";
 
 
-/* ===================== CONSTANTES ===================== */
+// ===================== CONSTANTES 
 export const MODULOS_SIN_SELECTORES = ["Resumen"];
 
 
@@ -34,7 +34,7 @@ const MAPA_RUBROS_GASTOS = {
   General: "GENERAL", TOTAL: "TOTAL"
 };
 
-/* ===================== FUNCIONES DE APOYO ===================== */
+// ===================== FUNCIONES DE APOYO 
 
 function actualizarTituloModulo() {
   if (state.currentModule === "Resumen") {
@@ -44,9 +44,9 @@ function actualizarTituloModulo() {
 
   dom.tituloPrincipal.innerText =
     state.currentModule === "Producción" ? "PRODUCCIÓN AGRÍCOLA" :
-    state.currentModule === "Gastos" ? "CONTROL DE GASTOS" :
-    state.currentModule === "Liquidaciones" ? "LIQUIDACIONES COMERCIALES" :
-    state.currentModule;
+      state.currentModule === "Gastos" ? "CONTROL DE GASTOS" :
+        state.currentModule === "Liquidaciones" ? "LIQUIDACIONES COMERCIALES" :
+          state.currentModule;
 }
 
 
@@ -77,7 +77,7 @@ function cargarHaciendas() {
 }
 
 
-/* ===================== CARGA DE DATOS ===================== */
+// ===================== CARGA DE DATOS 
 
 async function cargarDatosModulo(modulo) {
   showLoader(modulo);
@@ -115,12 +115,12 @@ async function cargarDatosModulo(modulo) {
   }
 }
 
-/* ===================== UI PRINCIPAL ===================== */
+// ===================== UI PRINCIPAL 
 
 function refrescarUI() {
   actualizarTituloModulo();
 
-  // 🔴 SI ES RESUMEN, NO EJECUTAR UI GLOBAL
+  // SI ES RESUMEN, NO EJECUTAR UI GLOBAL
   if (state.currentModule === "Resumen") {
     ajustarLayoutPorModulo();
     return;
@@ -208,7 +208,7 @@ function renderTabla() {
   dom.tituloTabla.innerText = `${state.currentModule} - ${e} / ${h}${hect}`;
 }
 
-//============== GRAFICO ============================ //
+//============== GRAFICO
 
 function renderGrafico(tipo = state.tipoGrafico) {
   if (state.currentModule === "Resumen") return;
@@ -324,7 +324,7 @@ function renderGrafico(tipo = state.tipoGrafico) {
 function ajustarLayoutPorModulo() {
   const esResumen = state.currentModule === "Resumen";
 
-  // ===== 1) VISTA GLOBAL (selectores, KPIs, tablas, gráfico) =====
+  // ===== VISTA GLOBAL (selectores, KPIs, tablas, gráfico) 
   const selectores = document.querySelector(".selectores");
   const kpis = document.querySelector(".kpis");
   const zonaSuperior = document.querySelector(".zona-superior");
@@ -335,7 +335,7 @@ function ajustarLayoutPorModulo() {
   if (zonaSuperior) zonaSuperior.style.display = esResumen ? "none" : "grid";
   if (zonaInferior) zonaInferior.style.display = esResumen ? "none" : "flex";
 
-  // ===== 2) PANEL DETALLES (solo para Producción y Gastos) =====
+  // ===== PANEL DETALLES (solo para Producción y Gastos)
   if (!esResumen) {
     const zona = document.querySelector(".zona-superior");
     if (zona) {
@@ -352,11 +352,11 @@ function ajustarLayoutPorModulo() {
     if (dom.panelDetalles) dom.panelDetalles.style.display = "none";
   }
 
-  // ===== 3) MÓDULO RESUMEN =====
+  // ===== MÓDULO RESUMEN 
   const resumen = document.getElementById("modulo-resumen");
   if (resumen) resumen.style.display = esResumen ? "flex" : "none";
 
-  // ===== 4) CSS DEL RESUMEN  =====
+  // ===== CSS DEL RESUMEN  
   const cssResumen = document.getElementById("css-resumen");
   const cssResumenPrint = document.getElementById("css-resumen-print");
   if (cssResumen) cssResumen.disabled = !esResumen;
@@ -367,15 +367,15 @@ function toggleSidebar() {
   const sidebar = document.querySelector(".sidebar");
 
   if (window.innerWidth <= 768) {
-    // 📱 MÓVIL: mostrar / ocultar
+
     sidebar.classList.toggle("mobile-open");
   } else {
-    // 💻 DESKTOP: colapsar
+
     sidebar.classList.toggle("min");
   }
 }
 
-/* ===================== SIDEBAR (UN SOLO CONTROL) ===================== */
+// ===================== SIDEBAR (UN SOLO CONTROL) 
 
 const btnToggle = document.querySelector(".sidebar-toggle");
 const overlay = document.querySelector(".sidebar-overlay");
@@ -395,7 +395,7 @@ function cerrarSidebarMobile() {
 
 
 btnToggle?.addEventListener("click", () => {
-  toggleSidebar(); 
+  toggleSidebar();
 
   // sincronizar overlay con estado real del sidebar en móvil
   const sidebar = document.querySelector(".sidebar");
@@ -413,11 +413,11 @@ overlay?.addEventListener("click", cerrarSidebarMobile);
 
 
 
-/* ===================== EVENTOS ===================== */
+// ===================== EVENTOS 
 dom.moduloBtns.forEach(btn => {
   btn.onclick = () => {
 
-    /* ================= LIMPIAR TABLA DETALLE AL CAMBIAR MÓDULO ================= */
+    // LIMPIAR TABLA DETALLE AL CAMBIAR MÓDULO 
     if (dom.tablaDetalle) {
       dom.tablaDetalle.innerHTML = `
         <tr>
@@ -428,7 +428,6 @@ dom.moduloBtns.forEach(btn => {
       `;
     }
 
-    // ⚠️ Cerrar sidebar SOLO después de seleccionar un módulo
     if (window.innerWidth <= 768) {
       setTimeout(() => {
         document.querySelector(".sidebar")?.classList.remove("mobile-open");
@@ -465,7 +464,7 @@ dom.moduloBtns.forEach(btn => {
 dom.empresaSelect.onchange = () => { cargarHaciendas(); refrescarUI(); };
 dom.haciendaSelect.onchange = () => { actualizarKPIs(); renderTabla(); renderGrafico(); };
 
-/* ===================== INICIO ===================== */
+//===================== INICIO 
 // Restaurar UI normal
 document.getElementById("modulo-resumen").style.display = "none";
 document.querySelector(".selectores").style.display = "flex";

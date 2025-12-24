@@ -1,8 +1,8 @@
 /* ======================================================
-   RESUMEN GENERAL — BI (VERSIÓN FINAL LIMPIA)
+     RESUMEN GENERAL — BI (VERSIÓN FINAL LIMPIA)
 ====================================================== */
 
-/* ================= CONTENEDOR PRINCIPAL ================= */
+/* ================= CONTENEDOR PRINCIPAL */
 .modulo-resumen {
   display: flex;
   flex-direction: column;
@@ -10,7 +10,7 @@
   padding-bottom: 24px;
 }
 
-/* ================= SELECTORES ================= */
+/* ================= SELECTORES */
 .selectores-resumen {
   display: flex;
   gap: 14px;
@@ -56,14 +56,14 @@
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
 }
 
-/* ================= ZONA SUPERIOR ================= */
+/* ================= ZONA SUPERIOR */
 .resumen-top {
   display: flex;
   gap: 12px;
   align-items: flex-start;
 }
 
-/* ================= TARJETAS ================= */
+/* ================= TARJETAS  */
 .card {
   background: #ffffff;
   border-radius: 14px;
@@ -97,7 +97,7 @@
   background: #e0e0e0; 
   border-color: #999;   
 }
-/* ================= CONSOLIDADO ================= */
+/* ================= CONSOLIDADO */
 .card.card-saldo {
   flex: 1;
   display: flex;
@@ -141,7 +141,7 @@
   margin-top: 2px;
 }
 
-/* ================= GASTOS ================= */
+/* ================= GASTOS  */
 .gastos-lista {
   flex: 1;
   display: flex;
@@ -150,13 +150,13 @@
   margin-top: 0;
 }
 
-/* ================= CARTERA ================= */
+/* ================= CARTERA  */
 .card-actividad {
   flex: 1;
   padding: 10px;
 }
 
-/* ================= TABLA FLUJO ================= */
+/* ================= TABLA FLUJO */
 
 .card-tabla {
   display: flex;
@@ -205,7 +205,7 @@
   border-right: 1px solid #eee;
 }
 
-/* ================= CORRECCIÓN ESQUINA INMÓVIL ================= */
+/* ================= CORRECCIÓN ESQUINA INMÓVIL  */
 
 /* 1. PRIMERA COLUMNA (SEM) - Fija a la izquierda */
 .tabla-flujo td:first-child,
@@ -248,13 +248,13 @@
 }
 
 
-/* ================= ACCIONES TABLA ================= */
+/* ================= ACCIONES TABLA  */
 .acciones-tabla {
   display: flex;
   gap: 6px;
 }
 
-/* ================= RESPONSIVE ================= */
+/* ================= RESPONSIVE  */
 @media (max-width: 1200px) {
   .resumen-top {
     flex-direction: column;
@@ -268,7 +268,7 @@
               margin-bottom:8px;
 }
 
-/* ================= MODAL GRÁFICO FLUJO ================= */
+/* ================= MODAL GRÁFICO FLUJO */
 .modal-flujo {
   position: fixed;
   inset: 0;
@@ -311,7 +311,7 @@
   cursor: pointer;
   font-size: 18px;
 }
-/* ================= EFECTO LUPA (ZOOM) EN CELDAS ================= */
+/* ================= EFECTO LUPA (ZOOM) EN CELDAS  */
 
 .tabla-flujo td:hover {
   transform: scale(2); 
@@ -342,7 +342,7 @@
   text-align: center;
 }
 
-/* ================= GASTOS BI ================= */
+/* ================= GASTOS BI */
 
 .gasto-item {
   display: flex;
@@ -392,7 +392,7 @@
   font-weight: 600;
   color: #888;
 }
-/* ================= MODAL GRÁFICO FLUJO ================= */
+/* ================= MODAL GRÁFICO FLUJO */
 
 .modal-flujo {
   position: fixed;
@@ -441,7 +441,7 @@
 .modal-body {
   height: 600px;
 }
-/* ================= CARTERA MINIMALISTA ================= */
+/* ================= CARTERA MINIMALISTA */
 
 .cartera-minimalista {
   border-radius: 6px;
@@ -538,7 +538,7 @@
   text-align: right;
 }
 
-/* ================= BANNER INFORMATIVO ================= */
+/* ================= BANNER INFORMATIVO */
 
 .cartera-banner {
   background: #fff1f8;
@@ -557,7 +557,7 @@
   font-size: 18px;
   line-height: 1;
 }
-/* ================= BARrita DECORATIVA KPI ================= */
+/* ================= BARrita DECORATIVA KPI */
 
 .barrita-wrapper {
   display: flex;
@@ -571,7 +571,7 @@
   height: auto;
   object-fit: contain;
 }
-/* ================= GRÁFICO FLUJO ================= */
+/* ================= GRÁFICO FLUJO */
 
 #graficoFlujo {
   width: 70%;

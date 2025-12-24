@@ -1,5 +1,5 @@
 /* ======================================================
-   RESUMEN — ESTILOS DE IMPRESIÓN
+              RESUMEN — ESTILOS DE IMPRESIÓN
 ====================================================== */
 
 @page {
@@ -20,7 +20,7 @@ body {
   zoom: 0.82;
 }
 
-/* ================= ENCABEZADO ================= */
+/* ================= ENCABEZADO*/
 
 .print-header {
   display: flex;
@@ -44,13 +44,13 @@ body {
   letter-spacing: 0.5px;
 }
 
-/* ================= SEPARADOR ================= */
+/* ================= SEPARADOR  */
 
 .print-separador {
   height: 14px;
 }
 
-/* ================= TARJETAS ================= */
+/* ================= TARJETAS  */
 
 .card {
   box-shadow: none !important;
@@ -60,7 +60,7 @@ body {
   padding: 10px;
 }
 
-/* ================= TABLAS ================= */
+/* ================= TABLAS */
 
 table {
   width: 100% !important;
@@ -87,7 +87,7 @@ tbody tr:nth-child(even) {
   background: #fafafa !important;
 }
 
-/* ================= TOTALES ================= */
+/* ================= TOTALES */
 
 tr.total td {
   font-weight: 700 !important;
@@ -95,7 +95,7 @@ tr.total td {
   background: #eaeaea !important;
 }
 
-/* ================= CONSOLIDADO ================= */
+/* ================= CONSOLIDADO  */
 
 .saldo-principal strong {
   font-size: 16px !important;
@@ -109,7 +109,7 @@ tr.total td {
   page-break-inside: avoid;
 }
 
-/* ================= OCULTAR ELEMENTOS ================= */
+/* ================= OCULTAR ELEMENTOS  */
 
 button,
 select,
@@ -117,6 +117,7 @@ input,
 canvas {
   display: none !important;
 }
+
 /* ===============================
    GASTOS – VISTA IMPRESIÓN
 ================================ */

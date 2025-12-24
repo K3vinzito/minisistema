@@ -1,5 +1,5 @@
 /* ================================================================
-   PRODUCCIÓN — DETALLES DE RECHAZOS (OPTIMIZADO)
+                 PRODUCCIÓN — DETALLES DE RECHAZOS
 ================================================================ */
 const API_BASE = "https://minisistema-production.up.railway.app";
 

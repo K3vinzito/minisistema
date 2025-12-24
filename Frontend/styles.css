@@ -38,18 +38,18 @@ body {
 /* ================= TITULO PRINCIPAL ================= */
 #titulo {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-    font-size: 28px;           /* un poco más pequeño para elegancia */
-    font-weight: 500;           /* más fino que 700 */
+    font-size: 28px;           
+    font-weight: 500;           
     color: #ba027d;
-    letter-spacing: 0.3px;     /* más sutil */
+    letter-spacing: 0.3px;    
     margin-bottom: 16px;
-    text-shadow: 0 1px 1px rgba(0,0,0,0.08); /* sombra muy ligera */
+    text-shadow: 0 1px 1px rgba(0,0,0,0.08); 
 }
 
 
 /* ================= SIDEBAR ================= */
 .sidebar {
-      position: relative; /* CLAVE para ubicar el botón dentro del sidebar */
+      position: relative; 
 
     width: 230px;
     padding: 26px 20px;
@@ -75,7 +75,7 @@ body {
 
 .brand {
     position: relative;
-      margin-top: 46px;  /* baja todo el bloque del título para dejar espacio al ☰ */
+      margin-top: 46px;  
 
   padding-top: 0px; /* espacio para el botón ☰ */
     padding-left: 4px;
@@ -95,7 +95,7 @@ body {
     font-weight: 400;
     color: #716e6e;
     display: block;
-    line-height: 1.05; /* más compacta */
+    line-height: 1.05; 
     margin-top: -10px; /* sube un poco el texto inferior */
 }
 
@@ -204,7 +204,7 @@ body {
     gap: 14px;
     overflow-x: auto;
     padding-bottom: 2px;
-    background: transparent; /* eliminamos cualquier fondo detrás */
+    background: transparent;
 }
 
 .kpi {
@@ -212,11 +212,11 @@ body {
     min-width: 100px;
     text-align: center;
     border-radius: 16px;
-    background: white; /* solo la tarjeta blanca */
-    border: none; /* eliminamos borde si se desea */
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.167); /* sombra suave opcional */
+    background: white;
+    border: none; 
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.167); 
     padding: 16px;
-    position: relative; /* para el fondo de olas */
+    position: relative;
     overflow: hidden;
 }
 
@@ -245,12 +245,12 @@ body {
     background-repeat: repeat;
     background-size: 40px 4px;
     pointer-events: none;
-    opacity: 0.8; /* ligeramente más tenue */
+    opacity: 0.8; 
 }
 
 
 
-/* ================= ZONA SUPERIOR ================= */
+/* ================= ZONA SUPERIOR */
 .zona-superior {
     display: grid;
     gap: 24px;
@@ -318,7 +318,7 @@ tbody tr:hover { background: #e5edff; }
   text-overflow: ellipsis;
 }
 
-/* ================= ZONA INFERIOR ================= */
+/* ================= ZONA INFERIOR  */
 .zona-inferior {
     flex: 1;
     display: flex;
@@ -350,7 +350,7 @@ canvas {
     height: 100% !important;
 }
 
-/* ================= LOGIN ================= */
+/* ================= LOGIN  */
 .login-box {
     width: 320px;
     margin: 80px auto;
@@ -362,7 +362,7 @@ canvas {
     flex-direction: column;
     align-items: center;
     gap: 18px;
-    transition: none; /* quitar animación */
+    transition: none; 
 }
 
 .login-box h2 {
@@ -414,7 +414,7 @@ canvas {
     min-height: 18px;
 }
 
-/* ================= LOADER ================= */
+/* ================= LOADER*/
 #loader {
     position: absolute;
     top:0;
@@ -462,7 +462,7 @@ canvas {
     to { transform: rotate(360deg); }
 }
 
-/* ================= TABS ================= */
+/* ================= TABS  */
 .tabs {
     display:flex;
     gap:10px;
@@ -492,7 +492,7 @@ canvas {
     top:0;
     z-index:10;
 }
-/* ====== Responsive / escalado más natural ====== */
+/* ====== Responsive / escalado más natural  */
 :root{
   --pad: clamp(12px, 2vw, 20px);
   --padMainX: clamp(16px, 3vw, 50px);
@@ -527,7 +527,7 @@ canvas {
   .sidebar{ width: 200px; }
   .main{ padding: 14px 16px 18px; }
   }
-/* ================= SIN DETALLES (tabla ancha y centrada) ================= */
+/* ================= SIN DETALLES (tabla ancha y centrada)  */
 
 .zona-superior.sin-detalles {
     grid-template-columns: 1fr;
@@ -542,7 +542,7 @@ canvas {
     width: 100%;
     margin: 0 auto;
 }
-/* ================= TABLA DETALLES — FIX TEXTO CORTADO ================= */
+/* ================= TABLA DETALLES — FIX TEXTO CORTADO  */
 
 /* Tabla de detalles */
 .tabla-detalle {
@@ -587,7 +587,7 @@ canvas {
   border-top: 2px solid #ccc;
 }
 
-/* ================= CELDAS CON DETALLE ================= */
+/* ================= CELDAS CON DETALLE*/
 .detalle-clic {
   cursor: pointer;
   font-weight: 600;
@@ -652,7 +652,7 @@ canvas {
             width: 100%;
 }
 
-/* ================= SIDEBAR COLLAPSE ================= */
+/* ================= SIDEBAR COLLAPSE */
 /* ===== SIDEBAR COLLAPSE REAL ===== */
 .sidebar{ transition: width 0.25s ease; }
 
@@ -674,7 +674,7 @@ canvas {
 .sidebar.min .menu-item{
   justify-content:center;
   padding: 12px 0;
-  font-size: 0;              /* 🔴 OCULTA TEXTO REAL */
+  font-size: 0;              
   width: 100%;
   border-radius: 12px;
 }
@@ -720,9 +720,9 @@ canvas {
 }
 
 
-/* ===== SIDEBAR OVERLAY (móvil) ===== */
+/* ===== SIDEBAR OVERLAY (móvil)  */
 .sidebar-overlay{
-  display: none;               /* por defecto oculto */
+  display: none;               
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.35);
@@ -742,7 +742,7 @@ canvas {
   }
 }
 
-/* ================= SIDEBAR MOBILE — FIX FINAL ================= */
+/* ================= SIDEBAR MOBILE — FIX FINAL  */
 @media (max-width: 768px){
 
   /* Sidebar flotante */
@@ -772,3 +772,4 @@ canvas {
     padding-left: 0 !important;
   }
 }
+

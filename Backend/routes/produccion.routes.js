@@ -15,7 +15,7 @@ router.get('/detalles', async (req, res) => {
 
     const empresa = (!empresaRaw || empresaRaw.toUpperCase() === 'GLOBAL') ? null : empresaRaw;
 
-    // 🔑 NORMALIZAR HACIENDA
+    // NORMALIZAR HACIENDA
     const hacienda = (!haciendaRaw || haciendaRaw.toUpperCase() === 'GLOBAL')
       ? null
       : haciendaRaw
@@ -40,7 +40,7 @@ router.get('/detalles', async (req, res) => {
     }
 
     if (hacienda) {
-      // ⚠️ COMPARACIÓN NORMALIZADA EN BD
+      // COMPARACIÓN NORMALIZADA EN BD
       where.push(`
         UPPER(
           REPLACE(

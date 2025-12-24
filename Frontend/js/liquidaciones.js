@@ -1,35 +1,30 @@
 /* ================================================================
-   MÓDULO LIQUIDACIONES
-
+                     MÓDULO LIQUIDACIONES
 ================================================================ */
 
 window.LiquidacionesModule = {
 
-  /* ================= COLUMNAS CLICKEABLES ================= */
+  // ================= COLUMNAS CLICKEABLES 
 
   esColumnaClickeable(header) {
-    // Liquidaciones NO tiene detalles
     return false;
   },
 
-  /* ================= RENDER CELDA ================= */
+  // ================= RENDER CELDA 
 
   renderCelda(row, header) {
-    // Se muestra el valor normal, sin span clickeable
     return row[header] ?? "";
   },
 
-  /* ================= DETALLES ================= */
+  // ================= DETALLES 
 
   construirURLDetalles() {
-    // Liquidaciones NO tiene detalles
     return null;
   },
 
-  /* ================= FORMATO ================= */
+  // ================= FORMATO 
 
   formatearValor(valor) {
-    // Liquidaciones = dinero
     return `$${Number(valor).toFixed(2)}`;
   },
 
@@ -37,7 +32,7 @@ window.LiquidacionesModule = {
     return `$${Number(total).toFixed(2)}`;
   },
 
-  /* ================= MANEJO DE CLICK ================= */
+  // ================= MANEJO DE CLICK 
 
   manejarClickDetalle() {
     const tablaDetalle = document.getElementById("tablaDetalle");

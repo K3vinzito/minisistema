@@ -1,5 +1,5 @@
 /* ================================================================
-   CORE — Funciones compartidas por todos los módulos
+      CORE — Funciones compartidas por todos los módulos
 ================================================================ */
 
 export const state = {
@@ -11,7 +11,7 @@ export const state = {
   tipoGrafico: null
 };
 
-/* ===================== ELEMENTOS DOM ===================== */
+// ===================== ELEMENTOS DOM 
 
 export const dom = {
   moduloBtns: document.querySelectorAll(".menu-item"),
@@ -28,17 +28,17 @@ export const dom = {
   loader: document.getElementById("loader")
 };
 
-/* ===================== UTILIDADES ===================== */
+// ===================== UTILIDADES 
 
 export const num = v => +((v || "0").toString().replace(/[$,%\s]/g, "")) || 0;
 
-/* ===================== LOADER ===================== */
+//===================== LOADER 
 
 const moduloCargado = {
   "Producción": false,
   "Gastos": false,
   "Liquidaciones": false,
-  "Resumen": false   
+  "Resumen": false
 };
 
 

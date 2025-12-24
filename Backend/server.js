@@ -15,5 +15,5 @@ app.get("/api/health", (req, res) => {
 app.use("/api/gastos", require("./routes/gastos.routes"));
 app.use("/api/produccion", require("./routes/produccion.routes"));
 
-const PORT = process.env.PORT || 3000; // Railway usa la variable PORT
+const PORT = process.env.PORT || 3000; 
 app.listen(PORT, () => console.log(`✅ API corriendo en http://localhost:${PORT}`));

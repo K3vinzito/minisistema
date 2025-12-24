@@ -10,7 +10,7 @@ router.get('/detalles', async (req, res) => {
     const sem = Number(req.query.sem);
     const rubro = (req.query.rubro || '').trim().toUpperCase();
 
-    // ===== Normalización de filtros =====
+    // ===== Normalización de filtros 
     const empresaRaw = (req.query.empresa || '').trim();
     const haciendaRaw = (req.query.hacienda || '').trim();
 
@@ -30,11 +30,11 @@ router.get('/detalles', async (req, res) => {
       return res.json({ ok: false, msg: 'Parámetros obligatorios: sem, rubro' });
     }
 
-    // ===== WHERE base =====
+    // ===== WHERE base 
     const where = ['sem = ?'];
     const params = [sem];
 
-    // ===== LÓGICA DE RUBROS =====
+    // ===== LÓGICA DE RUBROS 
     if (rubro === 'GENERAL') {
       where.push(`
         rubro NOT IN (
@@ -46,20 +46,19 @@ router.get('/detalles', async (req, res) => {
       `);
     } 
     else if (rubro === 'TOTAL') {
-      // TOTAL = no filtrar rubro
     } 
     else {
       where.push('rubro = ?');
       params.push(rubro);
     }
 
-    // ===== Empresa =====
+    // ===== Empresa 
     if (empresa) {
       where.push('UPPER(empresa) = ?');
       params.push(empresa);
     }
 
-    // ===== Hacienda (NORMALIZADA) =====
+    // ===== Hacienda (NORMALIZADA) 
     if (hacienda) {
       where.push(`
         UPPER(
@@ -74,7 +73,7 @@ router.get('/detalles', async (req, res) => {
 
     const whereSql = where.join(' AND ');
 
-    // ===== 1) Detalles =====
+    // ===== 1) Detalles 
     const [rows] = await db.query(
       `
       SELECT
@@ -88,7 +87,7 @@ router.get('/detalles', async (req, res) => {
       params
     );
 
-    // ===== 2) Total =====
+    // ===== 2) Total 
     const [tot] = await db.query(
       `
       SELECT COALESCE(SUM(valor), 0) AS total
