@@ -14,6 +14,8 @@ app.get("/api/health", (req, res) => {
 // Rutas
 app.use("/api/gastos", require("./routes/gastos.routes"));
 app.use("/api/produccion", require("./routes/produccion.routes"));
+app.use("/api/liquidaciones", require("./routes/liquidaciones.routes"));
+
 
 const PORT = process.env.PORT || 3000; 
 app.listen(PORT, () => console.log(`✅ API corriendo en http://localhost:${PORT}`));
