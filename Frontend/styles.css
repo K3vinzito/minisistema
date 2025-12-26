@@ -772,4 +772,33 @@ canvas {
     padding-left: 0 !important;
   }
 }
+/* ================= BOTÓN ORDEN DETALLES ================= */
+/* ================= BOTÓN ORDEN ================= */
+.btn-orden{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  user-select: none;
+  transition: transform .05s ease, background .15s ease, border-color .15s ease;
+}
+
+.btn-orden:hover{
+  background: #f5f5f5;
+  border-color: #bdbdbd;
+}
+
+.btn-orden:active{
+  transform: scale(0.98);
+}
+
+.btn-orden img{
+  width: 18px;
+  height: 18px;
+  display: block;
+}
 

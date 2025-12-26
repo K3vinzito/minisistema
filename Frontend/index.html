@@ -211,12 +211,17 @@
                     <tr>
                       <th>Tipo</th>
                       <th>Detalle</th>
+                      <!-- <th id="btnOrdenValor">Valor ⬍</th> -->
                       <th>
-                        Valor
-                        <button id="btnOrdenValor" class="btn-orden">⇅</button>
+                        <!-- <button id="btnOrdenValor" class="btn-orden">
+                          <span class="texto-orden">Valor</span>
+                          <img src="img/clasificar.png" class="icon-orden" alt="Ordenar" />
+                        </button> -->
+                        <button id="btnOrdenValor" class="btn-orden" type="button" title="Ordenar por valor">
+                          <img class="icon-orden" id="iconOrden" src="img/clasificar.png" alt="Ordenar" />
+                          <span>Valor</span>
+                        </button>
                       </th>
-
-
                     </tr>
                   </thead>
                   <tbody id="tablaDetalle"></tbody>

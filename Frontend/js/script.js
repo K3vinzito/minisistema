@@ -5,11 +5,15 @@
 const API_BASE = "https://minisistema-production.up.railway.app";
 let cssResumen = null;
 
+
+
 import { state, dom, num, showLoader, hideLoader } from "./core.js";
-import { cargarDetallesProduccion } from "./produccion.js";
-import { cargarDetallesGastos } from "./gastos.js";
-import { cargarDetallesLiquidaciones } from "./liquidaciones.js";
+import { cargarDetallesProduccion, ordenarProduccionPorValor } from "./produccion.js";
+import { cargarDetallesGastos, ordenarGastosPorValor } from "./gastos.js";
+import { cargarDetallesLiquidaciones, ordenarLiquidacionesPorValor } from "./liquidaciones.js";
 import { cargarResumen } from "./resumen/resumen.js";
+
+
 
 
 // ===================== CONSTANTES 
@@ -482,6 +486,24 @@ dom.moduloBtns.forEach(btn => {
     ajustarLayoutPorModulo();
   };
 });
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("#btnOrdenValor");
+  if (!btn) return;
+
+  if (state.currentModule === "Gastos") {
+    ordenarGastosPorValor();
+  }
+
+  if (state.currentModule === "Producción") {
+    ordenarProduccionPorValor();
+  }
+
+  if (state.currentModule === "Liquidaciones") {
+    ordenarLiquidacionesPorValor();
+  }
+});
+
 
 
 

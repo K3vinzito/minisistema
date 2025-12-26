@@ -42,6 +42,10 @@ export async function cargarDetallesProduccion(semana) {
     ultimoTotal = data.total;
     ordenActual = "original";
 
+    const icon = document.getElementById("iconOrden");
+    if (icon) icon.src = "img/clasificar.png";
+
+
     /* 🔵 RENDER ORIGINAL (SIN CAMBIOS) */
     renderTabla(detallesOriginales, ultimoTotal);
 
@@ -70,10 +74,7 @@ function renderTabla(items, total) {
     </tr>
   `;
 }
-
-/* 🟢 ORDEN — botón genérico */
-document.addEventListener("click", e => {
-  if (e.target.id !== "btnOrdenValor") return;
+export function ordenarProduccionPorValor() {
   if (!detallesOriginales.length) return;
 
   let items;
@@ -91,5 +92,15 @@ document.addEventListener("click", e => {
     ordenActual = "original";
   }
 
+  const icon = document.getElementById("iconOrden");
+  if (icon) {
+    icon.src =
+      ordenActual === "desc"
+        ? "img/orden-descendiente.png"
+        : ordenActual === "asc"
+          ? "img/orden-ascendente.png"
+          : "img/clasificar.png";
+  }
+
   renderTabla(items, ultimoTotal);
-});
+}
