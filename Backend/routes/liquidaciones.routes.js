@@ -41,7 +41,6 @@ router.get("/detalles", async (req, res) => {
       SELECT tipo, detalle, valor
       FROM detalle_liquidaciones
       WHERE ${where.join(" AND ")}
-      ORDER BY ABS(valor) DESC
     `;
 
     const [rows] = await db.query(sql, params);
