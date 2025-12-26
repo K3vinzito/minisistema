@@ -8,6 +8,7 @@ let cssResumen = null;
 import { state, dom, num, showLoader, hideLoader } from "./core.js";
 import { cargarDetallesProduccion } from "./produccion.js";
 import { cargarDetallesGastos } from "./gastos.js";
+import { cargarDetallesLiquidaciones } from "./liquidaciones.js";
 import { cargarResumen } from "./resumen/resumen.js";
 
 
@@ -20,7 +21,9 @@ const HECTAREAS = {
   ESTRELLITA: 66.65, PRIMAVERA: 67, "LA MARIA": 252.16, "AGRO&SOL": 381.5
 };
 
-const MODULOS_CON_DETALLES = ["Producción", "Gastos"];
+//const MODULOS_CON_DETALLES = ["Producción", "Gastos"];
+const MODULOS_CON_DETALLES = ["Producción", "Gastos", "Liquidaciones"];
+
 
 const sheetURLs = {
   Producción: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRWUa0XHVhUxy79IY5bv2vppEWhA50Mye4loI4wCErMtGjSM7uP1MHWcCSb8ciUwi6YT2XO7iQhKhFq/pub?gid=0&single=true&output=csv",
@@ -193,6 +196,19 @@ function renderTabla() {
       if (state.currentModule === "Gastos" && MAPA_RUBROS_GASTOS[hd]) {
         val = `<span class="detalle-clic" data-semana="${row[headers[0]]}" data-rubro="${MAPA_RUBROS_GASTOS[hd]}">${val}</span>`;
       }
+      if (
+        state.currentModule === "Liquidaciones" &&
+        hd.toLowerCase().includes("descuento")
+      ) {
+        val = `
+    <span class="detalle-clic"
+      data-semana="${row[headers[0]]}"
+      data-tipo="DESCUENTOS">
+      ${val}
+    </span>
+  `;
+      }
+
       return `<td>${val}</td>`;
     }).join("")}</tr>`
   ).join("");
@@ -201,8 +217,16 @@ function renderTabla() {
     el.onclick = () => {
       if (state.currentModule === "Producción") cargarDetallesProduccion(el.dataset.semana);
       if (state.currentModule === "Gastos") cargarDetallesGastos(el.dataset.semana, el.dataset.rubro);
+      if (state.currentModule === "Liquidaciones") {
+        cargarDetallesLiquidaciones(
+          el.dataset.semana,
+          el.dataset.tipo
+        );
+      }
     };
   });
+
+  
 
   const hect = HECTAREAS[h?.toUpperCase()] ? ` (${HECTAREAS[h.toUpperCase()]} has)` : "";
   dom.tituloTabla.innerText = `${state.currentModule} - ${e} / ${h}${hect}`;

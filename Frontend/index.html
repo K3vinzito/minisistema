@@ -31,24 +31,24 @@
 
       <!-- Sidebar -->
       <aside class="sidebar">
-  <div class="sidebar-toggle" aria-label="Abrir/cerrar menú">☰</div>
+        <div class="sidebar-toggle" aria-label="Abrir/cerrar menú">☰</div>
 
-  <div class="brand">
-    <span class="brand-title">𒆙 PORTAL - AGRO</span><br>
-    <span class="brand-subtitle">___________________________</span><br>
-    <span class="brand-subtitle">Usuario: Administrador</span><br>
-    <span class="brand-subtitle">Desarrollador:® 𝄃𝄃𝄂𝄂𝄀𝄁𝄃𝄂𝄂𝄃</span>
-  </div>
+        <div class="brand">
+          <span class="brand-title">𒆙 PORTAL - AGRO</span><br>
+          <span class="brand-subtitle">___________________________</span><br>
+          <span class="brand-subtitle">Usuario: Administrador</span><br>
+          <span class="brand-subtitle">Desarrollador:® 𝄃𝄃𝄂𝄂𝄀𝄁𝄃𝄂𝄂𝄃</span>
+        </div>
 
-  <nav class="menu">
-    <a class="menu-item active" data-modulo="produccion">PRODUCCIÓN</a>
-    <a class="menu-item" data-modulo="gastos">GASTOS</a>
-    <a class="menu-item" data-modulo="liquidaciones">LIQUIDACIONES</a>
-    <a class="menu-item" data-modulo="resumen">RESUMEN</a>
-  </nav>
-</aside>
+        <nav class="menu">
+          <a class="menu-item active" data-modulo="produccion">PRODUCCIÓN</a>
+          <a class="menu-item" data-modulo="gastos">GASTOS</a>
+          <a class="menu-item" data-modulo="liquidaciones">LIQUIDACIONES</a>
+          <a class="menu-item" data-modulo="resumen">RESUMEN</a>
+        </nav>
+      </aside>
 
-<div class="sidebar-overlay"></div>
+      <div class="sidebar-overlay"></div>
 
       <!-- Main -->
       <main class="main">
@@ -211,7 +211,12 @@
                     <tr>
                       <th>Tipo</th>
                       <th>Detalle</th>
-                      <th>Valor</th>
+                      <th>
+                        Valor
+                        <button id="btnOrdenValor" class="btn-orden">⇅</button>
+                      </th>
+
+
                     </tr>
                   </thead>
                   <tbody id="tablaDetalle"></tbody>

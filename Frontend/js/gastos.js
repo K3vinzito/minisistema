@@ -5,6 +5,7 @@ const API_BASE = "https://minisistema-production.up.railway.app";
 
 import { dom } from "./core.js";
 
+
 export async function cargarDetallesGastos(semana, rubro) {
   const empresa = dom.empresaSelect.value;
   const hacienda = dom.haciendaSelect.value;

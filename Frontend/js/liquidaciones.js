@@ -1,47 +1,52 @@
 /* ================================================================
-                     MÓDULO LIQUIDACIONES
+                LIQUIDACIONES — DETALLES (BD)
 ================================================================ */
+const API_BASE = "https://minisistema-production.up.railway.app";
 
-window.LiquidacionesModule = {
+import { dom } from "./core.js";
 
-  // ================= COLUMNAS CLICKEABLES 
+export async function cargarDetallesLiquidaciones(semana, tipo = "DESCUENTOS") {
+  const hacienda = dom.haciendaSelect.value;
 
-  esColumnaClickeable(header) {
-    return false;
-  },
+  dom.tablaDetalle.innerHTML = `
+    <tr><td colspan="3">Cargando detalles...</td></tr>
+  `;
 
-  // ================= RENDER CELDA 
+  try {
+    const url = new URL(`${API_BASE}/api/liquidaciones/detalles`);
+    url.search = new URLSearchParams({
+      sem: semana,
+      hacienda,
+      tipo
+    });
 
-  renderCelda(row, header) {
-    return row[header] ?? "";
-  },
+    const res = await fetch(url);
+    const data = await res.json();
 
-  // ================= DETALLES 
+    if (!data.ok || !data.items?.length) {
+      dom.tablaDetalle.innerHTML =
+        `<tr><td colspan="3">Sin detalles</td></tr>`;
+      return;
+    }
 
-  construirURLDetalles() {
-    return null;
-  },
-
-  // ================= FORMATO 
-
-  formatearValor(valor) {
-    return `$${Number(valor).toFixed(2)}`;
-  },
-
-  formatearTotal(total) {
-    return `$${Number(total).toFixed(2)}`;
-  },
-
-  // ================= MANEJO DE CLICK 
-
-  manejarClickDetalle() {
-    const tablaDetalle = document.getElementById("tablaDetalle");
-    tablaDetalle.innerHTML = `
+    const filas = data.items.map(item => `
       <tr>
-        <td colspan="3">Liquidaciones no tiene detalles</td>
+        <td>${item.tipo}</td>
+        <td class="detalle-largo">${item.detalle}</td>
+        <td>$${Math.abs(Number(item.valor)).toFixed(2)}</td>
+      </tr>
+    `).join("");
+
+    dom.tablaDetalle.innerHTML = `
+      ${filas}
+      <tr class="fila-total">
+        <td colspan="2">TOTAL</td>
+        <td>$${Math.abs(Number(data.total)).toFixed(2)}</td>
       </tr>
     `;
+  } catch (err) {
+    console.error("Error liquidaciones:", err);
+    dom.tablaDetalle.innerHTML =
+      `<tr><td colspan="3">Error al cargar detalles</td></tr>`;
   }
-};
-
-
+}

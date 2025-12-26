@@ -9,12 +9,8 @@ router.get("/detalles", async (req, res) => {
   try {
     const sem = Number(req.query.sem);
     const tipo = (req.query.tipo || "").toUpperCase();
-
-    const empresaRaw = (req.query.empresa || "").trim();
     const haciendaRaw = (req.query.hacienda || "").trim();
 
-    const empresa =
-      !empresaRaw || empresaRaw === "GLOBAL" ? null : empresaRaw;
     const hacienda =
       !haciendaRaw || haciendaRaw === "GLOBAL" ? null : haciendaRaw;
 
@@ -25,13 +21,16 @@ router.get("/detalles", async (req, res) => {
       });
     }
 
-    const where = ["sem = ?", "tipo = ?"];
+    // ⚠️ IMPORTANTE:
+    // - NO se filtra por empresa
+    // - Se filtra SOLO por hacienda
+    // - Se excluye detalle = 'CAJAS'
+    const where = [
+      "sem = ?",
+      "tipo = ?",
+      "detalle <> 'CAJAS'"
+    ];
     const params = [sem, tipo];
-
-    if (empresa) {
-      where.push("empresa = ?");
-      params.push(empresa);
-    }
 
     if (hacienda) {
       where.push("hacienda = ?");
