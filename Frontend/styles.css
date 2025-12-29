@@ -839,7 +839,7 @@ canvas {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px;
+  padding: 2px 10px;
   border: 1px solid #d0d0d0;
   border-radius: 8px;
   background: #fff;
