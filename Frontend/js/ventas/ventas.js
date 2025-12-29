@@ -85,6 +85,7 @@ export function initVentas() {
     const cliente = {
       razon: document.getElementById("razonSocial").value,
       ruc: document.getElementById("ruc").value,
+      direccion: document.getElementById("direccion").value,
       personal: document.getElementById("personal").value,
       cargo: document.getElementById("cargo").value,
       telefono: document.getElementById("telefono").value,
@@ -104,7 +105,7 @@ export function initVentas() {
     actualizarSelectUnidad();
     guardarDirectorio();
 
-    ["razonSocial", "ruc", "personal", "cargo", "telefono", "email"]
+    ["razonSocial", "ruc", "direccion", "personal", "cargo", "telefono", "email"]
       .forEach(id => document.getElementById(id).value = "");
   });
 
@@ -176,6 +177,7 @@ export function initVentas() {
     const c = clientes[i];
     document.getElementById("razonSocial").value = c.razon;
     document.getElementById("ruc").value = c.ruc;
+    document.getElementById("direccion").value = c.direccion;
     document.getElementById("personal").value = c.personal;
     document.getElementById("cargo").value = c.cargo;
     document.getElementById("telefono").value = c.telefono;
