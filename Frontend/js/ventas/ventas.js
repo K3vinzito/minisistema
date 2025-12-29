@@ -31,6 +31,7 @@ export function initVentas() {
         <tr>
           <td>${c.razon}</td>
           <td>${c.ruc}</td>
+          <td>${c.direccion}</td>
           <td>${c.personal}</td>
           <td>${c.cargo}</td>
           <td>${c.telefono}</td>
@@ -48,6 +49,7 @@ export function initVentas() {
     const c = clientes[i];
     document.getElementById("razonSocial").value = c.razon;
     document.getElementById("ruc").value = c.ruc;
+    document.getElementById("direccion").value = c.direccion;
     document.getElementById("personal").value = c.personal;
     document.getElementById("cargo").value = c.cargo;
     document.getElementById("telefono").value = c.telefono;
