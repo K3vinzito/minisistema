@@ -89,6 +89,7 @@ function actualizarTituloModulo() {
     state.currentModule === "Producción" ? "PRODUCCIÓN AGRÍCOLA" :
       state.currentModule === "Gastos" ? "CONTROL DE GASTOS" :
         state.currentModule === "Liquidaciones" ? "LIQUIDACIONES COMERCIALES" :
+        state.currentModule === "Ventas" ? "" :
           state.currentModule;
 }
 

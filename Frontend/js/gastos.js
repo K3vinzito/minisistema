@@ -1,17 +1,16 @@
 /* ================================================================
-                      GASTOS — DETALLES
+   GASTOS — DETALLES DESDE GOOGLE SHEETS
 ================================================================ */
-//const API_BASE = "https://minisistema-production.up.railway.app";
 
 import { dom } from "./core.js";
+
 const CSV_DETALLES_GASTOS =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3yzCzfky5TeiKNaNOcIdNeGAvotBE-RincIpCt4kOIEnV8-rLLWk4tG0xaNG6Xt2jT2FsTVqr6iC1/pub?gid=0&single=true&output=csv";
 
 /* ===== estado local ===== */
-
-let detallesGastos = [];
-let totalGastos = 0;
-let ordenGastos = "original"; // original | desc | asc
+let detallesOriginales = [];
+let ultimoTotal = 0;
+let ordenActual = "original"; // original | desc | asc
 
 /* ================================================================
    CARGAR DETALLES GASTOS
