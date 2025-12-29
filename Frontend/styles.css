@@ -139,13 +139,14 @@ body {
   content: "💰";
 }
 
+.menu-item[data-modulo="ventas"]::before {
+  content: "🛒";
+}
+
 .menu-item[data-modulo="resumen"]::before {
   content: "🗃️";
 }
 
-.menu-item[data-modulo="ventas"]::before {
-  content: "🛒";
-}
 
 .menu-item.active::after {
   content: "";

@@ -1,14 +1,17 @@
 /* ================================================================
                  PRODUCCIÓN — DETALLES DE RECHAZOS
 ================================================================ */
-const API_BASE = "https://minisistema-production.up.railway.app";
+//const API_BASE = "https://minisistema-production.up.railway.app";
 
 import { dom } from "./core.js";
 
-/* 🟢 ORDEN — estado local (NO afecta carga) */
+const CSV_DETALLES_PRODUCCION =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQITw3POfXAnKjpDthFO7nX3S6-hz-KtZbwI3C0LZMdu-XcGMggDEY3SmbSCxAMzdCsagvVtoDudINJ/pub?gid=0&single=true&output=csv";
+
+
 let detallesOriginales = [];
 let ultimoTotal = 0;
-let ordenActual = "original"; // original | desc | asc
+let ordenActual = "original"; 
 
 export async function cargarDetallesProduccion(semana) {
   const empresa = dom.empresaSelect.value;
@@ -18,51 +21,57 @@ export async function cargarDetallesProduccion(semana) {
     <tr><td colspan="3">Cargando detalles...</td></tr>
   `;
 
-  try {
-    const url = new URL(`${API_BASE}/api/produccion/detalles`);
-    url.search = new URLSearchParams({
-      sem: semana,
-      empresa,
-      hacienda,
-      tipo: "RECHAZO"
+   try {
+  
+    const res = await fetch(CSV_DETALLES_PRODUCCION);
+    const csv = await res.text();
+
+    const parsed = Papa.parse(csv.trim(), {
+      header: true,
+      skipEmptyLines: true
     });
 
-    const res = await fetch(url);
-    const data = await res.json();
+    const filas = parsed.data || [];
 
-    if (!data.ok || !data.items?.length) {
-      dom.tablaDetalle.innerHTML =
-        `<tr><td colspan="3">Sin detalles</td></tr>`;
+    const filtrados = filas.filter(f => {
+      const semOk = String(f.SEM).trim() === String(semana).trim();
+      const tipoOk = String(f.TIPO || "").trim().toUpperCase() === "RECHAZO";
+
+      const empOk = (empresa === "GLOBAL") || (String(f.EMPRESA).trim() === String(empresa).trim());
+      const hacOk = (hacienda === "GLOBAL") || (String(f.HACIENDA).trim() === String(hacienda).trim());
+
+      return semOk && tipoOk && empOk && hacOk;
+    });
+
+     if (!filtrados.length) {
+      dom.tablaDetalle.innerHTML = `<tr><td colspan="3">Sin detalles</td></tr>`;
       detallesOriginales = [];
+      ultimoTotal = 0;
       return;
     }
 
-    /* 🟢 ORDEN — guardar orden original */
-    detallesOriginales = [...data.items];
-    ultimoTotal = data.total;
+    detallesOriginales = [...filtrados];
+    ultimoTotal = detallesOriginales.reduce((acc, f) => acc + (Number(f.VALOR) || 0), 0);
     ordenActual = "original";
 
     const icon = document.getElementById("iconOrden");
     if (icon) icon.src = "img/clasificar.png";
 
-
-    /* 🔵 RENDER ORIGINAL (SIN CAMBIOS) */
     renderTabla(detallesOriginales, ultimoTotal);
 
   } catch (err) {
-    console.error("Error producción:", err);
+    console.error("Error producción (CSV):", err);
     dom.tablaDetalle.innerHTML =
       `<tr><td colspan="3">Error al cargar detalles</td></tr>`;
   }
 }
 
-/* 🟢 ORDEN — función de render (misma estructura que antes) */
 function renderTabla(items, total) {
   const filas = items.map(item => `
     <tr>
-      <td>${item.tipo}</td>
-      <td class="detalle-largo">${item.detalle}</td>
-      <td>${Number(item.valor)}</td>
+      <td>${item.TIPO}</td>
+      <td class="detalle-largo">${item.DETALLE}</td>
+      <td>${(Number(item.VALOR) || 0).toFixed(2)}</td>
     </tr>
   `).join("");
 
@@ -70,7 +79,7 @@ function renderTabla(items, total) {
     ${filas}
     <tr class="fila-total">
       <td colspan="2">TOTAL</td>
-      <td>${Number(total)}</td>
+      <td>${(Number(total) || 0).toFixed(2)}</td>
     </tr>
   `;
 }
@@ -80,11 +89,11 @@ export function ordenarProduccionPorValor() {
   let items;
 
   if (ordenActual === "original") {
-    items = [...detallesOriginales].sort((a, b) => b.valor - a.valor);
+    items = [...detallesOriginales].sort((a, b) => (Number(b.VALOR) || 0) - (Number(a.VALOR) || 0));
     ordenActual = "desc";
   }
   else if (ordenActual === "desc") {
-    items = [...detallesOriginales].sort((a, b) => a.valor - b.valor);
+    items = [...detallesOriginales].sort((a, b) => (Number(a.VALOR) || 0) - (Number(b.VALOR) || 0));
     ordenActual = "asc";
   }
   else {
