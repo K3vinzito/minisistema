@@ -12,6 +12,7 @@ import { cargarDetallesProduccion, ordenarProduccionPorValor } from "./produccio
 import { cargarDetallesGastos, ordenarGastosPorValor } from "./gastos.js";
 import { cargarDetallesLiquidaciones, ordenarLiquidacionesPorValor } from "./liquidaciones.js";
 import { cargarResumen } from "./resumen/resumen.js";
+import { initVentas } from "./ventas/ventas.js";
 
 
 
@@ -42,6 +43,41 @@ const MAPA_RUBROS_GASTOS = {
 };
 
 // ===================== FUNCIONES DE APOYO 
+
+async function cargarModuloVentas() {
+  // esconder UI normal (selectores, kpis, tabla, gráfico) si quieres que ventas sea pantalla completa
+  document.querySelector(".selectores")?.style.setProperty("display", "none");
+  document.querySelector(".kpis")?.style.setProperty("display", "none");
+  document.querySelector(".zona-superior")?.style.setProperty("display", "none");
+  document.querySelector(".zona-inferior")?.style.setProperty("display", "none");
+
+  // mostrar contenedor ventas
+  const cont = document.getElementById("modulo-ventas");
+  cont.style.display = "block";
+
+  // inyectar html
+  const html = await fetch("js/ventas/ventas.html").then(r => r.text());
+  cont.innerHTML = html;
+
+  // iniciar lógica
+  initVentas();
+}
+
+function cerrarModuloVentas() {
+  //destroyVentas();
+
+  const cont = document.getElementById("modulo-ventas");
+  cont.style.display = "none";
+  cont.innerHTML = "";
+
+  // restaurar UI normal
+  document.querySelector(".selectores")?.style.setProperty("display", "flex");
+  document.querySelector(".kpis")?.style.setProperty("display", "flex");
+  document.querySelector(".zona-superior")?.style.setProperty("display", "grid");
+  document.querySelector(".zona-inferior")?.style.setProperty("display", "flex");
+}
+
+
 
 function actualizarTituloModulo() {
   if (state.currentModule === "Resumen") {
@@ -230,7 +266,7 @@ function renderTabla() {
     };
   });
 
-  
+
 
   const hect = HECTAREAS[h?.toUpperCase()] ? ` (${HECTAREAS[h.toUpperCase()]} has)` : "";
   dom.tituloTabla.innerText = `${state.currentModule} - ${e} / ${h}${hect}`;
@@ -467,23 +503,39 @@ dom.moduloBtns.forEach(btn => {
     btn.classList.add("active");
 
     const nombreBoton = btn.innerText.trim();
-    if (nombreBoton.includes("PRODUCCIÓN")) state.currentModule = "Producción";
-    else if (nombreBoton.includes("GASTOS")) state.currentModule = "Gastos";
-    else if (nombreBoton.includes("LIQUIDACIONES")) state.currentModule = "Liquidaciones";
-    else if (nombreBoton.includes("RESUMEN")) state.currentModule = "Resumen";
-    else state.currentModule = nombreBoton;
 
-    dom.empresaSelect.innerHTML = "";
-    dom.haciendaSelect.innerHTML = "";
-    actualizarTituloModulo();
+/* 🔴 SI VENÍAMOS DE VENTAS Y CAMBIAMOS A OTRO */
+if (state.currentModule === "Ventas" && !nombreBoton.includes("VENTAS")) {
+  cerrarModuloVentas();
+}
 
-    if (state.currentModule === "Resumen") {
-      cargarResumen();
-    } else {
-      cargarDatosModulo(state.currentModule);
-    }
+/* 🔵 DEFINIR MÓDULO ACTUAL */
+if (nombreBoton.includes("PRODUCCIÓN")) state.currentModule = "Producción";
+else if (nombreBoton.includes("GASTOS")) state.currentModule = "Gastos";
+else if (nombreBoton.includes("LIQUIDACIONES")) state.currentModule = "Liquidaciones";
+else if (nombreBoton.includes("RESUMEN")) state.currentModule = "Resumen";
+else if (nombreBoton.includes("VENTAS")) state.currentModule = "Ventas";
+else state.currentModule = nombreBoton;
 
-    ajustarLayoutPorModulo();
+dom.empresaSelect.innerHTML = "";
+dom.haciendaSelect.innerHTML = "";
+actualizarTituloModulo();
+
+/* 🟢 SI ES VENTAS → CARGAR MÓDULO Y SALIR */
+if (state.currentModule === "Ventas") {
+  cargarModuloVentas();
+  return; // ⛔ IMPORTANTE: no seguir con flujo normal
+}
+
+/* 🟢 FLUJO NORMAL */
+if (state.currentModule === "Resumen") {
+  cargarResumen();
+} else {
+  cargarDatosModulo(state.currentModule);
+}
+
+ajustarLayoutPorModulo();
+
   };
 });
 

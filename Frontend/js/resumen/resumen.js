@@ -395,8 +395,8 @@ function insertarCarteraMinimalista() {
   if (!card || card.querySelector(".cartera-minimalista")) return;
 
   const empresas = [
-    { nombre: "TECNIAGREX S.A.", semanas: [0, 55714.88, 0, 0] },
-    { nombre: "KRASNAYA S.A.", semanas: [2264.64, 108256.51, 0, 0] }
+    { nombre: "TECNIAGREX S.A.", semanas: [0, 0, 0, 182,576.30 ] },
+    { nombre: "KRASNAYA S.A.", semanas: [0, 0, 0, 96,261.50] }
   ];
 
   const totalColumnas = empresas[0].semanas.map((_, i) =>

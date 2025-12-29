@@ -1,0 +1,173 @@
+<!-- ===================== MODULO VENTAS ===================== -->
+
+<div class="ventas-contenedor">
+  <div class="ventas-tabs">
+    <button class="ventas-tab active" data-tab="directorio">DIRECTORIO</button>
+    <button class="ventas-tab" data-tab="autorizacion">AUTORIZACIÓN DE VENTA</button>
+    <button class="ventas-tab" data-tab="facturacion">FACTURACIÓN</button>
+    <button class="ventas-tab" data-tab="resumen">RESUMEN</button>
+  </div>
+
+  <div class="ventas-vistas">
+
+    <!-- ================= DIRECTORIO ================= -->
+    <div class="ventas-vista active" id="directorio">
+      <div class="directorio-contenedor">
+
+        <div class="directorio-form">
+          <h3>Registro Clientes</h3>
+
+          <label>Razón Social</label>
+          <input id="razonSocial">
+
+          <label>RUC</label>
+          <input id="ruc">
+
+          <label>Personal</label>
+          <input id="personal">
+
+          <label>Cargo</label>
+          <input id="cargo">
+
+          <label>Teléfono</label>
+          <input id="telefono">
+
+          <label>Email</label>
+          <input id="email">
+
+          <button id="guardarCliente">GUARDAR</button>
+        </div>
+
+        <div class="directorio-tabla-contenedor">
+          <div class="directorio-tabla">
+            <div class="tabla-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Razón Social</th>
+                    <th>RUC</th>
+                    <th>Personal</th>
+                    <th>Cargo</th>
+                    <th>Teléfono</th>
+                    <th>Email</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="tablaClientes"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ================= AUTORIZACION ================= -->
+    <div class="ventas-vista" id="autorizacion">
+
+      <h3 class="autorizacion-titulo">Autorización de Venta</h3>
+
+      <div class="autorizacion-layout">
+
+        <div class="autorizacion-registro">
+
+          <div class="autorizacion-headers">
+            <div>Razón Social</div>
+            <div>Origen</div>
+            <div>Cant</div>
+            <div>Unidad</div>
+            <div>Precio</div>
+            <div>Subtotal</div>
+            <div>Retenc. 1%</div>
+            <div>Pago</div>
+            <div>SEM</div>
+            <div>FECHA</div>
+          </div>
+
+          <div class="autorizacion-totales">
+            <div>Total:</div>
+            <div></div>
+            <div class="total-cant">0</div>
+            <div></div>
+            <div class="total-precio">0.00</div>
+            <div class="total-subtotal">0.00</div>
+            <div class="total-retencion">0.00</div>
+            <div class="total-pago">0.00</div>
+          </div>
+
+        </div>
+
+        <div class="autorizacion-botones">
+          <button id="nuevoRegistro">+ NUEVO REGISTRO</button>
+          <button id="generarOrden">GENERAR ORDEN</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ================= FACTURACION ================= -->
+    <div class="ventas-vista" id="facturacion">
+      <div class="facturacion-contenedor">
+
+        <div class="facturacion-principal">
+
+          <!-- ORDENES PENDIENTES -->
+          <div class="facturacion-tabla facturacion-tabla-historial">
+
+            <div class="fact-header">
+              <h3>Órdenes pendientes de facturación</h3>
+              <button id="aprobarFacturacion">Aprobar Facturación</button>
+            </div>
+
+            <div class="tabla-headers">
+              <div></div>
+              <div>Razón Social</div>
+              <div>Origen</div>
+              <div>Cantidad</div>
+              <div>Unidad</div>
+              <div>Precio</div>
+              <div>Subtotal</div>
+              <div>Retenc. 1%</div>
+              <div>Pago</div>
+              <div>Acciones</div>
+            </div>
+
+            <div class="tabla-body" id="fact-historial-body"></div>
+          </div>
+
+          <!-- ORDENES APROBADAS -->
+          <div class="facturacion-tabla facturacion-tabla-aprobadas">
+
+            <div class="fact-header">
+              <h3>Órdenes aprobadas</h3>
+            </div>
+
+            <div class="tabla-headers">
+              <div></div>
+              <div>Razón Social</div>
+              <div>Origen</div>
+              <div>Cantidad</div>
+              <div>Unidad</div>
+              <div>Precio</div>
+              <div>Subtotal</div>
+              <div>Retenc. 1%</div>
+              <div>Pago</div>
+              <div>Acciones</div>
+            </div>
+
+            <div class="tabla-body" id="fact-aprobadas-body"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= RESUMEN ================= -->
+    <div class="ventas-vista" id="resumen">
+      <div class="resumen-contenedor">
+        <!-- generado por JS -->
+      </div>
+    </div>
+
+  </div>
+</div>
