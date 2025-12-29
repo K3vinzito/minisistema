@@ -277,6 +277,7 @@ function renderTabla() {
 
 function renderGrafico(tipo = state.tipoGrafico) {
   if (state.currentModule === "Resumen") return;
+
   const headers = state.headersModules[state.currentModule] || [];
   if (!state.datosFiltrados.length || headers.length < 4) return;
 
@@ -290,23 +291,17 @@ function renderGrafico(tipo = state.tipoGrafico) {
   const minReal = Math.min(...valores);
   let yMin, yMax;
 
-  // --- LÓGICA DE ESCALA DINÁMICA ULTRA-INTELIGENTE ---
+  // --- ESCALA DINÁMICA ---
   if (maxReal <= 2.5) {
-    // Caso RATIO: Escala decimal muy fina
     yMin = Math.max(0, minReal - 0.1);
     yMax = maxReal + 0.1;
-  }
-  else if (maxReal <= 50) {
+  } else if (maxReal <= 50) {
     yMin = Math.floor(minReal) - 1;
     yMax = Math.ceil(maxReal) + 1;
-  }
-  else if (maxReal <= 5000) {
-    // Caso RECHAZADOS: Saltos de 500 en 500
+  } else if (maxReal <= 5000) {
     yMin = Math.floor(minReal / 500) * 500;
     yMax = Math.ceil((maxReal * 1.1) / 500) * 500;
-  }
-  else {
-    // Caso COSECHADOS / GASTOS: Bloques de 5.000
+  } else {
     yMin = Math.floor(minReal / 5000) * 5000;
     if (minReal - yMin < 1000) yMin -= 5000;
     yMax = Math.ceil((maxReal * 1.05) / 5000) * 5000;
@@ -314,14 +309,27 @@ function renderGrafico(tipo = state.tipoGrafico) {
 
   if (yMin < 0) yMin = 0;
 
-  if (state.chart) {
+  const ctx = document.getElementById("grafico");
+  if (!ctx) return;
+
+  // 🔁 REUTILIZAR GRÁFICO SI ES EL MISMO MÓDULO
+  if (state.chart && state.chartModulo === state.currentModule) {
+    state.chart.data.labels = labels;
+    state.chart.data.datasets[0].data = valores;
+    state.chart.data.datasets[0].label = tipo;
+    state.chart.options.scales.y.min = yMin;
+    state.chart.options.scales.y.max = yMax;
+    state.chart.update();
+    return;
+  }
+
+  // 🧹 DESTRUIR SOLO SI CAMBIÓ EL MÓDULO
+  if (state.chart && state.chartModulo !== state.currentModule) {
     state.chart.destroy();
     state.chart = null;
   }
 
-  const ctx = document.getElementById("grafico");
-  if (!ctx) return;
-
+  // 🆕 CREAR GRÁFICO
   state.chart = new Chart(ctx, {
     type: "line",
     plugins: [ChartDataLabels],
@@ -341,21 +349,26 @@ function renderGrafico(tipo = state.tipoGrafico) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      animation: { duration: 800, easing: 'easeOutQuart' },
+      animation: {
+        duration: 800,
+        easing: "easeOutQuart"
+      },
       plugins: {
         legend: { display: false },
         datalabels: {
-          anchor: 'end',
-          align: 'top',
+          anchor: "end",
+          align: "top",
           formatter: (value) => {
-            // Si es Ratio o Precio, mostramos 2 decimales
             if (maxReal <= 50) {
-              return value.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+              return value.toLocaleString("es-EC", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              });
             }
-            return Math.round(value).toLocaleString('es-EC');
+            return Math.round(value).toLocaleString("es-EC");
           },
-          font: { weight: 'bold', size: 10 },
-          color: '#484848'
+          font: { weight: "bold", size: 10 },
+          color: "#484848"
         }
       },
       scales: {
@@ -365,10 +378,11 @@ function renderGrafico(tipo = state.tipoGrafico) {
           min: yMin,
           max: yMax,
           ticks: {
-            // Formato de moneda para Precio o Ratio, normal para el resto
             callback: (value) => {
-              if (maxReal <= 50) return value.toLocaleString('es-EC', { minimumFractionDigits: 1 });
-              return value.toLocaleString('es-EC');
+              if (maxReal <= 50) {
+                return value.toLocaleString("es-EC", { minimumFractionDigits: 1 });
+              }
+              return value.toLocaleString("es-EC");
             }
           }
         }
@@ -376,6 +390,10 @@ function renderGrafico(tipo = state.tipoGrafico) {
     }
   });
 
+  // 🔐 REGISTRAR MÓDULO ACTUAL DEL GRÁFICO
+  state.chartModulo = state.currentModule;
+
+  // ===== TABS DE MÉTRICAS
   dom.tabsContainer.innerHTML = "";
   headers.slice(3).forEach(h => {
     const b = document.createElement("button");
@@ -385,6 +403,7 @@ function renderGrafico(tipo = state.tipoGrafico) {
     dom.tabsContainer.appendChild(b);
   });
 }
+
 
 function ajustarLayoutPorModulo() {
   const esResumen = state.currentModule === "Resumen";
