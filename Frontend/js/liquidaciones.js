@@ -11,16 +11,13 @@ const CSV_DETALLES_LIQUIDACIONES =
 let detallesOriginales = [];
 let totalGeneral = 0;
 let ordenActual = "original";
-let semanaActual = null;
 
 /* ================================================================
    UTILIDADES
 ================================================================ */
 
 function parseValor(valor) {
-  return Number(
-    String(valor).replace(/\$/g, "").replace(/,/g, "").trim()
-  ) || 0;
+  return Number(String(valor).replace(/\$/g, "").replace(/,/g, "").trim()) || 0;
 }
 
 function formatMoney(valor) {
@@ -29,6 +26,21 @@ function formatMoney(valor) {
     currency: "USD",
     minimumFractionDigits: 2
   });
+}
+
+/* ✅ ICONO ORDEN (mapeo invertido según tus imágenes actuales) */
+function actualizarIconoOrden() {
+  const icon = document.getElementById("iconOrden");
+  if (!icon) return;
+
+  // Según tu captura: cuando está ASC (menor→mayor) se ve el icono “al revés”.
+  // Entonces invertimos el mapeo:
+  icon.src =
+    ordenActual === "desc"
+      ? "img/orden-ascendente.png"     // <-- invertido
+      : ordenActual === "asc"
+        ? "img/orden-descendiente.png" // <-- invertido
+        : "img/clasificar.png";
 }
 
 /* ================================================================
@@ -41,9 +53,7 @@ export async function cargarDetallesLiquidaciones(semana) {
     dom.tituloDetalle.innerText = `DETALLES — SEMANA ${semana}`;
   }
 
-  dom.tablaDetalle.innerHTML =
-    `<tr><td colspan="3">Cargando detalles...</td></tr>`;
-
+  dom.tablaDetalle.innerHTML = `<tr><td colspan="3">Cargando detalles...</td></tr>`;
 
   try {
     const csv = await fetch(CSV_DETALLES_LIQUIDACIONES).then(r => r.text());
@@ -53,34 +63,30 @@ export async function cargarDetallesLiquidaciones(semana) {
       String(r.SEM) === String(semana) &&
       String(r.TIPO).trim().toUpperCase() === "DESC. LIQUID." &&
       String(r.DETALLE).trim().toUpperCase() !== "CAJAS" &&
-      (
-        hacienda === "GLOBAL" ||
-        String(r.HACIENDA).trim() === String(hacienda).trim()
-      )
+      (hacienda === "GLOBAL" || String(r.HACIENDA).trim() === String(hacienda).trim())
     );
 
-    /* ===== AGRUPAR POR DETALLE ===== */
+    // AGRUPAR POR DETALLE
     const mapa = {};
-
     filtrados.forEach(r => {
-      const det = r.DETALLE.trim();
+      const det = (r.DETALLE || "").trim();
       mapa[det] ??= { tipo: r.TIPO, detalle: det, valor: 0 };
       mapa[det].valor += parseValor(r.VALOR);
     });
 
     detallesOriginales = Object.values(mapa);
 
-    totalGeneral = detallesOriginales.reduce(
-      (acc, r) => acc + r.valor, 0
-    );
+    totalGeneral = detallesOriginales.reduce((acc, r) => acc + r.valor, 0);
 
+    // ✅ RESET ORDEN + ICONO AL CAMBIAR DE SEMANA
     ordenActual = "original";
+    actualizarIconoOrden();
+
     renderTabla(detallesOriginales, totalGeneral);
 
   } catch (err) {
     console.error(err);
-    dom.tablaDetalle.innerHTML =
-      `<tr><td colspan="3">Error al cargar liquidaciones</td></tr>`;
+    dom.tablaDetalle.innerHTML = `<tr><td colspan="3">Error al cargar liquidaciones</td></tr>`;
   }
 }
 
@@ -114,15 +120,16 @@ export function ordenarLiquidacionesPorValor() {
   if (ordenActual === "original") {
     items = [...detallesOriginales].sort((a, b) => b.valor - a.valor);
     ordenActual = "desc";
-  }
-  else if (ordenActual === "desc") {
+  } else if (ordenActual === "desc") {
     items = [...detallesOriginales].sort((a, b) => a.valor - b.valor);
     ordenActual = "asc";
-  }
-  else {
+  } else {
     items = [...detallesOriginales];
     ordenActual = "original";
   }
+
+  // ✅ actualizar icono siempre
+  actualizarIconoOrden();
 
   renderTabla(items, totalGeneral);
 }
