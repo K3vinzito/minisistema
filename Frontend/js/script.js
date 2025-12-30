@@ -273,13 +273,29 @@ function renderTabla() {
     }).join("")}</tr>`
   ).join("");
 
-  document.querySelectorAll(".detalle-clic").forEach(el => {
-    el.onclick = () => {
-      if (state.currentModule === "Producción") cargarDetallesProduccion(el.dataset.semana);
-      if (state.currentModule === "Gastos") cargarDetallesGastos(el.dataset.semana, el.dataset.rubro);
-      if (state.currentModule === "Liquidaciones") cargarDetallesLiquidaciones(el.dataset.semana, el.dataset.tipo);
-    };
-  });
+document.querySelectorAll(".detalle-clic").forEach(el => {
+  el.onclick = () => {
+
+    // quitar activo anterior
+    document.querySelectorAll(".detalle-clic.activo")
+      .forEach(a => a.classList.remove("activo"));
+
+    // marcar el actual
+    el.classList.add("activo");
+
+    if (state.currentModule === "Producción") {
+      cargarDetallesProduccion(el.dataset.semana);
+    }
+
+    if (state.currentModule === "Gastos") {
+      cargarDetallesGastos(el.dataset.semana, el.dataset.rubro);
+    }
+
+    if (state.currentModule === "Liquidaciones") {
+      cargarDetallesLiquidaciones(el.dataset.semana, el.dataset.tipo);
+    }
+  };
+});
 
   const hect = HECTAREAS[h?.toUpperCase()] ? ` (${HECTAREAS[h.toUpperCase()]} has)` : "";
   dom.tituloTabla.innerText = `${state.currentModule} - ${e} / ${h}${hect}`;

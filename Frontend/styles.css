@@ -233,7 +233,7 @@ body {
   min-width: 100px;
   text-align: center;
   border-radius: 16px;
-  background: rgb(249, 254, 255);
+  background: rgb(255, 255, 255);
   border: 1px solid #e7e7e7;
   box-shadow: 0 2px 6px rgba(130, 130, 130, 0.193);
   padding: 16px;
@@ -354,6 +354,18 @@ tbody tr:hover {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Color general del texto en DETALLES */
+.tabla-detalle td {
+  color: #242424;
+}
+
+/* Color del VALOR (3ra columna) */
+.tabla-detalle td:nth-child(3) {
+  color: #9d2581;
+  font-weight: 600;
+}
+
 
 /* ================= ZONA INFERIOR  */
 .zona-inferior {
@@ -663,10 +675,18 @@ canvas {
 }
 
 /* Hover UX */
+/* Hover: indicación de clic */
 .detalle-clic:hover {
-  color: #c2185b;
+  color: #b02269; /* rosa claro */
   text-decoration: underline;
 }
+
+/* Activo: valor seleccionado */
+.detalle-clic.activo {
+  color: #ba4902; /* rosa fuerte */
+  text-decoration: underline;
+}
+
 
 .detalle-clic:hover::after {
   opacity: 1;
