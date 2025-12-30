@@ -233,9 +233,9 @@ body {
   min-width: 100px;
   text-align: center;
   border-radius: 16px;
-  background: white;
-  border: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.167);
+  background: rgb(249, 254, 255);
+  border: 1px solid #e7e7e7;
+  box-shadow: 0 2px 6px rgba(130, 130, 130, 0.193);
   padding: 16px;
   position: relative;
   overflow: hidden;
@@ -244,7 +244,7 @@ body {
 .kpi h4 {
   font-size: 13px;
   font-weight: 600;
-  color: #6a6768;
+  color: #676767;
   margin-bottom: 6px;
 }
 
