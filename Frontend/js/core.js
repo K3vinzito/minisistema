@@ -25,7 +25,9 @@ export const dom = {
   kpisContainer: document.querySelector(".kpis"),
   tablaDetalle: document.getElementById("tablaDetalle") || null,
   panelDetalles: document.getElementById("panel-detalles") || null,
-  loader: document.getElementById("loader")
+  loader: document.getElementById("loader"),
+  tituloDetalle: document.querySelector("#panel-detalles .titulo-tabla"),
+
 };
 
 // ===================== UTILIDADES 

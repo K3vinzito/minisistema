@@ -16,6 +16,10 @@ let ordenActual = "original";
 export async function cargarDetallesProduccion(semana) {
   const empresa = dom.empresaSelect.value;
   const hacienda = dom.haciendaSelect.value;
+  
+   if (dom.tituloDetalle) {
+    dom.tituloDetalle.innerText = `DETALLES — SEMANA ${semana}`;
+  }
 
   dom.tablaDetalle.innerHTML = `
     <tr><td colspan="3">Cargando detalles...</td></tr>
