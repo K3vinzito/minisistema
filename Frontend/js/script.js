@@ -1,11 +1,8 @@
-
 /* ================================================================
             MINI SISTEMA AGRÍCOLA — SCRIPT PRINCIPAL
 ================================================================ */
 const API_BASE = "https://minisistema-production.up.railway.app";
 let cssResumen = null;
-
-
 
 import { state, dom, num, showLoader, hideLoader } from "./core.js";
 import { cargarDetallesProduccion, ordenarProduccionPorValor } from "./produccion.js";
@@ -14,21 +11,15 @@ import { cargarDetallesLiquidaciones, ordenarLiquidacionesPorValor } from "./liq
 import { cargarResumen } from "./resumen/resumen.js";
 import { initVentas } from "./ventas/ventas.js";
 
-
-
-
-// ===================== CONSTANTES 
+// ===================== CONSTANTES
 export const MODULOS_SIN_SELECTORES = ["Resumen"];
-
 
 const HECTAREAS = {
   PORVENIR: 94, ESPERANZA: 36, "EL CISNE": 13, VAQUERIA: 61.4,
   ESTRELLITA: 66.65, PRIMAVERA: 67, "LA MARIA": 252.16, "AGRO&SOL": 381.5
 };
 
-//const MODULOS_CON_DETALLES = ["Producción", "Gastos"];
 const MODULOS_CON_DETALLES = ["Producción", "Gastos", "Liquidaciones"];
-
 
 const sheetURLs = {
   Producción: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRWUa0XHVhUxy79IY5bv2vppEWhA50Mye4loI4wCErMtGjSM7uP1MHWcCSb8ciUwi6YT2XO7iQhKhFq/pub?gid=0&single=true&output=csv",
@@ -42,42 +33,33 @@ const MAPA_RUBROS_GASTOS = {
   General: "GENERAL", TOTAL: "TOTAL"
 };
 
-// ===================== FUNCIONES DE APOYO 
+// ===================== FUNCIONES DE APOYO
 
 async function cargarModuloVentas() {
-  // esconder UI normal (selectores, kpis, tabla, gráfico) si quieres que ventas sea pantalla completa
   document.querySelector(".selectores")?.style.setProperty("display", "none");
   document.querySelector(".kpis")?.style.setProperty("display", "none");
   document.querySelector(".zona-superior")?.style.setProperty("display", "none");
   document.querySelector(".zona-inferior")?.style.setProperty("display", "none");
 
-  // mostrar contenedor ventas
   const cont = document.getElementById("modulo-ventas");
   cont.style.display = "block";
 
-  // inyectar html
   const html = await fetch("js/ventas/ventas.html").then(r => r.text());
   cont.innerHTML = html;
 
-  // iniciar lógica
   initVentas();
 }
 
 function cerrarModuloVentas() {
-  //destroyVentas();
-
   const cont = document.getElementById("modulo-ventas");
   cont.style.display = "none";
   cont.innerHTML = "";
 
-  // restaurar UI normal
   document.querySelector(".selectores")?.style.setProperty("display", "flex");
   document.querySelector(".kpis")?.style.setProperty("display", "flex");
   document.querySelector(".zona-superior")?.style.setProperty("display", "grid");
   document.querySelector(".zona-inferior")?.style.setProperty("display", "flex");
 }
-
-
 
 function actualizarTituloModulo() {
   if (state.currentModule === "Resumen") {
@@ -93,10 +75,8 @@ function actualizarTituloModulo() {
             state.currentModule;
 }
 
-
 function cargarEmpresas() {
   const data = state.dataModules[state.currentModule] || {};
-
   const empresas = Object.keys(data).filter(e => e && e !== "GLOBAL");
 
   dom.empresaSelect.innerHTML =
@@ -120,8 +100,24 @@ function cargarHaciendas() {
       .join("");
 }
 
+// ===================== RESET DETALLES
 
-// ===================== CARGA DE DATOS 
+function resetPanelDetalles() {
+  if (dom.tablaDetalle) {
+    dom.tablaDetalle.innerHTML = `
+      <tr>
+        <td colspan="3" style="text-align:center; color:#888;">
+          Seleccione un registro para ver el detalle
+        </td>
+      </tr>
+    `;
+  }
+  if (dom.tituloDetalle) {
+    dom.tituloDetalle.innerText = "DETALLES";
+  }
+}
+
+// ===================== CARGA DE DATOS
 
 async function cargarDatosModulo(modulo) {
   showLoader(modulo);
@@ -159,12 +155,11 @@ async function cargarDatosModulo(modulo) {
   }
 }
 
-// ===================== UI PRINCIPAL 
+// ===================== UI PRINCIPAL
 
 function refrescarUI() {
   actualizarTituloModulo();
 
-  // SI ES RESUMEN, NO EJECUTAR UI GLOBAL
   if (state.currentModule === "Resumen") {
     ajustarLayoutPorModulo();
     return;
@@ -182,40 +177,64 @@ function refrescarUI() {
   ajustarLayoutPorModulo();
 }
 
+/* ================================================================
+   KPIs 
+================================================================ */
 function actualizarKPIs() {
   const data = state.dataModules[state.currentModule] || {};
   const headers = state.headersModules[state.currentModule] || [];
-  const e = dom.empresaSelect.value;
-  const h = dom.haciendaSelect.value;
+  const empresa = dom.empresaSelect.value;
+  const hacienda = dom.haciendaSelect.value;
 
-  let filasParaSumar = [];
-  if (e === "GLOBAL") {
-    Object.values(data).forEach(empresas => {
-      Object.values(empresas).forEach(haciendas => {
-        const filaCero = haciendas.find(r => r[headers[0]] === "0");
-        if (filaCero) filasParaSumar.push(filaCero);
-      });
-    });
-  } else if (h === "GLOBAL") {
-    Object.values(data[e] || {}).forEach(haciendas => {
-      const filaCero = haciendas.find(r => r[headers[0]] === "0");
-      if (filaCero) filasParaSumar.push(filaCero);
-    });
-  } else {
-    const fila = (data[e]?.[h] || []).find(r => r[headers[0]] === "0");
-    if (fila) filasParaSumar.push(fila);
+  if (!headers.length) return;
+
+  const SEM_COL = headers[0]; // "SEM"
+
+  // 🔎 función para encontrar la fila SEM = 0
+  const findSem0 = (arr) =>
+    (arr || []).find(r => String(r[SEM_COL]) === "0") || null;
+
+  let filaBase = null;
+
+  /* =====================================================
+     SELECCIÓN DE FILA BASE (UNA SOLA FILA)
+  ===================================================== */
+
+  // 1️⃣ GLOBAL / GLOBAL
+  if (empresa === "GLOBAL" && hacienda === "GLOBAL") {
+    filaBase = findSem0(data?.GLOBAL?.GLOBAL);
   }
 
+  // 2️⃣ Empresa específica / GLOBAL
+  else if (empresa !== "GLOBAL" && hacienda === "GLOBAL") {
+    filaBase = findSem0(data?.[empresa]?.GLOBAL);
+  }
+
+  // 3️⃣ Empresa + Hacienda específica
+  else {
+    filaBase = findSem0(data?.[empresa]?.[hacienda]);
+  }
+
+  /* =====================================================
+     RENDER KPIs (lectura directa desde Sheets)
+  ===================================================== */
   dom.kpisContainer.innerHTML = "";
+
   headers.slice(3).forEach(head => {
-    const totalKpi = filasParaSumar.reduce((acc, curr) => acc + num(curr[head]), 0);
+    const valor = filaBase ? num(filaBase[head]) : 0;
+
     dom.kpisContainer.innerHTML += `
       <div class="kpi">
         <h4>${head}</h4>
-        <span>${totalKpi.toLocaleString()}</span>
-      </div>`;
+        <span>${valor.toLocaleString("es-EC", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })}</span>
+      </div>
+    `;
   });
 }
+
 
 function renderTabla() {
   const data = state.dataModules[state.currentModule] || {};
@@ -231,23 +250,23 @@ function renderTabla() {
   dom.tablaBody.innerHTML = state.datosFiltrados.map(row =>
     `<tr>${headersTabla.map(hd => {
       let val = row[hd] ?? "";
+
       if (state.currentModule === "Producción" && hd.toLowerCase().includes("rechazado")) {
         val = `<span class="detalle-clic" data-semana="${row[headers[0]]}">${val}</span>`;
       }
+
       if (state.currentModule === "Gastos" && MAPA_RUBROS_GASTOS[hd]) {
         val = `<span class="detalle-clic" data-semana="${row[headers[0]]}" data-rubro="${MAPA_RUBROS_GASTOS[hd]}">${val}</span>`;
       }
-      if (
-        state.currentModule === "Liquidaciones" &&
-        hd.toLowerCase().includes("descuento")
-      ) {
+
+      if (state.currentModule === "Liquidaciones" && hd.toLowerCase().includes("descuento")) {
         val = `
-    <span class="detalle-clic"
-      data-semana="${row[headers[0]]}"
-      data-tipo="DESCUENTOS">
-      ${val}
-    </span>
-  `;
+          <span class="detalle-clic"
+            data-semana="${row[headers[0]]}"
+            data-tipo="DESCUENTOS">
+            ${val}
+          </span>
+        `;
       }
 
       return `<td>${val}</td>`;
@@ -258,39 +277,13 @@ function renderTabla() {
     el.onclick = () => {
       if (state.currentModule === "Producción") cargarDetallesProduccion(el.dataset.semana);
       if (state.currentModule === "Gastos") cargarDetallesGastos(el.dataset.semana, el.dataset.rubro);
-      if (state.currentModule === "Liquidaciones") {
-        cargarDetallesLiquidaciones(
-          el.dataset.semana,
-          el.dataset.tipo
-        );
-      }
+      if (state.currentModule === "Liquidaciones") cargarDetallesLiquidaciones(el.dataset.semana, el.dataset.tipo);
     };
   });
-
-
 
   const hect = HECTAREAS[h?.toUpperCase()] ? ` (${HECTAREAS[h.toUpperCase()]} has)` : "";
   dom.tituloTabla.innerText = `${state.currentModule} - ${e} / ${h}${hect}`;
 }
-
-//funcion para resetera detalles
-
-function resetPanelDetalles() {
-  if (dom.tablaDetalle) {
-    dom.tablaDetalle.innerHTML = `
-      <tr>
-        <td colspan="3" style="text-align:center; color:#888;">
-          Seleccione un registro para ver el detalle
-        </td>
-      </tr>
-    `;
-  }
-
-  if (dom.tituloDetalle) {
-    dom.tituloDetalle.innerText = "DETALLES";
-  }
-}
-
 
 //============== GRAFICO
 
@@ -310,7 +303,6 @@ function renderGrafico(tipo = state.tipoGrafico) {
   const minReal = Math.min(...valores);
   let yMin, yMax;
 
-  // --- ESCALA DINÁMICA ---
   if (maxReal <= 2.5) {
     yMin = Math.max(0, minReal - 0.1);
     yMax = maxReal + 0.1;
@@ -331,7 +323,6 @@ function renderGrafico(tipo = state.tipoGrafico) {
   const ctx = document.getElementById("grafico");
   if (!ctx) return;
 
-  // 🔁 REUTILIZAR GRÁFICO SI ES EL MISMO MÓDULO
   if (state.chart && state.chartModulo === state.currentModule) {
     state.chart.data.labels = labels;
     state.chart.data.datasets[0].data = valores;
@@ -342,13 +333,11 @@ function renderGrafico(tipo = state.tipoGrafico) {
     return;
   }
 
-  // 🧹 DESTRUIR SOLO SI CAMBIÓ EL MÓDULO
   if (state.chart && state.chartModulo !== state.currentModule) {
     state.chart.destroy();
     state.chart = null;
   }
 
-  // 🆕 CREAR GRÁFICO
   state.chart = new Chart(ctx, {
     type: "line",
     plugins: [ChartDataLabels],
@@ -368,10 +357,7 @@ function renderGrafico(tipo = state.tipoGrafico) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      animation: {
-        duration: 800,
-        easing: "easeOutQuart"
-      },
+      animation: { duration: 800, easing: "easeOutQuart" },
       plugins: {
         legend: { display: false },
         datalabels: {
@@ -379,10 +365,7 @@ function renderGrafico(tipo = state.tipoGrafico) {
           align: "top",
           formatter: (value) => {
             if (maxReal <= 50) {
-              return value.toLocaleString("es-EC", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              });
+              return value.toLocaleString("es-EC", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             }
             return Math.round(value).toLocaleString("es-EC");
           },
@@ -398,9 +381,7 @@ function renderGrafico(tipo = state.tipoGrafico) {
           max: yMax,
           ticks: {
             callback: (value) => {
-              if (maxReal <= 50) {
-                return value.toLocaleString("es-EC", { minimumFractionDigits: 1 });
-              }
+              if (maxReal <= 50) return value.toLocaleString("es-EC", { minimumFractionDigits: 1 });
               return value.toLocaleString("es-EC");
             }
           }
@@ -409,10 +390,8 @@ function renderGrafico(tipo = state.tipoGrafico) {
     }
   });
 
-  // 🔐 REGISTRAR MÓDULO ACTUAL DEL GRÁFICO
   state.chartModulo = state.currentModule;
 
-  // ===== TABS DE MÉTRICAS
   dom.tabsContainer.innerHTML = "";
   headers.slice(3).forEach(h => {
     const b = document.createElement("button");
@@ -423,11 +402,9 @@ function renderGrafico(tipo = state.tipoGrafico) {
   });
 }
 
-
 function ajustarLayoutPorModulo() {
   const esResumen = state.currentModule === "Resumen";
 
-  // ===== VISTA GLOBAL (selectores, KPIs, tablas, gráfico) 
   const selectores = document.querySelector(".selectores");
   const kpis = document.querySelector(".kpis");
   const zonaSuperior = document.querySelector(".zona-superior");
@@ -438,7 +415,6 @@ function ajustarLayoutPorModulo() {
   if (zonaSuperior) zonaSuperior.style.display = esResumen ? "none" : "grid";
   if (zonaInferior) zonaInferior.style.display = esResumen ? "none" : "flex";
 
-  // ===== PANEL DETALLES (solo para Producción y Gastos)
   if (!esResumen) {
     const zona = document.querySelector(".zona-superior");
     if (zona) {
@@ -451,15 +427,12 @@ function ajustarLayoutPorModulo() {
       }
     }
   } else {
-    // En Resumen, no existe sentido para detalles
     if (dom.panelDetalles) dom.panelDetalles.style.display = "none";
   }
 
-  // ===== MÓDULO RESUMEN 
   const resumen = document.getElementById("modulo-resumen");
   if (resumen) resumen.style.display = esResumen ? "flex" : "none";
 
-  // ===== CSS DEL RESUMEN  
   const cssResumen = document.getElementById("css-resumen");
   const cssResumenPrint = document.getElementById("css-resumen-print");
   if (cssResumen) cssResumen.disabled = !esResumen;
@@ -468,17 +441,11 @@ function ajustarLayoutPorModulo() {
 
 function toggleSidebar() {
   const sidebar = document.querySelector(".sidebar");
-
-  if (window.innerWidth <= 768) {
-
-    sidebar.classList.toggle("mobile-open");
-  } else {
-
-    sidebar.classList.toggle("min");
-  }
+  if (window.innerWidth <= 768) sidebar.classList.toggle("mobile-open");
+  else sidebar.classList.toggle("min");
 }
 
-// ===================== SIDEBAR (UN SOLO CONTROL) 
+// ===================== SIDEBAR
 
 const btnToggle = document.querySelector(".sidebar-toggle");
 const overlay = document.querySelector(".sidebar-overlay");
@@ -486,40 +453,32 @@ const overlay = document.querySelector(".sidebar-overlay");
 function abrirOverlaySiAplica() {
   if (window.innerWidth <= 768) overlay?.classList.add("active");
 }
-
 function cerrarOverlaySiAplica() {
   overlay?.classList.remove("active");
 }
-
 function cerrarSidebarMobile() {
   document.querySelector(".sidebar")?.classList.remove("mobile-open");
   cerrarOverlaySiAplica();
 }
 
-
 btnToggle?.addEventListener("click", () => {
   toggleSidebar();
-
-  // sincronizar overlay con estado real del sidebar en móvil
   const sidebar = document.querySelector(".sidebar");
   if (window.innerWidth <= 768) {
     if (sidebar?.classList.contains("mobile-open")) abrirOverlaySiAplica();
     else cerrarOverlaySiAplica();
   } else {
-    // en desktop nunca overlay
     cerrarOverlaySiAplica();
   }
 });
 
-/* Click fuera (overlay) */
 overlay?.addEventListener("click", cerrarSidebarMobile);
 
+// ===================== EVENTOS
 
-
-// ===================== EVENTOS 
 dom.moduloBtns.forEach(btn => {
   btn.onclick = () => {
-
+    // ✅ reset siempre al cambiar módulo
     resetPanelDetalles();
 
     if (window.innerWidth <= 768) {
@@ -553,42 +512,37 @@ dom.moduloBtns.forEach(btn => {
       return;
     }
 
-    if (state.currentModule === "Resumen") {
-      cargarResumen();
-    } else {
-      cargarDatosModulo(state.currentModule);
-    }
+    if (state.currentModule === "Resumen") cargarResumen();
+    else cargarDatosModulo(state.currentModule);
 
     ajustarLayoutPorModulo();
   };
 });
 
-
 document.addEventListener("click", (e) => {
   const btn = e.target.closest("#btnOrdenValor");
   if (!btn) return;
 
-  if (state.currentModule === "Gastos") {
-    ordenarGastosPorValor();
-  }
-
-  if (state.currentModule === "Producción") {
-    ordenarProduccionPorValor();
-  }
-
-  if (state.currentModule === "Liquidaciones") {
-    ordenarLiquidacionesPorValor();
-  }
+  if (state.currentModule === "Gastos") ordenarGastosPorValor();
+  if (state.currentModule === "Producción") ordenarProduccionPorValor();
+  if (state.currentModule === "Liquidaciones") ordenarLiquidacionesPorValor();
 });
 
+// ✅ reset también cuando cambia empresa/hacienda
+dom.empresaSelect.onchange = () => {
+  cargarHaciendas();
+  refrescarUI();
+  resetPanelDetalles();
+};
 
+dom.haciendaSelect.onchange = () => {
+  actualizarKPIs();
+  renderTabla();
+  renderGrafico();
+  resetPanelDetalles();
+};
 
-
-dom.empresaSelect.onchange = () => { cargarHaciendas(); refrescarUI();  resetPanelDetalles(); };
-dom.haciendaSelect.onchange = () => { actualizarKPIs(); renderTabla(); renderGrafico();   resetPanelDetalles();};
-
-//===================== INICIO 
-// Restaurar UI normal
+//===================== INICIO
 document.getElementById("modulo-resumen").style.display = "none";
 document.querySelector(".selectores").style.display = "flex";
 dom.kpisContainer.style.display = "flex";
@@ -598,4 +552,3 @@ cssResumen = document.getElementById("css-resumen");
 if (cssResumen) cssResumen.disabled = true;
 
 cargarDatosModulo(state.currentModule);
-
