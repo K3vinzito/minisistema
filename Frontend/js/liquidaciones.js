@@ -1,89 +1,144 @@
 /* ================================================================
-                LIQUIDACIONES — DETALLES (BD)
+   LIQUIDACIONES — DETALLES DESDE GOOGLE SHEETS
 ================================================================ */
-const API_BASE = "https://minisistema-production.up.railway.app";
 
 import { dom } from "./core.js";
 
-/* 🟢 ESTADO LOCAL DE ORDEN */
+const CSV_DETALLES_LIQUIDACIONES =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTN4DhXzK6uTyZcR-HyF9h_yGkSHyNt-iaFN6zYXeNK-6hXJQMgxgQ6DNBzj5IT4DDeSBr6vVnrV0Rv/pub?gid=0&single=true&output=csv";
+
+/* ===== estado local ===== */
 let detallesOriginales = [];
 let ultimoTotal = 0;
 let ordenActual = "original"; // original | desc | asc
 
-export async function cargarDetallesLiquidaciones(semana, tipo = "DESCUENTOS") {
+/* ================================================================
+   UTILIDADES MONETARIAS
+================================================================ */
+
+function parseValor(valor) {
+  return Number(
+    String(valor)
+      .replace(/\$/g, "")
+      .replace(/,/g, "")
+      .trim()
+  ) || 0;
+}
+
+function formatMoney(valor) {
+  return `$${Number(valor).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
+}
+
+/* ================================================================
+   CARGAR DETALLES LIQUIDACIONES
+================================================================ */
+export async function cargarDetallesLiquidaciones(semana) {
   const hacienda = dom.haciendaSelect.value;
 
-  // 🔁 reset de orden cada vez que se cargan nuevos datos
-  ordenActual = "original";
-  detallesOriginales = [];
-  ultimoTotal = 0;
-
-  // ✅ reset del icono
-  const icon = document.getElementById("iconOrden");
-  if (icon) icon.src = "img/clasificar.png";
-
-  dom.tablaDetalle.innerHTML = `
-    <tr><td colspan="3">Cargando detalles...</td></tr>
-  `;
+  dom.tablaDetalle.innerHTML =
+    `<tr><td colspan="3">Cargando detalles...</td></tr>`;
 
   try {
-    const url = new URL(`${API_BASE}/api/liquidaciones/detalles`);
-    url.search = new URLSearchParams({
-      sem: semana,
-      hacienda,
-      tipo
+    const res = await fetch(CSV_DETALLES_LIQUIDACIONES);
+    const csv = await res.text();
+
+    const parsed = Papa.parse(csv.trim(), {
+      header: true,
+      skipEmptyLines: true
     });
 
-    const res = await fetch(url);
-    const data = await res.json();
+    const filas = parsed.data || [];
 
-    if (!data.ok || !data.items?.length) {
+    detallesOriginales = filas.filter(f => {
+      const semOk = String(f.SEM).trim() === String(semana).trim();
+
+      const tipoOk =
+        String(f.TIPO || "").trim().toUpperCase() === "DESC. LIQUID.";
+
+      // ❌ EXCLUIR CAJAS
+      const detalleOk =
+        String(f.DETALLE || "").trim().toUpperCase() !== "CAJAS";
+
+      const hacOk =
+        hacienda === "GLOBAL" ||
+        String(f.HACIENDA).trim() === String(hacienda).trim();
+
+      return semOk && tipoOk && detalleOk && hacOk;
+    });
+
+    if (!detallesOriginales.length) {
       dom.tablaDetalle.innerHTML =
         `<tr><td colspan="3">Sin detalles</td></tr>`;
+      ultimoTotal = 0;
       return;
     }
 
-    detallesOriginales = [...data.items];
-    ultimoTotal = data.total;
+    /* ===== TOTAL EN POSITIVO ===== */
+    ultimoTotal = detallesOriginales.reduce(
+      (acc, f) => acc + Math.abs(parseValor(f.VALOR)),
+      0
+    );
+
+    ordenActual = "original";
+    const icon = document.getElementById("iconOrden");
+    if (icon) icon.src = "img/clasificar.png";
 
     renderTabla(detallesOriginales, ultimoTotal);
 
   } catch (err) {
-    console.error("Error liquidaciones:", err);
+    console.error("Error LIQUIDACIONES CSV:", err);
     dom.tablaDetalle.innerHTML =
       `<tr><td colspan="3">Error al cargar detalles</td></tr>`;
   }
 }
 
+/* ================================================================
+   RENDER TABLA
+================================================================ */
 function renderTabla(items, total) {
-  const filas = items.map(item => `
-    <tr>
-      <td>${item.tipo}</td>
-      <td class="detalle-largo">${item.detalle}</td>
-      <td>$${Math.abs(Number(item.valor)).toFixed(2)}</td>
-    </tr>
-  `).join("");
+  const filasHtml = items.map(f => {
+    const valorPositivo = Math.abs(parseValor(f.VALOR));
+    return `
+      <tr>
+        <td>${f.TIPO}</td>
+        <td class="detalle-largo">${f.DETALLE}</td>
+        <td>${formatMoney(valorPositivo)}</td>
+      </tr>
+    `;
+  }).join("");
 
   dom.tablaDetalle.innerHTML = `
-    ${filas}
+    ${filasHtml}
     <tr class="fila-total">
       <td colspan="2">TOTAL</td>
-      <td>$${Math.abs(Number(total)).toFixed(2)}</td>
+      <td>${formatMoney(total)}</td>
     </tr>
   `;
 }
 
+/* ================================================================
+   ORDENAR POR VALOR (POSITIVO)
+================================================================ */
 export function ordenarLiquidacionesPorValor() {
   if (!detallesOriginales.length) return;
 
   let items;
 
   if (ordenActual === "original") {
-    items = [...detallesOriginales].sort((a, b) => Math.abs(b.valor) - Math.abs(a.valor));
+    items = [...detallesOriginales].sort(
+      (a, b) =>
+        Math.abs(parseValor(b.VALOR)) - Math.abs(parseValor(a.VALOR))
+    );
     ordenActual = "desc";
   }
   else if (ordenActual === "desc") {
-    items = [...detallesOriginales].sort((a, b) => Math.abs(a.valor) - Math.abs(b.valor));
+    items = [...detallesOriginales].sort(
+      (a, b) =>
+        Math.abs(parseValor(a.VALOR)) - Math.abs(parseValor(b.VALOR))
+    );
     ordenActual = "asc";
   }
   else {
@@ -91,7 +146,6 @@ export function ordenarLiquidacionesPorValor() {
     ordenActual = "original";
   }
 
-  // ✅ actualizar icono según estado
   const icon = document.getElementById("iconOrden");
   if (icon) {
     icon.src =

@@ -773,7 +773,6 @@ canvas {
 
 .sidebar.min .menu {
   margin-top: 70px;
-  /* antes tenías 46px, súbelo para que respiren */
   gap: 14px;
   align-items: center;
 }

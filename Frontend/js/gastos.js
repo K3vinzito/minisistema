@@ -13,6 +13,46 @@ let ultimoTotal = 0;
 let ordenActual = "original"; // original | desc | asc
 
 /* ================================================================
+   MAPEOS DE RUBROS (CLICK -> SHEET)
+================================================================ */
+
+// Lo que llega desde el click (tu tabla principal) vs cómo se llama en el Sheet
+const MAP_RUBRO_CLICK_A_SHEET = {
+  "FUMIGACION": "FUMIGACION",
+  "FERTILIZACION": "FERTILIZANTES",
+  "RIEGO": "MATERIAL DE RIEGO",
+  "COMBUSTIBLE": "COMBUSTIBLE HACIENDAS"
+};
+
+// Rubros que NO deben entrar en GENERAL (NOMBRES EXACTOS DEL SHEET)
+const RUBROS_SHEET_EXCLUIDOS_GENERAL = [
+  "FUMIGACION",
+  "FERTILIZANTES",
+  "MATERIAL DE RIEGO",
+  "COMBUSTIBLE HACIENDAS"
+];
+
+/* ================================================================
+   UTILIDADES MONETARIAS
+================================================================ */
+
+function parseValor(valor) {
+  return Number(
+    String(valor)
+      .replace(/\$/g, "")
+      .replace(/,/g, "")
+      .trim()
+  ) || 0;
+}
+
+function formatMoney(valor) {
+  return `$${Number(valor).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
+}
+
+/* ================================================================
    CARGAR DETALLES GASTOS
 ================================================================ */
 export async function cargarDetallesGastos(semana, rubro) {
@@ -23,11 +63,9 @@ export async function cargarDetallesGastos(semana, rubro) {
     `<tr><td colspan="3">Cargando detalles...</td></tr>`;
 
   try {
-    // 1) Leer CSV
     const res = await fetch(CSV_DETALLES_GASTOS);
     const csv = await res.text();
 
-    // 2) Parsear CSV
     const parsed = Papa.parse(csv.trim(), {
       header: true,
       skipEmptyLines: true
@@ -35,11 +73,31 @@ export async function cargarDetallesGastos(semana, rubro) {
 
     const filas = parsed.data || [];
 
-    // 3) Filtrar
+    const rubroClick = String(rubro || "").trim().toUpperCase();
+
+    // Si es un rubro "especial" (FERTILIZACION/RIEGO/COMBUSTIBLE), se traduce al nombre real del Sheet
+    const rubroSheetEsperado = MAP_RUBRO_CLICK_A_SHEET[rubroClick]
+      ? MAP_RUBRO_CLICK_A_SHEET[rubroClick].toUpperCase()
+      : rubroClick; // si no está en el mapa, usamos tal cual
+
     detallesOriginales = filas.filter(f => {
       const semOk = String(f.SEM).trim() === String(semana).trim();
-      const rubroOk =
-        rubro === "TOTAL" || String(f.RUBRO).trim() === String(rubro).trim();
+
+      const rubroSheet = String(f.RUBRO || "").trim().toUpperCase();
+
+      let rubroOk = false;
+
+      if (rubroClick === "TOTAL") {
+        rubroOk = true;
+      }
+      else if (rubroClick === "GENERAL") {
+        // GENERAL = TODO lo que NO sea los 4 rubros principales (según nombres reales del Sheet)
+        rubroOk = !RUBROS_SHEET_EXCLUIDOS_GENERAL.includes(rubroSheet);
+      }
+      else {
+        // Rubro normal = coincide con el rubro real del Sheet (con mapa aplicado)
+        rubroOk = rubroSheet === rubroSheetEsperado;
+      }
 
       const empOk =
         empresa === "GLOBAL" || String(f.EMPRESA).trim() === String(empresa).trim();
@@ -57,9 +115,8 @@ export async function cargarDetallesGastos(semana, rubro) {
       return;
     }
 
-    // 4) Total
     ultimoTotal = detallesOriginales.reduce(
-      (acc, f) => acc + (Number(f.VALOR) || 0),
+      (acc, f) => acc + parseValor(f.VALOR),
       0
     );
 
@@ -67,7 +124,6 @@ export async function cargarDetallesGastos(semana, rubro) {
     const icon = document.getElementById("iconOrden");
     if (icon) icon.src = "img/clasificar.png";
 
-    // 5) Render
     renderTabla(detallesOriginales, ultimoTotal);
 
   } catch (err) {
@@ -81,19 +137,22 @@ export async function cargarDetallesGastos(semana, rubro) {
    RENDER TABLA
 ================================================================ */
 function renderTabla(items, total) {
-  const filasHtml = items.map(f => `
-    <tr>
-      <td>${f.RUBRO}</td>
-      <td class="detalle-largo">${f.DETALLE}</td>
-      <td>${(Number(f.VALOR) || 0).toFixed(2)}</td>
-    </tr>
-  `).join("");
+  const filasHtml = items.map(f => {
+    const valorNum = parseValor(f.VALOR);
+    return `
+      <tr>
+        <td>${f.RUBRO}</td>
+        <td class="detalle-largo">${f.DETALLE}</td>
+        <td>${formatMoney(valorNum)}</td>
+      </tr>
+    `;
+  }).join("");
 
   dom.tablaDetalle.innerHTML = `
     ${filasHtml}
     <tr class="fila-total">
       <td colspan="2">TOTAL</td>
-      <td>${(Number(total) || 0).toFixed(2)}</td>
+      <td>${formatMoney(total)}</td>
     </tr>
   `;
 }
@@ -108,13 +167,13 @@ export function ordenarGastosPorValor() {
 
   if (ordenActual === "original") {
     items = [...detallesOriginales].sort(
-      (a, b) => (Number(b.VALOR) || 0) - (Number(a.VALOR) || 0)
+      (a, b) => parseValor(b.VALOR) - parseValor(a.VALOR)
     );
     ordenActual = "desc";
   }
   else if (ordenActual === "desc") {
     items = [...detallesOriginales].sort(
-      (a, b) => (Number(a.VALOR) || 0) - (Number(b.VALOR) || 0)
+      (a, b) => parseValor(a.VALOR) - parseValor(b.VALOR)
     );
     ordenActual = "asc";
   }
