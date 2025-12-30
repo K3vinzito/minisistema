@@ -406,17 +406,24 @@ function renderGrafico(tipo = state.tipoGrafico) {
     }
   });
 
-  state.chartModulo = state.currentModule;
+state.chartModulo = state.currentModule;
 
-  dom.tabsContainer.innerHTML = "";
-  headers.slice(3).forEach(h => {
-    const b = document.createElement("button");
-    b.className = "tab" + (h === tipo ? " active" : "");
-    b.textContent = h;
-    b.onclick = () => renderGrafico(h);
-    dom.tabsContainer.appendChild(b);
-  });
+dom.tabsContainer.innerHTML = "";
+headers.slice(3).forEach(h => {
+  const b = document.createElement("button");
+  b.className = "tab" + (h === tipo ? " active" : "");
+  b.textContent = h;
+  b.onclick = () => {
+    dom.tabsContainer
+      .querySelectorAll(".tab")
+      .forEach(t => t.classList.remove("active"));
+    b.classList.add("active");
+    renderGrafico(h);
+  };
+  dom.tabsContainer.appendChild(b);
+});
 }
+
 
 function ajustarLayoutPorModulo() {
   const esResumen = state.currentModule === "Resumen";

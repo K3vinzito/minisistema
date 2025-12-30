@@ -615,6 +615,7 @@ canvas {
 /* Tabla de detalles */
 .tabla-detalle {
   table-layout: fixed;
+  border-collapse: collapse; /* 🔒 ELIMINA LA GRIETA */
 }
 
 /* Columnas */
@@ -646,14 +647,37 @@ canvas {
 .tabla-detalle td:nth-child(3),
 .tabla-detalle th:nth-child(3) {
   width: 20%;
-  text-align: right;
+  text-align: left;
   white-space: nowrap;
 }
 
-.fila-total td {
-  font-weight: bold;
-  border-top: 2px solid #ccc;
+.fila-total {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
 }
+
+.fila-total td {
+  font-weight: 600;
+  background: #fff1fa;
+  border-top: 2px solid #d3d3d3;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+/* Texto TOTAL / etiqueta */
+.fila-total td:first-child {
+  color: #ba027d;
+  letter-spacing: 0.4px;
+}
+
+/* Valor total */
+.fila-total td:last-child {
+  color: #001d5a;
+  font-size: 13px;
+}
+
+
 
 /* ================= CELDAS CON DETALLE*/
 .detalle-clic {
