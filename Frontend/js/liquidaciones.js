@@ -8,9 +8,10 @@ const CSV_DETALLES_LIQUIDACIONES =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTN4DhXzK6uTyZcR-HyF9h_yGkSHyNt-iaFN6zYXeNK-6hXJQMgxgQ6DNBzj5IT4DDeSBr6vVnrV0Rv/pub?gid=0&single=true&output=csv";
 
 /* ===== estado ===== */
-let detallesAgrupados = [];
+let detallesOriginales = [];
 let totalGeneral = 0;
 let ordenActual = "original";
+let semanaActual = null;
 
 /* ================================================================
    UTILIDADES
@@ -36,14 +37,18 @@ function formatMoney(valor) {
 export async function cargarDetallesLiquidaciones(semana) {
   const hacienda = dom.haciendaSelect.value;
 
+  if (dom.tituloDetalle) {
+    dom.tituloDetalle.innerText = `DETALLES — SEMANA ${semana}`;
+  }
+
   dom.tablaDetalle.innerHTML =
     `<tr><td colspan="3">Cargando detalles...</td></tr>`;
+
 
   try {
     const csv = await fetch(CSV_DETALLES_LIQUIDACIONES).then(r => r.text());
     const rows = Papa.parse(csv.trim(), { header: true }).data;
 
-    /* ===== FILTRAR ===== */
     const filtrados = rows.filter(r =>
       String(r.SEM) === String(semana) &&
       String(r.TIPO).trim().toUpperCase() === "DESC. LIQUID." &&
@@ -63,15 +68,14 @@ export async function cargarDetallesLiquidaciones(semana) {
       mapa[det].valor += parseValor(r.VALOR);
     });
 
-    detallesAgrupados = Object.values(mapa);
+    detallesOriginales = Object.values(mapa);
 
-    /* ===== TOTAL ===== */
-    totalGeneral = detallesAgrupados.reduce(
+    totalGeneral = detallesOriginales.reduce(
       (acc, r) => acc + r.valor, 0
     );
 
     ordenActual = "original";
-    renderTabla(detallesAgrupados, totalGeneral);
+    renderTabla(detallesOriginales, totalGeneral);
 
   } catch (err) {
     console.error(err);
@@ -103,18 +107,20 @@ function renderTabla(items, total) {
    ORDENAR POR VALOR
 ================================================================ */
 export function ordenarLiquidacionesPorValor() {
-  if (!detallesAgrupados.length) return;
+  if (!detallesOriginales.length) return;
 
   let items;
 
   if (ordenActual === "original") {
-    items = [...detallesAgrupados].sort((a, b) => b.valor - a.valor);
+    items = [...detallesOriginales].sort((a, b) => b.valor - a.valor);
     ordenActual = "desc";
-  } else if (ordenActual === "desc") {
-    items = [...detallesAgrupados].sort((a, b) => a.valor - b.valor);
+  }
+  else if (ordenActual === "desc") {
+    items = [...detallesOriginales].sort((a, b) => a.valor - b.valor);
     ordenActual = "asc";
-  } else {
-    items = [...detallesAgrupados];
+  }
+  else {
+    items = [...detallesOriginales];
     ordenActual = "original";
   }
 

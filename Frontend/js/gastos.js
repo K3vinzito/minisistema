@@ -59,6 +59,13 @@ export async function cargarDetallesGastos(semana, rubro) {
   const empresa = dom.empresaSelect.value;
   const hacienda = dom.haciendaSelect.value;
 
+  if (dom.tituloDetalle) {
+    dom.tituloDetalle.innerText = rubro
+      ? `DETALLES — SEMANA ${semana} | ${rubro}`
+      : `DETALLES — SEMANA ${semana}`;
+  }
+
+
   dom.tablaDetalle.innerHTML =
     `<tr><td colspan="3">Cargando detalles...</td></tr>`;
 

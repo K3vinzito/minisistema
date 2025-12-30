@@ -89,8 +89,8 @@ function actualizarTituloModulo() {
     state.currentModule === "Producción" ? "PRODUCCIÓN AGRÍCOLA" :
       state.currentModule === "Gastos" ? "CONTROL DE GASTOS" :
         state.currentModule === "Liquidaciones" ? "LIQUIDACIONES COMERCIALES" :
-        state.currentModule === "Ventas" ? "" :
-          state.currentModule;
+          state.currentModule === "Ventas" ? "" :
+            state.currentModule;
 }
 
 
@@ -272,6 +272,25 @@ function renderTabla() {
   const hect = HECTAREAS[h?.toUpperCase()] ? ` (${HECTAREAS[h.toUpperCase()]} has)` : "";
   dom.tituloTabla.innerText = `${state.currentModule} - ${e} / ${h}${hect}`;
 }
+
+//funcion para resetera detalles
+
+function resetPanelDetalles() {
+  if (dom.tablaDetalle) {
+    dom.tablaDetalle.innerHTML = `
+      <tr>
+        <td colspan="3" style="text-align:center; color:#888;">
+          Seleccione un registro para ver el detalle
+        </td>
+      </tr>
+    `;
+  }
+
+  if (dom.tituloDetalle) {
+    dom.tituloDetalle.innerText = "DETALLES";
+  }
+}
+
 
 //============== GRAFICO
 
@@ -501,16 +520,7 @@ overlay?.addEventListener("click", cerrarSidebarMobile);
 dom.moduloBtns.forEach(btn => {
   btn.onclick = () => {
 
-    // LIMPIAR TABLA DETALLE AL CAMBIAR MÓDULO 
-    if (dom.tablaDetalle) {
-      dom.tablaDetalle.innerHTML = `
-        <tr>
-          <td colspan="3" style="text-align:center; color:#888;">
-            Seleccione un registro para ver el detalle
-          </td>
-        </tr>
-      `;
-    }
+    resetPanelDetalles();
 
     if (window.innerWidth <= 768) {
       setTimeout(() => {
@@ -524,40 +534,35 @@ dom.moduloBtns.forEach(btn => {
 
     const nombreBoton = btn.innerText.trim();
 
-/* 🔴 SI VENÍAMOS DE VENTAS Y CAMBIAMOS A OTRO */
-if (state.currentModule === "Ventas" && !nombreBoton.includes("VENTAS")) {
-  cerrarModuloVentas();
-}
+    if (state.currentModule === "Ventas" && !nombreBoton.includes("VENTAS")) {
+      cerrarModuloVentas();
+    }
 
-/* 🔵 DEFINIR MÓDULO ACTUAL */
-if (nombreBoton.includes("PRODUCCIÓN")) state.currentModule = "Producción";
-else if (nombreBoton.includes("GASTOS")) state.currentModule = "Gastos";
-else if (nombreBoton.includes("LIQUIDACIONES")) state.currentModule = "Liquidaciones";
-else if (nombreBoton.includes("RESUMEN")) state.currentModule = "Resumen";
-else if (nombreBoton.includes("VENTAS")) state.currentModule = "Ventas";
-else state.currentModule = nombreBoton;
+    if (nombreBoton.includes("PRODUCCIÓN")) state.currentModule = "Producción";
+    else if (nombreBoton.includes("GASTOS")) state.currentModule = "Gastos";
+    else if (nombreBoton.includes("LIQUIDACIONES")) state.currentModule = "Liquidaciones";
+    else if (nombreBoton.includes("RESUMEN")) state.currentModule = "Resumen";
+    else if (nombreBoton.includes("VENTAS")) state.currentModule = "Ventas";
 
-dom.empresaSelect.innerHTML = "";
-dom.haciendaSelect.innerHTML = "";
-actualizarTituloModulo();
+    dom.empresaSelect.innerHTML = "";
+    dom.haciendaSelect.innerHTML = "";
+    actualizarTituloModulo();
 
-/* 🟢 SI ES VENTAS → CARGAR MÓDULO Y SALIR */
-if (state.currentModule === "Ventas") {
-  cargarModuloVentas();
-  return; // ⛔ IMPORTANTE: no seguir con flujo normal
-}
+    if (state.currentModule === "Ventas") {
+      cargarModuloVentas();
+      return;
+    }
 
-/* 🟢 FLUJO NORMAL */
-if (state.currentModule === "Resumen") {
-  cargarResumen();
-} else {
-  cargarDatosModulo(state.currentModule);
-}
+    if (state.currentModule === "Resumen") {
+      cargarResumen();
+    } else {
+      cargarDatosModulo(state.currentModule);
+    }
 
-ajustarLayoutPorModulo();
-
+    ajustarLayoutPorModulo();
   };
 });
+
 
 document.addEventListener("click", (e) => {
   const btn = e.target.closest("#btnOrdenValor");
@@ -579,8 +584,8 @@ document.addEventListener("click", (e) => {
 
 
 
-dom.empresaSelect.onchange = () => { cargarHaciendas(); refrescarUI(); };
-dom.haciendaSelect.onchange = () => { actualizarKPIs(); renderTabla(); renderGrafico(); };
+dom.empresaSelect.onchange = () => { cargarHaciendas(); refrescarUI();  resetPanelDetalles(); };
+dom.haciendaSelect.onchange = () => { actualizarKPIs(); renderTabla(); renderGrafico();   resetPanelDetalles();};
 
 //===================== INICIO 
 // Restaurar UI normal
