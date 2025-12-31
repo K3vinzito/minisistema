@@ -32,7 +32,25 @@ export const dom = {
 
 // ===================== UTILIDADES 
 
-export const num = v => +((v || "0").toString().replace(/[$,%\s]/g, "")) || 0;
+export const num = v => {
+  if (v === null || v === undefined) return 0;
+
+  let s = v.toString().trim();
+
+  // eliminar símbolos
+  s = s.replace(/[$%\s]/g, "");
+
+  // si tiene coma decimal y NO punto → convertir coma a punto
+  if (s.includes(",") && !s.includes(".")) {
+    s = s.replace(",", ".");
+  } else {
+    // si tiene miles con coma → eliminar comas
+    s = s.replace(/,/g, "");
+  }
+
+  return Number(s) || 0;
+};
+
 
 //===================== LOADER 
 

@@ -1,5 +1,5 @@
 /* ================================================================
-   LIQUIDACIONES — DETALLES AGRUPADOS DESDE GOOGLE SHEETS
+   LIQUIDACIONES — DETALLES DESDE GOOGLE SHEETS
 ================================================================ */
 
 import { dom } from "./core.js";
@@ -7,86 +7,91 @@ import { dom } from "./core.js";
 const CSV_DETALLES_LIQUIDACIONES =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTN4DhXzK6uTyZcR-HyF9h_yGkSHyNt-iaFN6zYXeNK-6hXJQMgxgQ6DNBzj5IT4DDeSBr6vVnrV0Rv/pub?gid=0&single=true&output=csv";
 
-/* ===== estado ===== */
+/* ===== estado local ===== */
 let detallesOriginales = [];
-let totalGeneral = 0;
-let ordenActual = "original";
+let ultimoTotal = 0;
+let ordenActual = "original"; // original | desc | asc
 
 /* ================================================================
-   UTILIDADES
+   UTILIDADES MONETARIAS
 ================================================================ */
 
 function parseValor(valor) {
-  return Number(String(valor).replace(/\$/g, "").replace(/,/g, "").trim()) || 0;
+  return Number(
+    String(valor)
+      .replace(/\$/g, "")
+      .replace(/,/g, "")
+      .trim()
+  ) || 0;
 }
 
 function formatMoney(valor) {
-  return valor.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2
-  });
-}
-
-/* ✅ ICONO ORDEN (mapeo invertido según tus imágenes actuales) */
-function actualizarIconoOrden() {
-  const icon = document.getElementById("iconOrden");
-  if (!icon) return;
-
-  // Según tu captura: cuando está ASC (menor→mayor) se ve el icono “al revés”.
-  // Entonces invertimos el mapeo:
-  icon.src =
-    ordenActual === "desc"
-      ? "img/orden-ascendente.png"     // <-- invertido
-      : ordenActual === "asc"
-        ? "img/orden-descendiente.png" // <-- invertido
-        : "img/clasificar.png";
+  return `$${Number(valor).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
 }
 
 /* ================================================================
-   CARGAR Y AGRUPAR LIQUIDACIONES
+   CARGAR DETALLES LIQUIDACIONES
 ================================================================ */
 export async function cargarDetallesLiquidaciones(semana) {
   const hacienda = dom.haciendaSelect.value;
 
-  if (dom.tituloDetalle) {
-    dom.tituloDetalle.innerText = `DETALLES — SEMANA ${semana}`;
-  }
-
-  dom.tablaDetalle.innerHTML = `<tr><td colspan="3">Cargando detalles...</td></tr>`;
+  dom.tablaDetalle.innerHTML =
+    `<tr><td colspan="3">Cargando detalles...</td></tr>`;
 
   try {
-    const csv = await fetch(CSV_DETALLES_LIQUIDACIONES).then(r => r.text());
-    const rows = Papa.parse(csv.trim(), { header: true }).data;
+    const res = await fetch(CSV_DETALLES_LIQUIDACIONES);
+    const csv = await res.text();
 
-    const filtrados = rows.filter(r =>
-      String(r.SEM) === String(semana) &&
-      String(r.TIPO).trim().toUpperCase() === "DESC. LIQUID." &&
-      String(r.DETALLE).trim().toUpperCase() !== "CAJAS" &&
-      (hacienda === "GLOBAL" || String(r.HACIENDA).trim() === String(hacienda).trim())
-    );
-
-    // AGRUPAR POR DETALLE
-    const mapa = {};
-    filtrados.forEach(r => {
-      const det = (r.DETALLE || "").trim();
-      mapa[det] ??= { tipo: r.TIPO, detalle: det, valor: 0 };
-      mapa[det].valor += parseValor(r.VALOR);
+    const parsed = Papa.parse(csv.trim(), {
+      header: true,
+      skipEmptyLines: true
     });
 
-    detallesOriginales = Object.values(mapa);
+    const filas = parsed.data || [];
 
-    totalGeneral = detallesOriginales.reduce((acc, r) => acc + r.valor, 0);
+    detallesOriginales = filas.filter(f => {
+      const semOk = String(f.SEM).trim() === String(semana).trim();
 
-    // ✅ RESET ORDEN + ICONO AL CAMBIAR DE SEMANA
+      const tipoOk =
+        String(f.TIPO || "").trim().toUpperCase() === "DESC. LIQUID.";
+
+      // ❌ EXCLUIR CAJAS
+      const detalleOk =
+        String(f.DETALLE || "").trim().toUpperCase() !== "CAJAS";
+
+      const hacOk =
+        hacienda === "GLOBAL" ||
+        String(f.HACIENDA).trim() === String(hacienda).trim();
+
+      return semOk && tipoOk && detalleOk && hacOk;
+    });
+
+    if (!detallesOriginales.length) {
+      dom.tablaDetalle.innerHTML =
+        `<tr><td colspan="3">Sin detalles</td></tr>`;
+      ultimoTotal = 0;
+      return;
+    }
+
+    /* ===== TOTAL EN POSITIVO ===== */
+    ultimoTotal = detallesOriginales.reduce(
+      (acc, f) => acc + Math.abs(parseValor(f.VALOR)),
+      0
+    );
+
     ordenActual = "original";
-    actualizarIconoOrden();
+    const icon = document.getElementById("iconOrden");
+    if (icon) icon.src = "img/clasificar.png";
 
-    renderTabla(detallesOriginales, totalGeneral);
+    renderTabla(detallesOriginales, ultimoTotal);
 
   } catch (err) {
-    console.error(err);
-    dom.tablaDetalle.innerHTML = `<tr><td colspan="3">Error al cargar liquidaciones</td></tr>`;
+    console.error("Error LIQUIDACIONES CSV:", err);
+    dom.tablaDetalle.innerHTML =
+      `<tr><td colspan="3">Error al cargar detalles</td></tr>`;
   }
 }
 
@@ -94,14 +99,19 @@ export async function cargarDetallesLiquidaciones(semana) {
    RENDER TABLA
 ================================================================ */
 function renderTabla(items, total) {
-  dom.tablaDetalle.innerHTML = `
-    ${items.map(r => `
+  const filasHtml = items.map(f => {
+    const valorPositivo = Math.abs(parseValor(f.VALOR));
+    return `
       <tr>
-        <td>${r.tipo}</td>
-        <td class="detalle-largo">${r.detalle}</td>
-        <td>${formatMoney(r.valor)}</td>
+        <td>${f.TIPO}</td>
+        <td class="detalle-largo">${f.DETALLE}</td>
+        <td>${formatMoney(valorPositivo)}</td>
       </tr>
-    `).join("")}
+    `;
+  }).join("");
+
+  dom.tablaDetalle.innerHTML = `
+    ${filasHtml}
     <tr class="fila-total">
       <td colspan="2">TOTAL</td>
       <td>${formatMoney(total)}</td>
@@ -110,7 +120,7 @@ function renderTabla(items, total) {
 }
 
 /* ================================================================
-   ORDENAR POR VALOR
+   ORDENAR POR VALOR (POSITIVO)
 ================================================================ */
 export function ordenarLiquidacionesPorValor() {
   if (!detallesOriginales.length) return;
@@ -118,18 +128,33 @@ export function ordenarLiquidacionesPorValor() {
   let items;
 
   if (ordenActual === "original") {
-    items = [...detallesOriginales].sort((a, b) => b.valor - a.valor);
+    items = [...detallesOriginales].sort(
+      (a, b) =>
+        Math.abs(parseValor(b.VALOR)) - Math.abs(parseValor(a.VALOR))
+    );
     ordenActual = "desc";
-  } else if (ordenActual === "desc") {
-    items = [...detallesOriginales].sort((a, b) => a.valor - b.valor);
+  }
+  else if (ordenActual === "desc") {
+    items = [...detallesOriginales].sort(
+      (a, b) =>
+        Math.abs(parseValor(a.VALOR)) - Math.abs(parseValor(b.VALOR))
+    );
     ordenActual = "asc";
-  } else {
+  }
+  else {
     items = [...detallesOriginales];
     ordenActual = "original";
   }
 
-  // ✅ actualizar icono siempre
-  actualizarIconoOrden();
+  const icon = document.getElementById("iconOrden");
+  if (icon) {
+    icon.src =
+      ordenActual === "desc"
+        ? "img/orden-descendiente.png"
+        : ordenActual === "asc"
+          ? "img/orden-ascendente.png"
+          : "img/clasificar.png";
+  }
 
-  renderTabla(items, totalGeneral);
+  renderTabla(items, ultimoTotal);
 }

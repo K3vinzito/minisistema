@@ -227,9 +227,9 @@ function actualizarKPIs() {
       <div class="kpi">
         <h4>${head}</h4>
         <span>${valor.toLocaleString("es-EC", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        })}</span>
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}</span>
       </div>
     `;
   });
@@ -273,29 +273,29 @@ function renderTabla() {
     }).join("")}</tr>`
   ).join("");
 
-document.querySelectorAll(".detalle-clic").forEach(el => {
-  el.onclick = () => {
+  document.querySelectorAll(".detalle-clic").forEach(el => {
+    el.onclick = () => {
 
-    // quitar activo anterior
-    document.querySelectorAll(".detalle-clic.activo")
-      .forEach(a => a.classList.remove("activo"));
+      // quitar activo anterior
+      document.querySelectorAll(".detalle-clic.activo")
+        .forEach(a => a.classList.remove("activo"));
 
-    // marcar el actual
-    el.classList.add("activo");
+      // marcar el actual
+      el.classList.add("activo");
 
-    if (state.currentModule === "Producción") {
-      cargarDetallesProduccion(el.dataset.semana);
-    }
+      if (state.currentModule === "Producción") {
+        cargarDetallesProduccion(el.dataset.semana);
+      }
 
-    if (state.currentModule === "Gastos") {
-      cargarDetallesGastos(el.dataset.semana, el.dataset.rubro);
-    }
+      if (state.currentModule === "Gastos") {
+        cargarDetallesGastos(el.dataset.semana, el.dataset.rubro);
+      }
 
-    if (state.currentModule === "Liquidaciones") {
-      cargarDetallesLiquidaciones(el.dataset.semana, el.dataset.tipo);
-    }
-  };
-});
+      if (state.currentModule === "Liquidaciones") {
+        cargarDetallesLiquidaciones(el.dataset.semana, el.dataset.tipo);
+      }
+    };
+  });
 
   const hect = HECTAREAS[h?.toUpperCase()] ? ` (${HECTAREAS[h.toUpperCase()]} has)` : "";
   dom.tituloTabla.innerText = `${state.currentModule} - ${e} / ${h}${hect}`;
@@ -380,10 +380,10 @@ function renderGrafico(tipo = state.tipoGrafico) {
           anchor: "end",
           align: "top",
           formatter: (value) => {
-            if (maxReal <= 50) {
-              return value.toLocaleString("es-EC", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            }
-            return Math.round(value).toLocaleString("es-EC");
+            return value.toLocaleString("es-EC", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            });
           },
           font: { weight: "bold", size: 10 },
           color: "#484848"
@@ -406,22 +406,22 @@ function renderGrafico(tipo = state.tipoGrafico) {
     }
   });
 
-state.chartModulo = state.currentModule;
+  state.chartModulo = state.currentModule;
 
-dom.tabsContainer.innerHTML = "";
-headers.slice(3).forEach(h => {
-  const b = document.createElement("button");
-  b.className = "tab" + (h === tipo ? " active" : "");
-  b.textContent = h;
-  b.onclick = () => {
-    dom.tabsContainer
-      .querySelectorAll(".tab")
-      .forEach(t => t.classList.remove("active"));
-    b.classList.add("active");
-    renderGrafico(h);
-  };
-  dom.tabsContainer.appendChild(b);
-});
+  dom.tabsContainer.innerHTML = "";
+  headers.slice(3).forEach(h => {
+    const b = document.createElement("button");
+    b.className = "tab" + (h === tipo ? " active" : "");
+    b.textContent = h;
+    b.onclick = () => {
+      dom.tabsContainer
+        .querySelectorAll(".tab")
+        .forEach(t => t.classList.remove("active"));
+      b.classList.add("active");
+      renderGrafico(h);
+    };
+    dom.tabsContainer.appendChild(b);
+  });
 }
 
 
