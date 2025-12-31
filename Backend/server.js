@@ -7,28 +7,42 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// IMPORTAR DB (PostgreSQL)
+const pool = require("./db");
+
+// RUTA RAÍZ (EVITA Cannot GET /)
+app.get("/", (req, res) => {
+  res.json({
+    ok: true,
+    message: "API Minisistema corriendo correctamente 🚀",
+  });
+});
+
 // RUTAS
 const authRoutes = require("./routes/auth");
 app.use("/api/auth", authRoutes);
 
+// HEALTH CHECK
 app.get("/api/health", (req, res) => {
   res.json({ ok: true, message: "Backend activo" });
 });
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () =>
-  console.log(`✅ API corriendo en http://localhost:${PORT}`)
-);
-
-const pool = require("./db");
-
+// TEST DB POSTGRES
 app.get("/api/db-test", async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT 1");
-    res.json({ ok: true, message: "Conectado a MySQL" });
+    const result = await pool.query("SELECT NOW()");
+    res.json({
+      ok: true,
+      message: "Conectado a PostgreSQL",
+      time: result.rows[0],
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ ok: false, error: err.message });
   }
 });
 
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`✅ API corriendo en puerto ${PORT}`);
+});
