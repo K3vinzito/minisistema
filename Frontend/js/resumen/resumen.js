@@ -592,7 +592,7 @@ function crearModalGrafico() {
         <div style="margin-left:auto;display:flex;align-items:center;gap:6px;">
           <label style="font-size:12px;opacity:.7;">Otras opciones:</label>
           <select id="selectOtrasColumnas" class="select-grafico">
-            <option value="">— Ninguna —</option>
+            <option value="">Ninguna.</option>
           </select>
         </div>
 
@@ -712,8 +712,8 @@ function mostrarGraficoFlujo() {
       data: datosFiltrados.map(f =>
         parseFloat((f[col] || "0").replace(/[^0-9.-]+/g, "")) || 0
       ),
-      borderColor: "#888",
-      backgroundColor: "rgba(160,160,160,0.25)",
+      borderColor: "#6671c7ff",
+      backgroundColor: "rgba(163, 179, 251, 0.25)",
       borderWidth: 2,
       fill: true,
       tension: 0.35,
@@ -779,7 +779,7 @@ chartFlujo = new Chart(ctx, {
 
   // ===== SELECTOR LOGICA
   const select = document.getElementById("selectOtrasColumnas");
-  select.innerHTML = `<option value="">— Ninguna —</option>`;
+  select.innerHTML = `<option value="">Ninguna.</option>`;
 
   Object.keys(extras).forEach(col => {
     const opt = document.createElement("option");
