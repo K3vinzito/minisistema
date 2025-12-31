@@ -425,6 +425,7 @@ function renderGrafico(tipo = state.tipoGrafico) {
 }
 
 
+
 function ajustarLayoutPorModulo() {
   const esResumen = state.currentModule === "Resumen";
 

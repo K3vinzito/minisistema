@@ -586,10 +586,19 @@ function crearModalGrafico() {
 
   modal.innerHTML = `
     <div class="modal-box">
-      <div class="modal-header">
+      <div class="modal-header" style="display:flex;align-items:center;gap:12px;">
         <strong>Gráfica Lineal de Flujo Productivo</strong>
+
+        <div style="margin-left:auto;display:flex;align-items:center;gap:6px;">
+          <label style="font-size:12px;opacity:.7;">Otras opciones:</label>
+          <select id="selectOtrasColumnas" class="select-grafico">
+            <option value="">— Ninguna —</option>
+          </select>
+        </div>
+
         <button class="btn-cerrar" id="btnCerrarGrafico">✖</button>
       </div>
+
       <div class="modal-body">
         <canvas id="graficoFlujo"></canvas>
       </div>
@@ -604,6 +613,7 @@ function crearModalGrafico() {
 }
 
 let chartFlujo = null;
+
 // FUNCION PARA MOSTRA GRAFICO
 function mostrarGraficoFlujo() {
   crearModalGrafico();
@@ -611,7 +621,6 @@ function mostrarGraficoFlujo() {
   const empresa = resumenEmpresaSelect.value;
   const hacienda = resumenHaciendaSelect.value;
 
-  // 1️⃣ Filtrar datos según selección
   const datosFiltrados = datosOriginales.filter(f =>
     (empresa === "GLOBAL" || f.EMPRESA === empresa) &&
     (hacienda === "GLOBAL" || f.HACIENDA === hacienda)
@@ -622,7 +631,6 @@ function mostrarGraficoFlujo() {
     return;
   }
 
-  // 2️⃣ Preparar datos para el gráfico
   const etiquetas = datosFiltrados.map(f => f.SEM || "");
 
   const ingresos = datosFiltrados.map(f =>
@@ -643,105 +651,161 @@ function mostrarGraficoFlujo() {
     ) || 0
   );
 
-  // 3️⃣ Mostrar modal
   document
     .getElementById("modalGraficoFlujo")
     .classList.remove("hidden");
 
-  // 4️⃣ Inicializar canvas
-  const canvas = document.getElementById("graficoFlujo");
-  const ctx = canvas.getContext("2d");
-
+  const ctx = document.getElementById("graficoFlujo").getContext("2d");
   if (chartFlujo) chartFlujo.destroy();
 
-  // 5️⃣ Crear gráfico
-  chartFlujo = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: etiquetas,
-      datasets: [
-        {
-          label: "Total Ingresos",
-          data: ingresos,
-          borderColor: "#1b5e20",
-          backgroundColor: "rgba(173,216,230,0.4)",
-          borderWidth: 2,
-          fill: true,
-          tension: 0.35,
-          pointRadius: 3,
-          pointHoverRadius: 5
-        },
-        {
-          label: "Total Gastos",
-          data: gastos,
-          borderColor: "#7a1f1f",
-          backgroundColor: "rgba(255,182,193,0.4)",
-          borderWidth: 2,
-          fill: true,
-          tension: 0.35,
-          pointRadius: 3,
-          pointHoverRadius: 5
-        },
-        {
-          label: "Utilidad Productiva",
-          data: utilidad,
-          borderColor: "#af9500",
-          backgroundColor: "rgba(230,216,173,0.25)",
-          borderWidth: 2,
-          fill: true,
-          tension: 0.35,
-          pointRadius: 3,
-          pointHoverRadius: 5
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: "bottom",
-          labels: {
-            boxWidth: 12,
-            padding: 8
+  // ===== DATASETS PRINCIPALES (VISIBLES)
+  const dsIngresos = {
+    label: "Total Ingresos",
+    data: ingresos,
+    borderColor: "#1b5e20",
+    backgroundColor: "rgba(173,216,230,0.4)",
+    borderWidth: 2,
+    fill: true,
+    tension: 0.35,
+    pointRadius: 3,
+    pointHoverRadius: 5
+  };
+
+  const dsGastos = {
+    label: "Total Gastos",
+    data: gastos,
+    borderColor: "#7a1f1f",
+    backgroundColor: "rgba(255,182,193,0.4)",
+    borderWidth: 2,
+    fill: true,
+    tension: 0.35,
+    pointRadius: 3,
+    pointHoverRadius: 5
+  };
+
+  const dsUtilidad = {
+    label: "Utilidad Productiva",
+    data: utilidad,
+    borderColor: "#af9500",
+    backgroundColor: "rgba(230,216,173,0.25)",
+    borderWidth: 2,
+    fill: true,
+    tension: 0.35,
+    pointRadius: 3,
+    pointHoverRadius: 5
+  };
+
+  const datasets = [dsIngresos, dsGastos, dsUtilidad];
+
+  // ===== DATASETS OCULTOS (OTRAS COLUMNAS)
+  const extras = {};
+  Object.keys(datosFiltrados[0]).forEach(col => {
+    if (
+      ["EMPRESA", "HACIENDA", "SEM",
+       "TOTAL INGRESOS",
+       "TOTAL GASTOS",
+       "UTILIDAD PRODUCTIVA"].includes(col)
+    ) return;
+
+    const ds = {
+      label: col,
+      data: datosFiltrados.map(f =>
+        parseFloat((f[col] || "0").replace(/[^0-9.-]+/g, "")) || 0
+      ),
+      borderColor: "#888",
+      backgroundColor: "rgba(160,160,160,0.25)",
+      borderWidth: 2,
+      fill: true,
+      tension: 0.35,
+      pointRadius: 3,
+      pointHoverRadius: 5,
+      hidden: true
+    };
+
+    extras[col] = ds;
+    datasets.push(ds);
+  });
+
+chartFlujo = new Chart(ctx, {
+  type: "line",
+  data: { labels: etiquetas, datasets },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: {
+          filter: item => {
+            return [
+              "Total Ingresos",
+              "Total Gastos",
+              "Utilidad Productiva"
+            ].includes(item.text);
           }
-        },
-        tooltip: {
-          callbacks: {
-            label: ctx =>
-              "$" + ctx.parsed.y.toLocaleString("es-EC")
-          }
-        },
-        datalabels: {
-          display: true,
-          anchor: "end",
-          align: "top",
-          font: { size: 10 },
-          color: "#333",
-          formatter: v => "$" + v.toLocaleString("es-EC")
         }
       },
-      layout: {
-        padding: {
-          top: 10,
-          bottom: 30,
-          left: 10,
-          right: 10
+      tooltip: {
+        callbacks: {
+          label: c => "$" + c.parsed.y.toLocaleString("es-EC")
         }
       },
-      scales: {
-        y: {
-          ticks: {
-            callback: v => "$" + v.toLocaleString("es-EC")
-          },
-          grid: {
-            color: "#ddd"
-          }
-        }
+      datalabels: {
+        display: true,
+        anchor: "end",
+        align: "top",
+        offset: 14,          // separa el número de la línea
+        clamp: true,
+        font: {
+          size: 10,
+          weight: "600"
+        },
+        color: "#2f2f2f",
+        formatter: v => "$" + v.toLocaleString("es-EC")
       }
     },
-    plugins: [ChartDataLabels]
+    scales: {
+      y: {
+        ticks: {
+          callback: v => "$" + v.toLocaleString("es-EC")
+        }
+      }
+    }
+  },
+  plugins: [ChartDataLabels]
+});
+
+
+
+  // ===== SELECTOR LOGICA
+  const select = document.getElementById("selectOtrasColumnas");
+  select.innerHTML = `<option value="">— Ninguna —</option>`;
+
+  Object.keys(extras).forEach(col => {
+    const opt = document.createElement("option");
+    opt.value = col;
+    opt.textContent = col;
+    select.appendChild(opt);
   });
+
+  select.onchange = () => {
+    const val = select.value;
+
+    if (!val) {
+      dsIngresos.hidden = false;
+      dsGastos.hidden = false;
+      dsUtilidad.hidden = false;
+      Object.values(extras).forEach(d => d.hidden = true);
+    } else {
+      dsIngresos.hidden = true;
+      dsGastos.hidden = true;
+      dsUtilidad.hidden = true;
+      Object.entries(extras).forEach(([k, d]) => {
+        d.hidden = k !== val;
+      });
+    }
+    chartFlujo.update();
+  };
 }
 
 

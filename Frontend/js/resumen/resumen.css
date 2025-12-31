@@ -285,15 +285,18 @@
 
 .modal-flujo .modal-box {
   background: #fff;
-  padding: 14px 18px;
-  border-radius: 14px;
-  width: 75vw;
-  max-width: 1200px;
+  padding: 16px 20px;
+  border-radius: 16px;
+
+  width: 150vw;          /* ⬅️ más ancho */
+  max-width: 1600px;    /* ⬅️ límite cómodo en pantallas grandes */
   max-height: 85vh;
+
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
+
 
 .modal-flujo .modal-header {
   display: flex;
@@ -311,6 +314,63 @@
   cursor: pointer;
   font-size: 18px;
 }
+
+/* ================= SELECTOR GRÁFICO FLUJO ================= */
+
+.select-grafico {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  background: linear-gradient(180deg, #ffffff, #f2f4f8);
+  border: 1px solid #d0d4dc;
+  border-radius: 10px;
+
+  padding: 8px 34px 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #2c2f36;
+
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+
+  background-image:
+    linear-gradient(45deg, transparent 50%, #555 50%),
+    linear-gradient(135deg, #555 50%, transparent 50%),
+    linear-gradient(to right, transparent, transparent);
+  background-position:
+    calc(100% - 18px) 50%,
+    calc(100% - 13px) 50%,
+    100% 0;
+  background-size:
+    5px 5px,
+    5px 5px,
+    2.5em 2.5em;
+  background-repeat: no-repeat;
+}
+
+.select-grafico:hover {
+  border-color: #9aa3b2;
+}
+
+.select-grafico:focus {
+  border-color: #4a7bd0;
+  box-shadow: 0 0 0 2px rgba(74,123,208,0.25);
+}
+
+/* Contenedor opcional si lo quieres alineado a la derecha */
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-header strong {
+  flex: 1;
+}
+
 /* ================= EFECTO LUPA (ZOOM) EN CELDAS  */
 
 .tabla-flujo td:hover {
