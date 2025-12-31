@@ -19,3 +19,16 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () =>
   console.log(`✅ API corriendo en http://localhost:${PORT}`)
 );
+
+const pool = require("./db");
+
+app.get("/api/db-test", async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT 1");
+    res.json({ ok: true, message: "Conectado a MySQL" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
