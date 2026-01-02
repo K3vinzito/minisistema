@@ -766,200 +766,199 @@ export function initVentas() {
     }
   }
 
-  // ================= FUNCIONES FILA =================
-  function agregarEventosFila(row) {
-    const btnEditar = row.querySelector(".btn-editar");
-    const btnEliminar = row.querySelector(".btn-eliminar");
+// ========================= FUNCIONES DE FILA =========================
+function agregarEventosFila(row) {
+  const btnEditar = row.querySelector(".btn-editar");
+  const btnEliminar = row.querySelector(".btn-eliminar");
 
-    // === ESTILO MINIMALISTA BASE ===
-    const estiloAccion = btn => {
-      btn.style.background = "#fff";
-      btn.style.border = "1px solid #ccc";
-      btn.style.borderRadius = "4px";
-      btn.style.width = "32px";
-      btn.style.height = "32px";
-      btn.style.cursor = "pointer";
-      btn.style.display = "flex";
-      btn.style.alignItems = "center";
-      btn.style.justifyContent = "center";
-      btn.style.padding = "0";
-      btn.style.marginRight = "4px"; // separación entre botones
-    };
+  // === ESTILO MINIMALISTA BASE ===
+  const estiloAccion = btn => {
+    btn.style.background = "#fff";
+    btn.style.border = "1px solid #ccc";
+    btn.style.borderRadius = "4px";
+    btn.style.width = "32px";
+    btn.style.height = "32px";
+    btn.style.cursor = "pointer";
+    btn.style.display = "flex";
+    btn.style.alignItems = "center";
+    btn.style.justifyContent = "center";
+    btn.style.padding = "0";
+    btn.style.marginRight = "4px"; // separación entre botones
+  };
 
-    estiloAccion(btnEditar);
-    estiloAccion(btnEliminar);
+  estiloAccion(btnEditar);
+  estiloAccion(btnEliminar);
 
-    // === ICONOS USANDO FONT AWESOME 6 ===
-    const iconEditar = `<i class="fas fa-pencil-alt" style="color:#4caf50;"></i>`;
-    const iconGuardar = `<i class="fas fa-check" style="color:#2196f3;"></i>`;
-    const iconEliminar = `<i class="fas fa-trash-alt" style="color:#f44336;"></i>`;
-    const iconRestaurar = `<i class="fas fa-undo" style="color:#ff9800;"></i>`;
-    const iconAdjuntar = `<i class="fas fa-paperclip" style="color:#9c27b0;"></i>`;
+  // === ICONOS ===
+  const iconEditar = "✏️";    // lápiz
+  const iconGuardar = "💾";   // disco de guardar
+  const iconEliminar = "🗑️";  // papelera
+  const iconRestaurar = "↩️";  // flecha restaurar
+  const iconAdjuntar = "📎";  // clip
 
-    btnEditar.innerHTML = iconEditar;
-    btnEditar.title = "Editar";
+  btnEditar.innerHTML = iconEditar;
+  btnEditar.title = "Editar";
 
+  // Mantener el emoji según contenedor
+  if (row.parentElement === factAprobadasBody) {
+    btnEliminar.innerHTML = iconRestaurar;
+    btnEliminar.title = "Restaurar";
+  } else {
     btnEliminar.innerHTML = iconEliminar;
     btnEliminar.title = "Eliminar";
-
-    // Editar
-    btnEditar.addEventListener("click", () => {
-      const celdas = row.querySelectorAll(".fact-cell");
-      const editable = celdas[0].isContentEditable;
-
-      if (!editable) {
-        celdas.forEach(c => {
-          c.contentEditable = true;
-          c.style.background = "#fff";
-          c.style.border = "1px solid #d1d5db";
-          c.style.borderRadius = "4px";
-          c.style.padding = "2px 4px";
-        });
-        btnEditar.innerHTML = iconGuardar;
-        btnEditar.title = "Guardar";
-      } else {
-        celdas.forEach(c => {
-          c.contentEditable = false;
-          c.style.background = "#f9fafb";
-          c.style.border = "none";
-          c.style.padding = "0";
-        });
-        btnEditar.innerHTML = iconEditar;
-        btnEditar.title = "Editar";
-        guardarFacturacion();
-      }
-    });
-
-    // Eliminar / Restaurar
-    btnEliminar.addEventListener("click", () => {
-      if (btnEliminar.title === "Eliminar") {
-        row.remove();
-      } else if (btnEliminar.title === "Restaurar") {
-        factHistBody.appendChild(row);
-        btnEliminar.innerHTML = iconEliminar;
-        btnEliminar.title = "Eliminar";
-      }
-      guardarFacturacion();
-    });
-
-    // Botón cargar documentos (minimalista)
-    let btnCargar = row.querySelector(".btn-cargar-doc");
-    if (!btnCargar) {
-      btnCargar = document.createElement("button");
-      btnCargar.className = "btn-cargar-doc";
-      btnCargar.innerHTML = iconAdjuntar;
-      estiloAccion(btnCargar);
-      btnCargar.title = "Adjuntar documentos";
-      btnCargar.onclick = () => abrirModal(row);
-      row.querySelector(".fact-acciones").appendChild(btnCargar);
-    }
   }
 
+  // ================= EDITAR / GUARDAR =================
+  btnEditar.addEventListener("click", () => {
+    const celdas = row.querySelectorAll(".fact-cell");
+    const editable = celdas[0].isContentEditable;
 
+    if (!editable) {
+      celdas.forEach(c => {
+        c.contentEditable = true;
+        c.style.background = "#fff";
+        c.style.border = "1px solid #d1d5db";
+        c.style.borderRadius = "4px";
+        c.style.padding = "2px 4px";
+      });
+      btnEditar.innerHTML = iconGuardar;
+      btnEditar.title = "Guardar";
+    } else {
+      celdas.forEach(c => {
+        c.contentEditable = false;
+        c.style.background = "#f9fafb";
+        c.style.border = "none";
+        c.style.padding = "0";
+      });
+      btnEditar.innerHTML = iconEditar;
+      btnEditar.title = "Editar";
+      guardarFacturacion();
+    }
+  });
 
-  // ================= APROBAR =================
-  btnAprobar.addEventListener("click", () => {
-    const filas = factHistBody.querySelectorAll(".fact-hist-row");
-
-    // Iconos Font Awesome 6
-    const iconRestaurar = `<i class="fas fa-undo" style="color:#ff9800;"></i>`;
-    const iconEliminar = `<i class="fas fa-trash-alt" style="color:#f44336;"></i>`;
-
-    filas.forEach(fila => {
-      const check = fila.querySelector(".fact-check");
-      if (check && check.checked) {
-        check.checked = false;
-        factAprobadasBody.appendChild(fila);
-
-        const btnEliminar = fila.querySelector(".btn-eliminar");
-        btnEliminar.innerHTML = iconRestaurar;
-        btnEliminar.title = "Restaurar";
-
-        btnEliminar.onclick = () => {
-          factHistBody.appendChild(fila);
-          btnEliminar.innerHTML = iconEliminar;
-          btnEliminar.title = "Eliminar";
-          guardarFacturacion();
-        };
-      }
-    });
-
+  // ================= ELIMINAR / RESTAURAR =================
+  btnEliminar.addEventListener("click", () => {
+    if (btnEliminar.title === "Eliminar") {
+      row.remove();
+    } else if (btnEliminar.title === "Restaurar") {
+      factHistBody.appendChild(row);
+      btnEliminar.innerHTML = iconEliminar;
+      btnEliminar.title = "Eliminar";
+    }
     guardarFacturacion();
   });
 
-  // ================= GUARDAR =================
-  function guardarFacturacion() {
-    const historial = [];
-    const aprobadas = [];
+  // ================= BOTÓN CARGAR DOCUMENTOS =================
+  let btnCargar = row.querySelector(".btn-cargar-doc");
+  if (!btnCargar) {
+    btnCargar = document.createElement("button");
+    btnCargar.className = "btn-cargar-doc";
+    btnCargar.innerHTML = iconAdjuntar;
+    estiloAccion(btnCargar);
+    btnCargar.title = "Adjuntar documentos";
+    btnCargar.onclick = () => abrirModal(row);
+    row.querySelector(".fact-acciones").appendChild(btnCargar);
+  }
+}
 
-    function guardarFilas(filas, arr) {
-      filas.forEach(row => {
-        const c = row.querySelectorAll(".fact-cell");
-        arr.push({
-          razon: c[0]?.textContent || "",
-          origen: c[1]?.textContent || "",
-          cant: c[2]?.textContent || "",
-          unidad: c[3]?.textContent || "",
-          precio: c[4]?.textContent || "",
-          subtotal: c[5]?.textContent || "",
-          retencion: c[6]?.textContent || "",
-          pago: c[7]?.textContent || "",
-          archivos: row.dataset.archivos || "[]"
-        });
+// ========================= CREAR FILA =========================
+function crearFila(d, contenedor) {
+  const row = document.createElement("div");
+  row.className = "fact-hist-row";
+  row.dataset.archivos = d.archivos || "[]";
+  row.innerHTML = `
+    <div><input type="checkbox" class="fact-check"></div>
+    <div class="fact-cell">${d.razon}</div>
+    <div class="fact-cell">${d.origen}</div>
+    <div class="fact-cell">${d.cant}</div>
+    <div class="fact-cell">${d.unidad}</div>
+    <div class="fact-cell">${d.precio}</div>
+    <div class="fact-cell">${d.subtotal}</div>
+    <div class="fact-cell">${d.retencion}</div>
+    <div class="fact-cell">${d.pago}</div>
+    <div class="fact-acciones">
+      <button class="btn-editar" title="Editar"></button>
+      <button class="btn-eliminar" title="Eliminar"></button>
+    </div>
+  `;
+  contenedor.appendChild(row);
+
+  // Agregar eventos de la fila
+  agregarEventosFila(row);
+}
+
+// ========================= CARGAR FACTURACIÓN =========================
+function cargarFacturacion() {
+  const historial = JSON.parse(localStorage.getItem("factHistorial") || "[]");
+  const aprobadas = JSON.parse(localStorage.getItem("factAprobadas") || "[]");
+
+  historial.forEach(d => crearFila(d, factHistBody));
+  aprobadas.forEach(d => crearFila(d, factAprobadasBody));
+}
+
+// ========================= GUARDAR FACTURACIÓN =========================
+function guardarFacturacion() {
+  const historial = [];
+  const aprobadas = [];
+
+  function guardarFilas(filas, arr) {
+    filas.forEach(row => {
+      const c = row.querySelectorAll(".fact-cell");
+      arr.push({
+        razon: c[0]?.textContent || "",
+        origen: c[1]?.textContent || "",
+        cant: c[2]?.textContent || "",
+        unidad: c[3]?.textContent || "",
+        precio: c[4]?.textContent || "",
+        subtotal: c[5]?.textContent || "",
+        retencion: c[6]?.textContent || "",
+        pago: c[7]?.textContent || "",
+        archivos: row.dataset.archivos || "[]"
       });
-    }
-
-    guardarFilas(factHistBody.querySelectorAll(".fact-hist-row"), historial);
-    guardarFilas(factAprobadasBody.querySelectorAll(".fact-hist-row"), aprobadas);
-
-    localStorage.setItem("factHistorial", JSON.stringify(historial));
-    localStorage.setItem("factAprobadas", JSON.stringify(aprobadas));
+    });
   }
 
-  // ================= CARGAR =================
-  function cargarFacturacion() {
-    const historial = JSON.parse(localStorage.getItem("factHistorial") || "[]");
-    const aprobadas = JSON.parse(localStorage.getItem("factAprobadas") || "[]");
+  guardarFilas(factHistBody.querySelectorAll(".fact-hist-row"), historial);
+  guardarFilas(factAprobadasBody.querySelectorAll(".fact-hist-row"), aprobadas);
 
-    // Iconos Font Awesome 6
-    const iconEditar = `<i class="fas fa-pencil-alt" style="color:#4caf50;"></i>`;
-    const iconEliminar = `<i class="fas fa-trash-alt" style="color:#f44336;"></i>`;
+  localStorage.setItem("factHistorial", JSON.stringify(historial));
+  localStorage.setItem("factAprobadas", JSON.stringify(aprobadas));
+}
 
-    function crearFila(d, contenedor) {
-      const row = document.createElement("div");
-      row.className = "fact-hist-row";
-      row.dataset.archivos = d.archivos || "[]";
-      row.innerHTML = `
-      <div><input type="checkbox" class="fact-check"></div>
-      <div class="fact-cell">${d.razon}</div>
-      <div class="fact-cell">${d.origen}</div>
-      <div class="fact-cell">${d.cant}</div>
-      <div class="fact-cell">${d.unidad}</div>
-      <div class="fact-cell">${d.precio}</div>
-      <div class="fact-cell">${d.subtotal}</div>
-      <div class="fact-cell">${d.retencion}</div>
-      <div class="fact-cell">${d.pago}</div>
-      <div class="fact-acciones">
-        <button class="btn-editar" title="Editar">${iconEditar}</button>
-        <button class="btn-eliminar" title="Eliminar">${iconEliminar}</button>
-      </div>
-    `;
-      contenedor.appendChild(row);
-      agregarEventosFila(row);
+// ========================= BOTÓN APROBAR =========================
+btnAprobar.addEventListener("click", () => {
+  const filas = factHistBody.querySelectorAll(".fact-hist-row");
+  filas.forEach(fila => {
+    const check = fila.querySelector(".fact-check");
+    if (check && check.checked) {
+      check.checked = false; // desmarcar
+      factAprobadasBody.appendChild(fila);
+
+      const btnEliminar = fila.querySelector(".btn-eliminar");
+      const iconEliminar = "🗑️";
+      const iconRestaurar = "↩️";
+
+      // Cambiar a restaurar
+      btnEliminar.innerHTML = iconRestaurar;
+      btnEliminar.title = "Restaurar";
+
+      // Reasignar evento del botón restaurar
+      btnEliminar.onclick = () => {
+        factHistBody.appendChild(fila);
+        btnEliminar.innerHTML = iconEliminar;
+        btnEliminar.title = "Eliminar";
+        guardarFacturacion();
+      };
     }
-
-    historial.forEach(d => crearFila(d, factHistBody));
-    aprobadas.forEach(d => crearFila(d, factAprobadasBody));
-  }
-
-
-
-
-  // ================= INICIALIZACION =================
-  document.addEventListener("DOMContentLoaded", () => {
-    cargarDirectorio();
-    cargarFacturacion();
   });
+  guardarFacturacion();
+});
+
+// ========================= INICIALIZACIÓN =========================
+document.addEventListener("DOMContentLoaded", () => {
+  cargarDirectorio();
+  cargarFacturacion();
+});
 
 
 

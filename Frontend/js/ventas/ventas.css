@@ -1,7 +1,7 @@
-
+/* ===================== LAYOUT GENERAL ===================== */
 .app-layout {
   display: grid;
-  grid-template-columns: 200px 1fr;
+  grid-template-columns: 80px 1fr;
   height: 100vh;
 }
 
@@ -11,7 +11,7 @@
   height: 100%;
 }
 
-
+/* ===================== CONTENEDOR VENTAS ===================== */
 .ventas-contenedor {
   background: #ffffff;
   border-radius: 18px;
@@ -20,11 +20,13 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  height: 75%;
+  height: 100vh;          /* ocupa el 80% del viewport */
+  max-height: 90vh;
   box-sizing: border-box;
+  overflow: hidden;      /* evita que se salga del contenedor */
 }
 
-/* ================= TABS ================= */
+/* ===================== TABS ===================== */
 .ventas-tabs {
   display: flex;
   gap: 10px;
@@ -53,7 +55,7 @@
   color: #ffffff;
 }
 
-/* ================= VISTAS ================= */
+/* ===================== VISTAS ===================== */
 .ventas-vistas {
   flex: 1;
   overflow: hidden;
@@ -68,9 +70,10 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  overflow: hidden;
 }
 
-/* ================= DIRECTORIO ================= */
+/* ===================== DIRECTORIO ===================== */
 .directorio-contenedor {
   display: flex;
   gap: 20px;
@@ -88,7 +91,7 @@
   width: 280px;
   position: sticky;
   top: 20px;
-  height: calc(100vh - 40px);
+  height: calc(80vh - 40px); /* ajustado al contenedor */
   box-sizing: border-box;
   flex-shrink: 0;
 }
@@ -125,10 +128,10 @@
   color: #fff;
 }
 
-/* CONTENEDOR LISTA FIJO CON SCROLL */
+/* CONTENEDOR TABLA CON SCROLL */
 .directorio-tabla-contenedor {
   flex: 1;
-  height: 80vh;
+  height: calc(80vh - 40px); /* ocupa el resto del contenedor visible */
   display: flex;
   flex-direction: column;
   border: 1px solid #c0c0c0;
@@ -189,7 +192,7 @@
   background: #e5e7eb;
 }
 
-/* ================= AUTORIZACION ================= */
+/* ===================== AUTORIZACION ===================== */
 .autorizacion-layout {
   display: flex;
   flex-direction: column;
@@ -213,7 +216,7 @@
   overflow-x: auto;
 }
 
-/* ================= ENCABEZADOS ================= */
+/* ENCABEZADOS */
 .autorizacion-headers {
   display: grid;
   grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 0.8fr 1fr 40px;
@@ -224,7 +227,7 @@
   box-sizing: border-box;
 }
 
-/* ================= FILAS DE INFORMACIÓN ================= */
+/* FILAS DE INFORMACION */
 .autorizacion-inputs {
   display: grid;
   grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 0.8fr 1fr 40px;
@@ -249,11 +252,11 @@
   background: #f3f4f6;
 }
 
-/* ================= BOTONES AUTORIZACION ================= */
+/* BOTONES AUTORIZACION */
 .autorizacion-botones {
   display: flex;
-  justify-content: flex-start;
-  gap: 10px;
+  justify-content: flex-end; /* 👈 movido a la derecha */
+  gap: 10px; /* espacio entre botones */
 }
 
 .autorizacion-botones button {
@@ -272,7 +275,8 @@
   background: #9a025e;
 }
 
-/* ================= LINEA TOTAL ================= */
+
+/* LINEA TOTAL */
 .autorizacion-totales {
   display: grid;
   grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 0.8fr 1fr 40px;
@@ -297,7 +301,7 @@
   font-size: 13px;
 }
 
-/* ================= FACTURACION ================= */
+/* ===================== FACTURACION ===================== */
 .facturacion-tabla {
   background: #f9fafb;
   border-radius: 14px;
@@ -305,10 +309,12 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  flex: 1;
   box-sizing: border-box;
   border: 1px solid #c0c0c0;
-  overflow: hidden;
+
+  /* 👇 altura fija para que el contenedor permanezca fijo */
+  height: calc(40vh - 30px); /* ajustable según diseño */
+  min-height: 200px; /* evita que colapse demasiado */
 }
 
 .facturacion-tabla .tabla-headers {
@@ -322,11 +328,12 @@
   color: #e0f2f7;
   border-radius: 8px 8px 0 0;
   align-items: center;
+  flex-shrink: 0; /* mantiene el header fijo */
 }
 
 .facturacion-tabla .tabla-body {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: auto; /* scroll interno en la tabla */
 }
 
 .fact-hist-row {
@@ -340,7 +347,7 @@
   word-break: break-word;
 }
 
-/* ================= BOTONES ACCIONES FACTURACION ================= */
+/* BOTONES ACCIONES FACTURACION */
 .fact-acciones {
   display: flex;
   gap: 4px;
@@ -362,16 +369,12 @@
   opacity: 0.8;
 }
 
-/* ICONOS LUCIDE: mostrar nativos sin forzar tamaño ni cuadros */
 .fact-acciones i[data-lucide] {
   display: inline-block;
   width: auto;
   height: auto;
   stroke-width: 2;
 }
-
-
-
 
 
 /* =====================================================
@@ -550,8 +553,8 @@
   font-size: 13px;
 }
 
-/* ====== BLOQUE DERECHO (FACTURACIÓN) ====== */
 
+/* ====== BLOQUE DERECHO (FACTURACIÓN) ====== */
 .control-facturacion {
   border-left: 1px solid #e5e7eb;
   padding-left: 12px;
@@ -590,6 +593,30 @@
   color: #6b7280;
 }
 
+/* BOTONES AUTORIZACION (APROBAR / IMPRIMIR) */
+.autorizacion-botones {
+  display: flex;
+  justify-content: flex-end; /* 👈 alineado a la derecha */
+  gap: 10px; /* espacio entre botones */
+}
+
+.autorizacion-botones button {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  background: #ba027d;
+  color: #ffffff;
+  transition: background 0.2s ease;
+}
+
+.autorizacion-botones button:hover {
+  background: #9a025e;
+}
+
+
 /* =====================================================
    SCROLL SUAVE
    ===================================================== */
@@ -606,6 +633,5 @@
 .resumen-contenedor::-webkit-scrollbar-track {
   background: transparent;
 }
-
 
 

@@ -1,7 +1,9 @@
 <!-- ===================== MODULO VENTAS ===================== -->
- 
-
 <div class="ventas-contenedor">
+
+  <!-- ====== TITULO ENCIMA DE LAS PESTAÑAS ====== -->
+  <h2 style="margin:0 0 12px 0; font-size:24px; color:#60585d;">MODULO DE VENTAS CACAO</h2>
+
   <div class="ventas-tabs">
     <button class="ventas-tab active" data-tab="directorio">DIRECTORIO</button>
     <button class="ventas-tab" data-tab="autorizacion">AUTORIZACIÓN DE VENTA</button>
@@ -111,61 +113,62 @@
     </div>
 
     <!-- ================= FACTURACION ================= -->
-    <div class="ventas-vista" id="facturacion">
-      <div class="facturacion-contenedor">
+<div class="ventas-vista" id="facturacion">
+  <div class="facturacion-contenedor">
 
-        <div class="facturacion-principal">
+    <div class="facturacion-principal">
 
-          <!-- ORDENES PENDIENTES -->
-          <div class="facturacion-tabla facturacion-tabla-historial">
+      <!-- ORDENES PENDIENTES -->
+      <div class="facturacion-tabla facturacion-tabla-historial fixed-container">
 
-            <div class="fact-header">
-              <h3>Órdenes pendientes de facturación</h3>
-              <button id="aprobarFacturacion">Aprobar Facturación</button>
-            </div>
-
-            <div class="tabla-headers">
-              <div></div>
-              <div>Razón Social</div>
-              <div>Origen</div>
-              <div>Cantidad</div>
-              <div>Unidad</div>
-              <div>Precio</div>
-              <div>Subtotal</div>
-              <div>Retenc. 1%</div>
-              <div>Pago</div>
-              <div>Acciones</div>
-            </div>
-
-            <div class="tabla-body" id="fact-historial-body"></div>
-          </div>
-
-          <!-- ORDENES APROBADAS -->
-          <div class="facturacion-tabla facturacion-tabla-aprobadas">
-
-            <div class="fact-header">
-              <h3>Órdenes aprobadas</h3>
-            </div>
-
-            <div class="tabla-headers">
-              <div></div>
-              <div>Razón Social</div>
-              <div>Origen</div>
-              <div>Cantidad</div>
-              <div>Unidad</div>
-              <div>Precio</div>
-              <div>Subtotal</div>
-              <div>Retenc. 1%</div>
-              <div>Pago</div>
-              <div>Acciones</div>
-            </div>
-
-            <div class="tabla-body" id="fact-aprobadas-body"></div>
-          </div>
-
+        <div class="fact-header">
+          <h3>Órdenes pendientes de facturación</h3>
+          <button id="aprobarFacturacion">Aprobar Facturación</button>
         </div>
+
+        <div class="tabla-headers">
+          <div></div>
+          <div>Razón Social</div>
+          <div>Origen</div>
+          <div>Cantidad</div>
+          <div>Unidad</div>
+          <div>Precio</div>
+          <div>Subtotal</div>
+          <div>Retenc. 1%</div>
+          <div>Pago</div>
+          <div>Acciones</div>
+        </div>
+
+        <div class="tabla-body scrollable-table" id="fact-historial-body"></div>
       </div>
+
+      <!-- ORDENES APROBADAS -->
+      <div class="facturacion-tabla facturacion-tabla-aprobadas fixed-container">
+
+        <div class="fact-header">
+          <h3>Órdenes aprobadas</h3>
+        </div>
+
+        <div class="tabla-headers">
+          <div></div>
+          <div>Razón Social</div>
+          <div>Origen</div>
+          <div>Cantidad</div>
+          <div>Unidad</div>
+          <div>Precio</div>
+          <div>Subtotal</div>
+          <div>Retenc. 1%</div>
+          <div>Pago</div>
+          <div>Acciones</div>
+        </div>
+
+        <div class="tabla-body scrollable-table" id="fact-aprobadas-body"></div>
+      </div>
+
     </div>
+  </div>
+</div>
+
 
     <!-- ================= RESUMEN ================= -->
     <div class="ventas-vista" id="resumen">
