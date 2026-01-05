@@ -1,5 +1,5 @@
 /* ================================================================
-   LIQUIDACIONES — DETALLES DESDE GOOGLE SHEETS
+   LIQUIDACIONES — DETALLES DESDE GOOGLE SHEETS (AGRUPADO)
 ================================================================ */
 
 import { dom } from "./core.js";
@@ -26,10 +26,31 @@ function parseValor(valor) {
 }
 
 function formatMoney(valor) {
-  return `$${Number(valor).toLocaleString("en-US", {
+  const signo = valor < 0 ? "-" : "";
+  return `${signo}$${Math.abs(valor).toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   })}`;
+}
+
+/* ================================================================
+   AGRUPAR POR DETALLE
+================================================================ */
+function agruparPorDetalle(items) {
+  const mapa = {};
+
+  items.forEach(f => {
+    const key = f.DETALLE.trim().toUpperCase();
+    const valor = parseValor(f.VALOR);
+
+    if (!mapa[key]) {
+      mapa[key] = { ...f, VALOR: valor };
+    } else {
+      mapa[key].VALOR += valor;
+    }
+  });
+
+  return Object.values(mapa);
 }
 
 /* ================================================================
@@ -54,17 +75,9 @@ export async function cargarDetallesLiquidaciones(semana) {
 
     detallesOriginales = filas.filter(f => {
       const semOk = String(f.SEM).trim() === String(semana).trim();
-
-      const tipoOk =
-        String(f.TIPO || "").trim().toUpperCase() === "DESC. LIQUID.";
-
-      // ❌ EXCLUIR CAJAS
-      const detalleOk =
-        String(f.DETALLE || "").trim().toUpperCase() !== "CAJAS";
-
-      const hacOk =
-        hacienda === "GLOBAL" ||
-        String(f.HACIENDA).trim() === String(hacienda).trim();
+      const tipoOk = String(f.TIPO || "").trim().toUpperCase() === "DESC. LIQUID.";
+      const detalleOk = String(f.DETALLE || "").trim().toUpperCase() !== "CAJAS";
+      const hacOk = hacienda === "GLOBAL" || String(f.HACIENDA).trim() === String(hacienda).trim();
 
       return semOk && tipoOk && detalleOk && hacOk;
     });
@@ -76,9 +89,12 @@ export async function cargarDetallesLiquidaciones(semana) {
       return;
     }
 
-    /* ===== TOTAL EN POSITIVO ===== */
+    // 🔹 Agrupar por DETALLE
+    detallesOriginales = agruparPorDetalle(detallesOriginales);
+
+    // 🔹 TOTAL REAL
     ultimoTotal = detallesOriginales.reduce(
-      (acc, f) => acc + Math.abs(parseValor(f.VALOR)),
+      (acc, f) => acc + parseValor(f.VALOR),
       0
     );
 
@@ -100,27 +116,29 @@ export async function cargarDetallesLiquidaciones(semana) {
 ================================================================ */
 function renderTabla(items, total) {
   const filasHtml = items.map(f => {
-    const valorPositivo = Math.abs(parseValor(f.VALOR));
+    const valor = parseValor(f.VALOR);
     return `
       <tr>
         <td>${f.TIPO}</td>
         <td class="detalle-largo">${f.DETALLE}</td>
-        <td>${formatMoney(valorPositivo)}</td>
+        <td>${formatMoney(valor)}</td>
       </tr>
     `;
   }).join("");
+
+  const totalSum = items.reduce((acc, f) => acc + parseValor(f.VALOR), 0);
 
   dom.tablaDetalle.innerHTML = `
     ${filasHtml}
     <tr class="fila-total">
       <td colspan="2">TOTAL</td>
-      <td>${formatMoney(total)}</td>
+      <td>${formatMoney(totalSum)}</td>
     </tr>
   `;
 }
 
 /* ================================================================
-   ORDENAR POR VALOR (POSITIVO)
+   ORDENAR POR VALOR (manteniendo signo)
 ================================================================ */
 export function ordenarLiquidacionesPorValor() {
   if (!detallesOriginales.length) return;
@@ -129,15 +147,13 @@ export function ordenarLiquidacionesPorValor() {
 
   if (ordenActual === "original") {
     items = [...detallesOriginales].sort(
-      (a, b) =>
-        Math.abs(parseValor(b.VALOR)) - Math.abs(parseValor(a.VALOR))
+      (a, b) => parseValor(b.VALOR) - parseValor(a.VALOR)
     );
     ordenActual = "desc";
   }
   else if (ordenActual === "desc") {
     items = [...detallesOriginales].sort(
-      (a, b) =>
-        Math.abs(parseValor(a.VALOR)) - Math.abs(parseValor(b.VALOR))
+      (a, b) => parseValor(a.VALOR) - parseValor(b.VALOR)
     );
     ordenActual = "asc";
   }

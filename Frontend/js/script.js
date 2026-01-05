@@ -78,6 +78,14 @@ function actualizarTituloModulo() {
     "Ventas": ""
   };
 
+  const subtitulo = {
+    "Resumen": "Resumen general de la operación",
+    "Producción": "Detalles de cosecha y rendimiento",
+    "Gastos": "Control y análisis de gastos",
+    "Liquidaciones": "Detalle de pagos y descuentos",
+    "Ventas": "Informe de ventas comerciales"
+  };
+
   const modulo = state.currentModule;
 
   if (!texto[modulo]) {
@@ -87,9 +95,13 @@ function actualizarTituloModulo() {
 
   dom.tituloPrincipal.innerHTML = `
     <img src="${icono[modulo]}" class="icono-titulo" alt="${modulo}">
-    <span>${texto[modulo]}</span>
+    <div class="titulo-textos">
+      <span class="titulo-principal">${texto[modulo]}</span>
+      <span class="titulo-subtitulo">${subtitulo[modulo] || ""}</span>
+    </div>
   `;
 }
+
 
 
 function cargarEmpresas() {
@@ -124,7 +136,7 @@ function resetPanelDetalles() {
     dom.tablaDetalle.innerHTML = `
       <tr>
         <td colspan="3" style="text-align:center; color:#888;">
-          Seleccione un registro para ver el detalle
+          Seleccione un registro para ver el detalle 𖤘
         </td>
       </tr>
     `;
@@ -392,7 +404,8 @@ function renderGrafico(tipo = state.tipoGrafico) {
         tension: 0.4,
         borderColor: "rgba(186,2,125,0.4)",
         backgroundColor: "rgba(186,2,125,0.25)",
-        pointRadius: 4,
+        pointRadius: 3,
+        borderWidth: 2, 
         pointHoverRadius: 6
       }]
     },
