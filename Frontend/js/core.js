@@ -33,23 +33,33 @@ export const dom = {
 // ===================== UTILIDADES 
 
 export const num = v => {
-  if (v === null || v === undefined) return 0;
+  if (v === null || v === undefined || v === "") return 0;
+  if (typeof v === "number") return v;
 
   let s = v.toString().trim();
 
   // eliminar símbolos
   s = s.replace(/[$%\s]/g, "");
 
-  // si tiene coma decimal y NO punto → convertir coma a punto
-  if (s.includes(",") && !s.includes(".")) {
-    s = s.replace(",", ".");
-  } else {
-    // si tiene miles con coma → eliminar comas
+  // 1️⃣ Formato miles: 1,234 | 12,345 | 123,456
+  if (/^\d{1,3}(,\d{3})+$/.test(s)) {
     s = s.replace(/,/g, "");
   }
 
-  return Number(s) || 0;
+  // 2️⃣ Formato miles + decimal: 12,345.67
+  else if (/^\d{1,3}(,\d{3})+\.\d+$/.test(s)) {
+    s = s.replace(/,/g, "");
+  }
+
+  // 3️⃣ Formato decimal latino: 0,98 | 10,5 | 0,997
+  else if (/^\d+,\d+$/.test(s)) {
+    s = s.replace(",", ".");
+  }
+
+  const n = Number(s);
+  return isNaN(n) ? 0 : n;
 };
+
 
 
 //===================== LOADER 

@@ -62,18 +62,35 @@ function cerrarModuloVentas() {
 }
 
 function actualizarTituloModulo() {
-  if (state.currentModule === "Resumen") {
-    dom.tituloPrincipal.innerText = "RESUMEN EJECUTIVO";
+  const icono = {
+    "Resumen": "img/resumen.png",
+    "Producción": "img/produccion.png",
+    "Gastos": "img/gastos.png",
+    "Liquidaciones": "img/liquidaciones.png",
+    "Ventas": "img/ventas.png"
+  };
+
+  const texto = {
+    "Resumen": "RESUMEN EJECUTIVO",
+    "Producción": "PRODUCCIÓN AGRÍCOLA",
+    "Gastos": "CONTROL DE GASTOS",
+    "Liquidaciones": "LIQUIDACIONES COMERCIALES",
+    "Ventas": ""
+  };
+
+  const modulo = state.currentModule;
+
+  if (!texto[modulo]) {
+    dom.tituloPrincipal.innerText = modulo;
     return;
   }
 
-  dom.tituloPrincipal.innerText =
-    state.currentModule === "Producción" ? "PRODUCCIÓN AGRÍCOLA" :
-      state.currentModule === "Gastos" ? "CONTROL DE GASTOS" :
-        state.currentModule === "Liquidaciones" ? "LIQUIDACIONES COMERCIALES" :
-          state.currentModule === "Ventas" ? "" :
-            state.currentModule;
+  dom.tituloPrincipal.innerHTML = `
+    <img src="${icono[modulo]}" class="icono-titulo" alt="${modulo}">
+    <span>${texto[modulo]}</span>
+  `;
 }
+
 
 function cargarEmpresas() {
   const data = state.dataModules[state.currentModule] || {};
@@ -220,19 +237,16 @@ function actualizarKPIs() {
   ===================================================== */
   dom.kpisContainer.innerHTML = "";
 
-  headers.slice(3).forEach(head => {
-    const valor = filaBase ? num(filaBase[head]) : 0;
+headers.slice(3).forEach(head => {
+  const valor = filaBase ? num(filaBase[head]) : 0;
 
-    dom.kpisContainer.innerHTML += `
-      <div class="kpi">
-        <h4>${head}</h4>
-        <span>${valor.toLocaleString("es-EC", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })}</span>
-      </div>
-    `;
-  });
+  dom.kpisContainer.innerHTML += `
+    <div class="kpi">
+      <h4>${head}</h4>
+      <span>${valor.toLocaleString("es-EC")}</span>
+    </div>
+  `;
+});
 }
 
 
@@ -250,6 +264,11 @@ function renderTabla() {
   dom.tablaBody.innerHTML = state.datosFiltrados.map(row =>
     `<tr>${headersTabla.map(hd => {
       let val = row[hd] ?? "";
+
+      // ⛔ NO formatear números
+      // ⛔ NO num()
+      // ⛔ NO toFixed()
+      // ⛔ NO toLocaleString()
 
       if (state.currentModule === "Producción" && hd.toLowerCase().includes("rechazado")) {
         val = `<span class="detalle-clic" data-semana="${row[headers[0]]}">${val}</span>`;
@@ -301,8 +320,6 @@ function renderTabla() {
   dom.tituloTabla.innerText = `${state.currentModule} - ${e} / ${h}${hect}`;
 }
 
-//============== GRAFICO
-
 function renderGrafico(tipo = state.tipoGrafico) {
   if (state.currentModule === "Resumen") return;
 
@@ -313,7 +330,12 @@ function renderGrafico(tipo = state.tipoGrafico) {
   state.tipoGrafico = tipo;
 
   const labels = state.datosFiltrados.map(r => `Sem ${r[headers[0]]}`);
+
+  // 🔢 valores numéricos reales (para el gráfico)
   const valores = state.datosFiltrados.map(r => num(r[tipo]));
+
+  // 🔤 valores texto originales (para mostrar)
+  const valoresTexto = state.datosFiltrados.map(r => r[tipo] ?? "");
 
   const maxReal = Math.max(...valores);
   const minReal = Math.min(...valores);
@@ -343,6 +365,7 @@ function renderGrafico(tipo = state.tipoGrafico) {
     state.chart.data.labels = labels;
     state.chart.data.datasets[0].data = valores;
     state.chart.data.datasets[0].label = tipo;
+    state.chart.data.datasets[0].valoresTexto = valoresTexto;
     state.chart.options.scales.y.min = yMin;
     state.chart.options.scales.y.max = yMax;
     state.chart.update();
@@ -354,6 +377,8 @@ function renderGrafico(tipo = state.tipoGrafico) {
     state.chart = null;
   }
 
+  state.chartModulo = state.currentModule;
+
   state.chart = new Chart(ctx, {
     type: "line",
     plugins: [ChartDataLabels],
@@ -362,6 +387,7 @@ function renderGrafico(tipo = state.tipoGrafico) {
       datasets: [{
         label: tipo,
         data: valores,
+        valoresTexto, // 👈 guardamos el texto original
         fill: true,
         tension: 0.4,
         borderColor: "rgba(186,2,125,0.4)",
@@ -379,11 +405,8 @@ function renderGrafico(tipo = state.tipoGrafico) {
         datalabels: {
           anchor: "end",
           align: "top",
-          formatter: (value) => {
-            return value.toLocaleString("es-EC", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2
-            });
+          formatter: (_, ctx) => {
+            return ctx.dataset.valoresTexto[ctx.dataIndex];
           },
           font: { weight: "bold", size: 10 },
           color: "#484848"
@@ -396,17 +419,12 @@ function renderGrafico(tipo = state.tipoGrafico) {
           min: yMin,
           max: yMax,
           ticks: {
-            callback: (value) => {
-              if (maxReal <= 50) return value.toLocaleString("es-EC", { minimumFractionDigits: 1 });
-              return value.toLocaleString("es-EC");
-            }
+            callback: value => value // ❌ no formatear
           }
         }
       }
     }
   });
-
-  state.chartModulo = state.currentModule;
 
   dom.tabsContainer.innerHTML = "";
   headers.slice(3).forEach(h => {
@@ -423,6 +441,7 @@ function renderGrafico(tipo = state.tipoGrafico) {
     dom.tabsContainer.appendChild(b);
   });
 }
+
 
 
 
