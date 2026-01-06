@@ -410,10 +410,10 @@ function insertarCarteraMinimalista() {
 
       <div class="cartera-header">
         <div class="col-empresa">EMPRESA</div>
-        <div>SEM 48</div>
         <div>SEM 49</div>
         <div>SEM 50</div>
         <div>SEM 51</div>
+        <div>SEM 52</div>
         <div class="col-total">TOTAL</div>
       </div>
   `;
@@ -457,7 +457,7 @@ function insertarCarteraMinimalista() {
 
     <div class="cartera-banner">
       <span class="banner-icon">🛈</span>
-      <span>Semanas 50-51 en proceso de liquidación.</span>
+      <span>Valores tentativos SEM 52</span>
     </div>
   `;
 

@@ -20,7 +20,7 @@ body {
   padding: 8px;
   border-radius: 24px;
   background: #f6f6f6;
-  box-shadow: 0 8px 30px rgba(141, 141, 141, 0.608);
+  box-shadow: 0 8px 30px rgba(204, 204, 204, 0.608);
   height: calc(90vh - 40px);
   display: flex;
   flex-direction: column;
@@ -35,7 +35,7 @@ body {
 }
 
 .brand-logo {
-  max-width: 150px;
+  max-width: 130px;
   width: 80%;
   height: auto;
   display: block;
@@ -47,7 +47,7 @@ body {
 
 /* ================= TITULO PRINCIPAL ================= */
 #titulo {
-  font-family: 'Baloo 2', 'Fredoka One', 'Poppins', 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, system-ui, sans-serif !important;
+  font-family: 'Fredoka One', sans-serif;
   font-size: 25px !important;
   font-weight: 600 !important;
   color: #bc096c !important;
@@ -61,8 +61,8 @@ body {
 }
 
 .icono-titulo {
-  width: 44px !important;
-  height: 44px !important;
+  width: 54px !important;
+  height: 54px !important;
   object-fit: contain !important;
 }
 
@@ -73,7 +73,7 @@ body {
 }
 
 .titulo-principal {
-  font-size: 20px !important;
+  font-size: 24px !important;
   font-weight: 600 !important;
   color: #bc096c !important;
 }
@@ -277,7 +277,7 @@ body {
   border-radius: 16px;
   background: rgb(255, 255, 255);
   border: 1px solid #e7e7e7;
-  box-shadow: 0 2px 6px rgba(130, 130, 130, 0.193);
+  box-shadow: 0 2px 6px rgba(130, 130, 130, 0.103);
   padding: 16px;
   position: relative;
   overflow: hidden;
@@ -326,7 +326,7 @@ body {
   padding: 16px 20px;
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.154);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.068);
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -425,7 +425,7 @@ tbody tr:hover {
   flex-direction: column;
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.071);
   min-height: 0;
 }
 

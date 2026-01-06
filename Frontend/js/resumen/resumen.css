@@ -165,7 +165,7 @@
   border-radius: 16px;
   background-color: #fff;
   padding: 10px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 20px rgba(21, 20, 20, 0.125);
   overflow: hidden; 
 }
 
@@ -601,7 +601,7 @@
 /* ================= BANNER INFORMATIVO */
 
 .cartera-banner {
-  background: #fff1f8;
+  background: #eef0fb;
   color: #757474;
   font-size: 14px;
   display: flex;
