@@ -252,13 +252,27 @@ function actualizarKPIs() {
 headers.slice(3).forEach(head => {
   const valor = filaBase ? num(filaBase[head]) : 0;
 
+  let valorFormateado = valor;
+
+  // 🟢 GASTOS y LIQUIDACIONES en moneda
+  if (state.currentModule === "Gastos" || state.currentModule === "Liquidaciones") {
+    valorFormateado = `$${valor.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
+  } else {
+    // 🔒 PRODUCCIÓN igual que antes
+    valorFormateado = valor.toLocaleString("es-EC");
+  }
+
   dom.kpisContainer.innerHTML += `
     <div class="kpi">
       <h4>${head}</h4>
-      <span>${valor.toLocaleString("es-EC")}</span>
+      <span>${valorFormateado}</span>
     </div>
   `;
 });
+
 }
 
 

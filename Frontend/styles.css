@@ -81,7 +81,7 @@ body {
 .titulo-subtitulo {
   font-size: 12px !important;
   font-weight: 300 !important;
-  color: #878787 !important;
+  color: #7e7e7e !important;
   margin-top: 2px;
 }
 
@@ -117,7 +117,7 @@ body {
 
 .brand {
   position: relative;
-  margin-top: 8px;
+  margin-top: 0px;
 
   padding-top: 0px;
   /* espacio para el botón ☰ */
@@ -209,7 +209,7 @@ body {
 
 .menu-item:hover {
   background: rgba(0, 0, 0, 0.05);
-  transform: translateX(10px);
+  transform: translateX(5px);
 }
 
 .menu-item.active {
@@ -246,7 +246,7 @@ body {
   font-size: 13px;
   font-weight: 600;
   border-radius: 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #ececec;
   background: #fff;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='gray' viewBox='0 0 16 16'%3E%3Cpath d='M1.5 5.5l6 6 6-6'/%3E%3C/svg%3E");
@@ -282,7 +282,7 @@ body {
   text-align: center;
   border-radius: 16px;
   background: rgb(255, 255, 255);
-  border: 1px solid #e7e7e7;
+  border: 1px solid #f4f4f4;
   box-shadow: 0 2px 6px rgba(130, 130, 130, 0.103);
   padding: 16px;
   position: relative;
@@ -292,14 +292,14 @@ body {
 .kpi h4 {
   font-size: 13px;
   font-weight: 600;
-  color: #676767;
+  color: #4d5557;
   margin-bottom: 6px;
 }
 
 .kpi span {
   font-size: 18px;
   font-weight: bold;
-  color: #092204;
+  color: #35569f;
 }
 
 /* Fondo de olas finas gris claro para tarjetas KPI */
@@ -332,7 +332,7 @@ body {
   padding: 16px 20px;
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.068);
+  box-shadow: 0 4px 14px rgba(138, 138, 138, 0.124);
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -431,7 +431,7 @@ tbody tr:hover {
   flex-direction: column;
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.071);
+  box-shadow: 0 4px 14px rgba(104, 104, 104, 0.071);
   min-height: 0;
 }
 
