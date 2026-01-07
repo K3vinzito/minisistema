@@ -496,16 +496,136 @@ function insertarBarritaImagen() {
   }
 }
 
-// Llamar función después de cargar KPIs
+
+// ================= MODAL REPORTE RESUMEN =================
+
+function crearModalReporteResumen() {
+  if (document.getElementById("modalReporteResumen")) return;
+
+  const modal = document.createElement("div");
+  modal.id = "modalReporteResumen";
+  modal.className = "modal-reporte hidden";
+
+  modal.innerHTML = `
+    <div class="modal-box">
+      <div class="modal-header">
+        <strong>Reporte Consolidado — Ingresos / Egresos</strong>
+        <button id="cerrarModalReporte" class="btn-cerrar">✖</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="tabla-scroll">
+          <table class="tabla-flujo">
+            <thead>
+              <tr>
+                <th>GRUPO</th>
+                <th>HACIENDA</th>
+                <th>CAJAS</th>
+                <th>QQ Cacao</th>
+                <th>UTILIDAD 2025</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-reporte-resumen"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  document
+    .getElementById("cerrarModalReporte")
+    .addEventListener("click", () => {
+      modal.classList.add("hidden");
+    });
+}
+
+
+function renderTablaReporteResumen() {
+  const tbody = document.getElementById("tbody-reporte-resumen");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  // 🔹 Datos de ejemplo (luego se conectan al CSV real)
+  const filas = [
+    { grupo: "GRUPO A", hacienda: "GLOBAL", cajas: 2100, qq: 540, utilidad: 24800 },
+    { grupo: "GRUPO A", hacienda: "PORVENIR", cajas: 1250, qq: 320, utilidad: 12500 }
+  ];
+
+  filas.forEach(f => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${f.grupo}</td>
+      <td>${f.hacienda}</td>
+      <td>${f.cajas.toLocaleString("es-EC")}</td>
+      <td>${f.qq.toLocaleString("es-EC")}</td>
+      <td>${formatoUSD(f.utilidad)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+
+// ================= EVENTOS RESUMEN =================
 document.addEventListener("DOMContentLoaded", () => {
+
   insertarBarritaImagen();
+
+  const btnReporte = document.getElementById("btnReporteResumen");
+  const modal = document.getElementById("modalReporteResumen");
+  const btnCerrar = document.getElementById("cerrarModalReporte");
+
+  if (btnReporte && modal) {
+    btnReporte.addEventListener("click", () => {
+      modal.classList.remove("hidden");
+      renderTablaReporteResumen();
+    });
+  }
+
+  if (btnCerrar && modal) {
+    btnCerrar.addEventListener("click", () => {
+      modal.classList.add("hidden");
+    });
+  }
+
+  // Cerrar haciendo click fuera
+  if (modal) {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.classList.add("hidden");
+      }
+    });
+  }
 });
 
+
+
+// ================= CIERRES Y OTROS EVENTOS =================
 document.addEventListener("click", function (e) {
+  const modal = document.getElementById("modalReporteResumen");
+
+  // Cerrar modal con la X
+  if (e.target.id === "cerrarModalReporte" && modal) {
+    modal.classList.add("hidden");
+  }
+
+  // Cerrar modal haciendo click fuera del cuadro blanco
+  if (
+    modal &&
+    !modal.classList.contains("hidden") &&
+    e.target.classList.contains("modal-reporte")
+  ) {
+    modal.classList.add("hidden");
+  }
+
+  // Mantener impresión existente
   if (e.target.id === "btnImprimirFlujo") {
     imprimirFlujoDetallado();
   }
 });
+
 
 
 // ================= IMPRIMIR REPORTE DE FLUJOS 

@@ -24,7 +24,6 @@
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 
-
 <body>
   <div class="contenedor-principal">
 
@@ -42,26 +41,22 @@
       <aside class="sidebar">
         <div class="sidebar-toggle" aria-label="Abrir/cerrar menú">☰</div>
 
-<div class="brand">
-  <img src="img/LOGO.png" alt="PORTAL AGRO" class="brand-logo"><br>
-  <span class="brand-title">___________________________</span><br>
-  <span class="brand-subtitle">Usuario: Administrador</span><br>
-  <span class="brand-subtitle">Desarrollador:® 𝄃𝄃𝄂𝄂𝄀𝄁𝄃𝄂𝄂𝄃</span>
-</div>
-
+        <div class="brand">
+          <img src="img/LOGO.png" alt="PORTAL AGRO" class="brand-logo"><br>
+          <span class="brand-title">___________________________</span><br>
+          <span class="brand-subtitle">Usuario: Administrador</span><br>
+          <span class="brand-subtitle">Desarrollador:® 𝄃𝄃𝄂𝄂𝄀𝄁𝄃𝄂𝄂𝄃</span>
+        </div>
 
         <nav class="menu">
           <a class="menu-item active" data-modulo="produccion">PRODUCCIÓN</a>
           <a class="menu-item" data-modulo="gastos">GASTOS</a>
           <a class="menu-item" data-modulo="liquidaciones">LIQUIDACIONES</a>
           <a class="menu-item" data-modulo="ventas">VENTAS</a>
+          <a class="menu-item" data-modulo="mano-de-obra">MANO DE OBRA</a>
           <a class="menu-item" data-modulo="resumen">RESUMEN</a>
-
-
         </nav>
       </aside>
-
-      
 
       <div class="sidebar-overlay"></div>
 
@@ -75,30 +70,53 @@
           <input type="password" id="password" placeholder="Contraseña">
           <button id="btnLogin">Ingresar</button>
           <p id="loginError"></p>
-          <!-- BANER RECOMIENDACION ZOOM -->
           <div id="bannerZoom" class="bannerZoom">
             ⚠ Se recomienda visualizar la página en 80%
           </div>
         </div>
-
-
 
         <!-- Contenido -->
         <div id="contenido" class="contenido-principal"
           style="display:none; flex-direction:column; gap:24px; height:100%;">
 
           <!-- Modulo ventas -->
-        <section id="modulo-ventas" class="modulo-ventas" style="display:none;"></section>
+          <section id="modulo-ventas" class="modulo-ventas" style="display:none;"></section>
 
           <!-- Header -->
           <header class="header">
             <h1 id="titulo">PRODUCCIÓN</h1>
           </header>
 
+          <!-- ===================== MÓDULO MANO DE OBRA ===================== -->
+          <div id="modulo-mano-obra" class="contenedor-tio" style="display:none;">
+            <!-- ENCABEZADO DEL MÓDULO -->
+            <div class="tio-encabezado">
+              <div class="titulo">
+                <img src="img/mano-de-obra.png" class="icono-titulo" alt="Mano de Obra">
+                <div class="titulo-textos">
+                  <span class="titulo-principal">MANO DE OBRA</span>
+                  <span class="titulo-subtitulo">Gestión de personal y jornales</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- SELECTORES -->
+            <div class="selectores" style="margin-top:10px; display:flex; gap:15px; align-items:center;">
+              <label for="empresa-select-mano">Empresa:</label>
+              <select id="empresa-select-mano"></select>
+
+              <label for="hacienda-select-mano">Hacienda:</label>
+              <select id="hacienda-select-mano"></select>
+            </div>
+
+            <!-- CONTENIDO PRINCIPAL (VACÍO POR AHORA) -->
+            <div style="margin-top:20px; text-align:center; color:#888;">
+              Contenido del módulo Mano de Obra (vacío)
+            </div>
+          </div>
+
           <!-- Modulo resumen -->
           <section id="modulo-resumen" class="modulo-resumen" data-vista="resumen" style="display:none;">
-
-
             <!-- SELECTORES -->
             <div class="selectores-resumen">
               <div class="selector-item">
@@ -113,19 +131,13 @@
 
             <!-- TOP BI -->
             <div class="resumen-top resumen-flex">
-
-              <!-- CONSOLIDADO -->
               <div class="card card-saldo">
-
-                <!-- KPIs -->
                 <div class="kpis-wrapper">
                   <h3>📈 Consolidado de Flujo Productivo</h3>
-
                   <div class="saldo-principal">
                     <span>Total Utilidad</span>
                     <strong>$0.00</strong>
                   </div>
-
                   <div class="saldo-detalle">
                     <div>
                       <small>Ingresos</small>
@@ -137,34 +149,26 @@
                     </div>
                   </div>
                 </div>
-
-                <!-- GASTOS BI -->
                 <div class="gastos-lista">
                   <!-- JS inyecta barras -->
                 </div>
-
               </div>
 
-              <!-- CARTERA -->
               <div class="card card-actividad">
                 <h3>⎙ Cartera Fruta por Cobrar</h3>
                 <!-- futuro BI -->
               </div>
-
             </div>
 
             <!-- TABLA BI -->
             <div class="card card-tabla">
-
               <div class="tabla-header">
                 <h3>▤ Flujo Detallado</h3>
-
                 <div class="acciones-tabla">
                   <button onclick="mostrarGraficoFlujo()">📊 Ver gráfico</button>
                   <button onclick="imprimirFlujoDetallado()">🖨 Imprimir</button>
                 </div>
               </div>
-
               <div class="tabla-scroll">
                 <table class="tabla-flujo">
                   <thead>
@@ -173,15 +177,10 @@
                   <tbody id="tbody-flujo"></tbody>
                 </table>
               </div>
-
             </div>
-
           </section>
 
-
-
-
-          <!-- Selectores -->
+          <!-- Selectores principales -->
           <div class="selectores">
             <label for="empresaSelect">Empresa:</label>
             <select id="empresaSelect"></select>
@@ -230,12 +229,7 @@
                     <tr>
                       <th>Tipo</th>
                       <th>Detalle</th>
-                      <!-- <th id="btnOrdenValor">Valor ⬍</th> -->
                       <th>
-                        <!-- <button id="btnOrdenValor" class="btn-orden">
-                          <span class="texto-orden">Valor</span>
-                          <img src="img/clasificar.png" class="icon-orden" alt="Ordenar" />
-                        </button> -->
                         <button id="btnOrdenValor" class="btn-orden" type="button" title="Ordenar por valor">
                           <img class="icon-orden" id="iconOrden" src="img/clasificar.png" alt="Ordenar" />
                           <span>Valor</span>
@@ -258,11 +252,8 @@
               </div>
             </div>
           </section>
-
         </div>
       </main>
-
-
     </div>
   </div>
 
@@ -271,9 +262,7 @@
   <script src="js/produccion.js" type="module"></script>
   <script src="js/liquidaciones.js" type="module"></script>
   <script src="js/script.js" type="module"></script>
-
-  
-
+  <script src="js/mano_obra.js" type="module"></script>
 
   <script>
     // Login simple
@@ -294,5 +283,4 @@
     [usuarioInput, passwordInput].forEach(i => i.addEventListener('keyup', e => { if (e.key === "Enter") btnLogin.click(); }));
   </script>
 </body>
-
 </html>

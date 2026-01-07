@@ -445,9 +445,9 @@ function renderGrafico(tipo = state.tipoGrafico) {
           beginAtZero: false,
           min: yMin,
           max: yMax,
-          ticks: {
-            callback: value => value // ❌ no formatear
-          }
+ticks: {
+  callback: value => Math.round(value)
+}
         }
       }
     }

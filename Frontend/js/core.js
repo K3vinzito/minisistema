@@ -28,6 +28,9 @@ export const dom = {
   loader: document.getElementById("loader"),
   tituloDetalle: document.querySelector("#panel-detalles .titulo-tabla"),
 
+  // ================== SELECTORES DEL MÓDULO MANO DE OBRA
+  empresaSelectMano: document.getElementById("empresa-select-mano"),
+  haciendaSelectMano: document.getElementById("hacienda-select-mano"),
 };
 
 // ===================== UTILIDADES 
@@ -60,15 +63,14 @@ export const num = v => {
   return isNaN(n) ? 0 : n;
 };
 
-
-
 //===================== LOADER 
 
 const moduloCargado = {
   "Producción": false,
   "Gastos": false,
   "Liquidaciones": false,
-  "Resumen": false
+  "Resumen": false,
+  "Mano de Obra": false   // <=== agregado
 };
 
 
@@ -89,5 +91,3 @@ export function hideLoader(modulo) {
     }
   }, 350);
 }
-
-
