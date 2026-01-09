@@ -1,0 +1,78 @@
+<!-- ================= MODULO MANO DE OBRA ================= -->
+
+
+<div id="modulo-mano-obra-activo">
+
+
+
+<!-- ===== MODAL GRAFICA ===== -->
+<div id="modalGrafica" class="modal-overlay">
+  <div class="modal-contenido">
+
+    <!-- HEADER MODAL -->
+    <div class="modal-header">
+      <h3>Gráfica por Labor</h3>
+
+      <select id="selectLaborModal">
+        <option value="">Seleccione labor</option>
+      </select>
+    </div>
+
+    <!-- CONTENEDOR GRAFICA -->
+    <div class="modal-body">
+      <canvas id="graficaLabor"></canvas>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== CONTENIDO PRINCIPAL DEL MODULO ===== -->
+<div class="mano-obra-contenido">
+
+
+  
+  <!-- ===== CONTENEDORES DOBLES ===== -->
+  <div class="contenido-doble">
+
+    <!-- PANEL IZQUIERDO -->
+    <div class="panel">
+      <div class="panel-header fila-titulo-select">
+        <h3>Registro de Labores</h3>
+
+        <select id="laborSelect" class="panel-select">
+          <option value="">Todas las semanas</option>
+        </select>
+      </div>
+
+      <div class="panel-body">
+        <table id="tabla-izquierda">
+          <thead></thead>
+          <tbody></tbody>
+          <tfoot></tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- PANEL DERECHO -->
+    <div class="panel">
+      <div class="panel-header fila-titulo-select">
+        <h3>Detalle de Labores</h3>
+
+        <button id="btnGrafica" class="panel-boton">
+          📊 Gráfica
+        </button>
+      </div>
+
+      <div class="panel-body">
+        <table id="tabla-derecha">
+          <thead></thead>
+          <tbody></tbody>
+          <tfoot></tfoot>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+  <!-- TODO el HTML actual de mano de obra -->
+</div>
