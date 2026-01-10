@@ -11,6 +11,7 @@ import { cargarDetallesLiquidaciones, ordenarLiquidacionesPorValor } from "./liq
 import { cargarResumen } from "./resumen/resumen.js";
 import { initVentas } from "./ventas/ventas.js";
 
+
 // ===================== CONSTANTES
 export const MODULOS_SIN_SELECTORES = ["Resumen"];
 

@@ -50,13 +50,21 @@ let headers = [];
 const colorValor = v => v >= 0 ? "#0b5394" : "#a73b3e";
 
 function formatoUSD(valor) {
+  if (typeof valor !== "number" || isNaN(valor)) return "$0.00";
+
+  // 🔒 truncar a 2 decimales SIN redondear
+  const truncado = Math.trunc(valor * 100) / 100;
+
   return new Intl.NumberFormat("es-EC", {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
-  }).format(valor);
+  }).format(truncado);
 }
+
+
+
 
 // ================= CARGA CSV
 
@@ -186,44 +194,78 @@ function renderTablaResumen() {
     theadFlujo.appendChild(th);
   });
 
-  // 2. RENDERIZADO DE FILAS Y CÁLCULO DE TOTALES
-  const totales = Object.fromEntries(cols.map(c => [c, 0]));
-  tablaFlujo.innerHTML = "";
+// 2. RENDERIZADO DE FILAS Y CÁLCULO DE TOTALES
+const totales = Object.fromEntries(cols.map(c => [c, 0]));
+tablaFlujo.innerHTML = "";
 
-  let semanasGanancia = 0;
-  let semanasPerdida = 0;
+let semanasGanancia = 0;
+let semanasPerdida = 0;
 
-  datos.forEach(fila => {
-    const tr = document.createElement("tr");
-    cols.forEach((c, i) => {
-      const td = document.createElement("td");
-      td.dataset.col = c;
-      const txt = fila[c] || "$0.00";
-      const num = parseFloat(txt.replace(/[$,]/g, "")) || 0;
-      totales[c] += num;
-      td.textContent = txt;
+// Parseo numérico real (sin redondear)
+function parseValor(valor) {
+  if (valor === null || valor === undefined || valor === "") return 0;
 
-      const name = c.toLowerCase();
+  let v = valor.toString().trim();
 
-      // Colores de fondo suaves
-      if (name.includes("total ingresos")) td.style.background = "#d8f0d8";
-      if (name.includes("total egresos") || name.includes("total gastos")) td.style.background = "#f8d8d8";
+  // decimal con coma → punto
+  if (v.includes(",") && !v.includes(".")) {
+    v = v.replace(",", ".");
+  }
 
-      // Estilos especiales SEM y Utilidad
-      if (i === idxSEM) {
-        td.style.background = "#f3f3f3";
-        td.style.fontWeight = "600";
-      }
-      if (i === idxUtilProd) {
-        td.style.background = num < 0 ? "#f8d8d8" : "#fff9d9";
-        td.style.fontWeight = "600";
-        if (num >= 0) semanasGanancia++;
-        else semanasPerdida++;
-      }
-      tr.appendChild(td);
-    });
-    tablaFlujo.appendChild(tr);
+  // eliminar $, espacios, separadores de miles
+  v = v.replace(/[^0-9.-]/g, "");
+
+  const n = Number(v);
+  return isNaN(n) ? 0 : n;
+}
+
+datos.forEach(fila => {
+  const tr = document.createElement("tr");
+
+  cols.forEach((c, i) => {
+    const td = document.createElement("td");
+    td.dataset.col = c;
+
+    const num = parseValor(fila[c]);
+    totales[c] += num;
+
+    // 🔥 APLICAR FORMATO MONEDA A TODA LA TABLA
+    if (i === idxSEM) {
+      // SEM se muestra tal cual
+      td.textContent = fila[c] ?? "";
+    } else {
+      td.textContent = formatoUSD(num);
+    }
+
+    const name = c.toLowerCase();
+
+    // Colores de fondo suaves
+    if (name.includes("total ingresos")) td.style.background = "#d8f0d8";
+    if (name.includes("total egresos") || name.includes("total gastos"))
+      td.style.background = "#f8d8d8";
+
+    // SEM
+    if (i === idxSEM) {
+      td.style.background = "#f3f3f3";
+      td.style.fontWeight = "600";
+    }
+
+    // UTILIDAD
+    if (i === idxUtilProd) {
+      td.style.background = num < 0 ? "#f8d8d8" : "#fff9d9";
+      td.style.fontWeight = "600";
+      if (num >= 0) semanasGanancia++;
+      else semanasPerdida++;
+    }
+
+    tr.appendChild(td);
   });
+
+  tablaFlujo.appendChild(tr);
+});
+
+
+
 
   // 3. ACTUALIZAR INFO DE SEMANAS (Ganancia vs Pérdida)
   const titulo = document.querySelector(".card-tabla h3, .card-tabla h2, .card-tabla .tabla-header h3");
@@ -642,7 +684,7 @@ function imprimirFlujoDetallado() {
   const empresa = resumenEmpresaSelect.value;
   const hacienda = resumenHaciendaSelect.value;
 
-  let titulo = "FLUJO PRODUCTIVO";
+  let titulo = "FLUJO GLOBAL";
   if (hacienda && hacienda !== "GLOBAL") {
     titulo += ` HACIENDA ${hacienda}`;
   } else if (empresa && empresa !== "GLOBAL") {
