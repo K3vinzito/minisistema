@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // mano_obra.js
 import { showLoader, hideLoader } from "../core.js"; // si usas loader
 
@@ -46,3 +47,292 @@ function actualizarDatos() {
 
 // Exportar función para llamar desde el main cuando se seleccione el módulo
 export { cargarModuloManoObra };
+=======
+// ==================================================
+// MODULO MANO DE OBRA — INTEGRADO A AGROPORTAL
+// ==================================================
+
+import { dom } from "../core.js";
+
+export function initManoObra() {
+
+  const CSV_URL =
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBUAf62AAk6qplGMW6ZlQPHXfYO3ShUMqCPc0EpcuVcgL7ub9cRgC1Y5aHk4JR27ZzDKCjcrErNqo0/pub?gid=0&single=true&output=csv";
+
+  let datosCSV = [];
+  let semanaActual = "";
+  let graficaLabor = null;
+
+  // ==================================================
+  // UTIL
+  // ==================================================
+  const parseMoneda = v =>
+    Number(String(v || "").replace(/\$/g, "").replace(/,/g, "")) || 0;
+
+  // ==================================================
+  // CARGA CSV
+  // ==================================================
+  async function cargarCSV() {
+    try {
+      const res = await fetch(CSV_URL);
+      const text = await res.text();
+
+      datosCSV = text
+        .trim()
+        .split("\n")
+        .slice(1)
+        .map(f => f.split(",").map(v => v.trim()));
+
+      cargarSelectorSemanas();
+      refrescar();
+
+    } catch (err) {
+      console.error("❌ Error CSV Mano de Obra:", err);
+    }
+  }
+
+  // ==================================================
+  // FILTRO GLOBAL (EMPRESA / HACIENDA / SEMANA)
+  // ==================================================
+  function filtrarDatos() {
+    const empresa = dom.empresaSelect.value;
+    const hacienda = dom.haciendaSelect.value;
+
+    return datosCSV.filter(f => {
+      if (empresa && empresa !== "GLOBAL" && f[1] !== empresa) return false;
+      if (hacienda && hacienda !== "GLOBAL" && f[2] !== hacienda) return false;
+      if (semanaActual && f[0] !== semanaActual) return false;
+      return true;
+    });
+  }
+
+  // ==================================================
+  // SELECTOR DE SEMANAS (TABLA IZQUIERDA)
+  // ==================================================
+  function cargarSelectorSemanas() {
+    const select = document.getElementById("laborSelect");
+    if (!select) return;
+
+    const semanas = [
+      ...new Set(
+        datosCSV
+          .map(f => f[0])
+          .filter(Boolean)
+      )
+    ];
+
+    select.innerHTML =
+      `<option value="">Todas las semanas</option>` +
+      semanas.map(s => `<option value="${s}">${s}</option>`).join("");
+
+    select.onchange = () => {
+      semanaActual = select.value;
+      refrescar();
+    };
+  }
+
+  // ==================================================
+  // TABLA IZQUIERDA — CATEGORÍAS
+  // ==================================================
+  function renderTablaCategorias() {
+    const data = filtrarDatos();
+    const categorias = {};
+
+    data.forEach(f => {
+      const categoria = f[3];
+      if (!categoria) return;
+
+      categorias[categoria] ??= { personas: 0, valor: 0 };
+      categorias[categoria].personas += Number(f[5]) || 0;
+      categorias[categoria].valor += parseMoneda(f[6]);
+    });
+
+    const thead = document.querySelector("#tabla-izquierda thead");
+    const tbody = document.querySelector("#tabla-izquierda tbody");
+    const tfoot = document.querySelector("#tabla-izquierda tfoot");
+    if (!thead || !tbody || !tfoot) return;
+
+    thead.innerHTML = `
+      <tr>
+        <th>#</th>
+        <th>Categoría</th>
+        <th># Pers.</th>
+        <th>Valor</th>
+      </tr>`;
+
+    tbody.innerHTML = "";
+    tfoot.innerHTML = "";
+
+    let totalP = 0;
+    let totalV = 0;
+    let i = 1;
+
+    Object.entries(categorias).forEach(([cat, d]) => {
+      totalP += d.personas;
+      totalV += d.valor;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${i++}</td>
+        <td>${cat}</td>
+        <td class="clickable">${d.personas}</td>
+        <td>$${d.valor.toFixed(2)}</td>
+      `;
+
+      tr.querySelector(".clickable").onclick = () =>
+        renderTablaLabores(cat);
+
+      tbody.appendChild(tr);
+    });
+
+    tfoot.innerHTML = `
+      <tr>
+        <td colspan="2"><strong>TOTAL</strong></td>
+        <td><strong>${totalP}</strong></td>
+        <td><strong>$${totalV.toFixed(2)}</strong></td>
+      </tr>`;
+  }
+
+  // ==================================================
+  // TABLA DERECHA — LABORES
+  // ==================================================
+  function renderTablaLabores(categoriaSeleccionada) {
+    const data = filtrarDatos();
+    const labores = {};
+
+    data.forEach(f => {
+      if (f[3] !== categoriaSeleccionada) return;
+
+      const labor = f[4];
+      if (!labor) return;
+
+      labores[labor] ??= { personas: 0, valor: 0 };
+      labores[labor].personas += Number(f[5]) || 0;
+      labores[labor].valor += parseMoneda(f[6]);
+    });
+
+    const thead = document.querySelector("#tabla-derecha thead");
+    const tbody = document.querySelector("#tabla-derecha tbody");
+    const tfoot = document.querySelector("#tabla-derecha tfoot");
+    if (!thead || !tbody || !tfoot) return;
+
+    thead.innerHTML = `
+      <tr>
+        <th>#</th>
+        <th>Labor</th>
+        <th># Pers.</th>
+        <th>Valor</th>
+      </tr>`;
+
+    tbody.innerHTML = "";
+    tfoot.innerHTML = "";
+
+    let totalP = 0;
+    let totalV = 0;
+    let i = 1;
+
+    Object.entries(labores).forEach(([labor, d]) => {
+      totalP += d.personas;
+      totalV += d.valor;
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${i++}</td>
+          <td>${labor}</td>
+          <td>${d.personas}</td>
+          <td>$${d.valor.toFixed(2)}</td>
+        </tr>`;
+    });
+
+    tfoot.innerHTML = `
+      <tr>
+        <td colspan="2"><strong>TOTAL</strong></td>
+        <td><strong>${totalP}</strong></td>
+        <td><strong>$${totalV.toFixed(2)}</strong></td>
+      </tr>`;
+  }
+
+  // ==================================================
+  // MODAL + GRÁFICA
+  // ==================================================
+  document.getElementById("btnGrafica")?.addEventListener("click", () => {
+    document.getElementById("modalGrafica")?.classList.add("activo");
+    cargarSelectorLaboresModal();
+  });
+function cargarEmpresasManoObra() {
+  const empresas = [
+    ...new Set(datosCSV.map(f => f[1]).filter(Boolean))
+  ];
+
+  dom.empresaSelect.innerHTML =
+    `<option value="GLOBAL">GLOBAL</option>` +
+    empresas.map(e => `<option value="${e}">${e}</option>`).join("");
+}
+
+  function cargarSelectorLaboresModal() {
+    const select = document.getElementById("selectLaborModal");
+    if (!select) return;
+
+    const labores = [
+      ...new Set(filtrarDatos().map(f => f[4]).filter(Boolean))
+    ];
+
+    select.innerHTML =
+      `<option value="">Seleccione una labor</option>` +
+      labores.map(l => `<option value="${l}">${l}</option>`).join("");
+
+    select.onchange = () => renderGraficaLabor(select.value);
+  }
+
+  function renderGraficaLabor(labor) {
+    if (!labor) return;
+
+    const data = {};
+    filtrarDatos().forEach(f => {
+      if (f[4] !== labor) return;
+      data[f[0]] ??= 0;
+      data[f[0]] += parseMoneda(f[6]);
+    });
+
+    const ctx = document.getElementById("graficaLabor")?.getContext("2d");
+    if (!ctx) return;
+
+    graficaLabor?.destroy();
+
+    graficaLabor = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: Object.keys(data),
+        datasets: [{
+          label: labor,
+          data: Object.values(data),
+          borderColor: "#ba027d",
+          backgroundColor: "rgba(186,2,125,0.25)",
+          tension: 0.3,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+  }
+
+  // ==================================================
+  // REFRESCO GLOBAL (HOOK CON SCRIPT PRINCIPAL)
+  // ==================================================
+  function refrescar() {
+    renderTablaCategorias();
+    document.querySelector("#tabla-derecha tbody").innerHTML = "";
+    document.querySelector("#tabla-derecha tfoot").innerHTML = "";
+  }
+
+  window.initManoObraRefresco = refrescar;
+
+  // ==================================================
+  // INIT
+  // ==================================================
+  cargarCSV();
+}
+>>>>>>> f6136e259dfae93bf3f67045d370eafc58c34fc3

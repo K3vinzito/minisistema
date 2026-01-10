@@ -16,6 +16,8 @@
   <link id="css-resumen" rel="stylesheet" href="js/resumen/resumen.css" disabled>
   <link id="css-resumen-print" rel="stylesheet" href="js/resumen/resumen.print.css" media="print" disabled>
   <link rel="stylesheet" href="js/ventas/ventas.css">
+  <link rel="stylesheet" href="js/gastos/gastos.css">
+  <link rel="stylesheet" href="js/mano_obra/mano_obra.css">
   <link rel="stylesheet" href="styles.css">
 
   <!-- ================== LIBRERÍAS JS ================== -->
@@ -53,6 +55,10 @@
           <a class="menu-item" data-modulo="gastos">GASTOS</a>
           <a class="menu-item" data-modulo="liquidaciones">LIQUIDACIONES</a>
           <a class="menu-item" data-modulo="ventas">VENTAS</a>
+<<<<<<< HEAD
+=======
+          <a class="menu-item" data-modulo="mano-obra">MANO DE OBRA</a>
+>>>>>>> f6136e259dfae93bf3f67045d370eafc58c34fc3
           <a class="menu-item" data-modulo="resumen">RESUMEN</a>
         </nav>
       </aside>
@@ -77,17 +83,19 @@
         <!-- Contenido -->
         <div id="contenido" class="contenido-principal"
           style="display:none; flex-direction:column; gap:24px; height:100%;">
-
-          <!-- Modulo ventas -->
-          <section id="modulo-ventas" class="modulo-ventas" style="display:none;"></section>
-          
-          <!-- Modulo mano de obra -->
-          <section id="modulo-mano_obra" class="modulo-mano_obra" style="display:none;"></section>
-
           <!-- Header -->
           <header class="header">
             <h1 id="titulo">PRODUCCIÓN</h1>
           </header>
+
+
+          <!-- Modulo ventas -->
+          <section id="modulo-ventas" class="modulo-ventas" style="display:none;"></section>
+
+
+
+
+          
 
 
           <!-- Modulo resumen -->
@@ -162,7 +170,7 @@
             <label for="haciendaSelect">Hacienda:</label>
             <select id="haciendaSelect"></select>
           </div>
-
+          <section id="modulo-mano-obra" class="modulo-mano-obra" style="display:none;"></section>
           <!-- KPIs -->
           <div class="kpis">
             <div class="kpi">
@@ -237,7 +245,7 @@
   <script src="js/produccion.js" type="module"></script>
   <script src="js/liquidaciones.js" type="module"></script>
   <script src="js/script.js" type="module"></script>
-  <script src="js/mano_obra.js" type="module"></script>
+
 
   <script>
     // Login simple
@@ -258,4 +266,5 @@
     [usuarioInput, passwordInput].forEach(i => i.addEventListener('keyup', e => { if (e.key === "Enter") btnLogin.click(); }));
   </script>
 </body>
+
 </html>

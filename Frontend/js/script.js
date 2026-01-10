@@ -10,6 +10,8 @@ import { cargarDetallesGastos, ordenarGastosPorValor } from "./gastos.js";
 import { cargarDetallesLiquidaciones, ordenarLiquidacionesPorValor } from "./liquidaciones.js";
 import { cargarResumen } from "./resumen/resumen.js";
 import { initVentas } from "./ventas/ventas.js";
+import { initManoObra } from "./mano_obra/mano_obra.js";
+
 
 
 // ===================== CONSTANTES
@@ -35,6 +37,38 @@ const MAPA_RUBROS_GASTOS = {
 };
 
 // ===================== FUNCIONES DE APOYO
+async function cargarModuloManoObra() {
+  // 🔥 CERRAR RESUMEN SI ESTABA ABIERTO
+  document.getElementById("modulo-resumen")?.style.setProperty("display", "none");
+  const cssResumen = document.getElementById("css-resumen");
+  const cssResumenPrint = document.getElementById("css-resumen-print");
+  if (cssResumen) cssResumen.disabled = true;
+  if (cssResumenPrint) cssResumenPrint.disabled = true;
+
+// Mantener selectores globales
+document.querySelector(".selectores")?.style.setProperty("display", "flex");
+
+// Ocultar solo lo que Mano de Obra no usa
+document.querySelector(".kpis")?.style.setProperty("display", "none");
+document.querySelector(".zona-superior")?.style.setProperty("display", "none");
+document.querySelector(".zona-inferior")?.style.setProperty("display", "none");
+
+
+  // Ocultar otros módulos independientes
+  document.getElementById("modulo-ventas")?.style.setProperty("display", "none");
+
+  const cont = document.getElementById("modulo-mano-obra");
+  cont.innerHTML = "";
+  cont.style.display = "block";
+
+  const html = await fetch("js/mano_obra/mano_obra.html").then(r => r.text());
+  cont.innerHTML = html;
+
+  initManoObra();
+}
+
+
+
 
 async function cargarModuloVentas() {
   document.querySelector(".selectores")?.style.setProperty("display", "none");
@@ -50,6 +84,21 @@ async function cargarModuloVentas() {
 
   initVentas();
 }
+
+function cerrarModuloManoObra() {
+  const cont = document.getElementById("modulo-mano-obra");
+  if (!cont) return;
+
+  cont.style.display = "none";
+  cont.innerHTML = "";
+
+  // restaurar layout general
+  document.querySelector(".selectores")?.style.setProperty("display", "flex");
+  document.querySelector(".kpis")?.style.setProperty("display", "flex");
+  document.querySelector(".zona-superior")?.style.setProperty("display", "grid");
+  document.querySelector(".zona-inferior")?.style.setProperty("display", "flex");
+}
+
 
 function cerrarModuloVentas() {
   const cont = document.getElementById("modulo-ventas");
@@ -68,7 +117,10 @@ function actualizarTituloModulo() {
     "Producción": "img/produccion.png",
     "Gastos": "img/gastos.png",
     "Liquidaciones": "img/liquidaciones.png",
-    "Ventas": "img/ventas.png"
+    "Ventas": "img/iconoventas.png",
+    "Mano de Obra": "img/icono.png"
+
+
   };
 
   const texto = {
@@ -76,7 +128,8 @@ function actualizarTituloModulo() {
     "Producción": "PRODUCCIÓN AGRÍCOLA",
     "Gastos": "CONTROL DE GASTOS",
     "Liquidaciones": "LIQUIDACIONES COMERCIALES",
-    "Ventas": ""
+    "Ventas": "Modulo Ventas Cacao",
+    "Mano de Obra": "MANO DE OBRA"
   };
 
   const subtitulo = {
@@ -84,7 +137,9 @@ function actualizarTituloModulo() {
     "Producción": "Detalles de cosecha y rendimiento",
     "Gastos": "Control y análisis de gastos",
     "Liquidaciones": "Detalle de pagos y descuentos",
-    "Ventas": "Informe de ventas comerciales"
+    "Ventas": "Informe de ventas comerciales",
+    "Mano de Obra": "Control Labores de campo"
+
   };
 
   const modulo = state.currentModule;
@@ -190,11 +245,41 @@ async function cargarDatosModulo(modulo) {
 function refrescarUI() {
   actualizarTituloModulo();
 
+  // ===============================
+  // MANO DE OBRA
+  // ===============================
+  if (state.currentModule === "Mano de Obra") {
+
+    // 👉 activar clase para CSS
+    document.body.classList.add("modulo-mano-obra-activo");
+
+    // 👉 mostrar selectores globales
+    document.querySelector(".selectores")?.style.setProperty("display", "flex");
+
+    // 👉 refresco propio del módulo si existe
+    if (window.initManoObraRefresco) {
+      window.initManoObraRefresco();
+    }
+
+    return; // ⛔ salir aquí (NO sigue flujo normal)
+  }
+
+  // ===============================
+  // OTROS MÓDULOS
+  // ===============================
+  document.body.classList.remove("modulo-mano-obra-activo");
+
+  // ===============================
+  // RESUMEN
+  // ===============================
   if (state.currentModule === "Resumen") {
     ajustarLayoutPorModulo();
     return;
   }
 
+  // ===============================
+  // PRODUCCIÓN / GASTOS / LIQUIDACIONES
+  // ===============================
   if (dom.empresaSelect.options.length <= 1) {
     cargarEmpresas();
     dom.empresaSelect.value = "GLOBAL";
@@ -206,6 +291,7 @@ function refrescarUI() {
   renderGrafico();
   ajustarLayoutPorModulo();
 }
+
 
 /* ================================================================
    KPIs 
@@ -250,29 +336,29 @@ function actualizarKPIs() {
   ===================================================== */
   dom.kpisContainer.innerHTML = "";
 
-headers.slice(3).forEach(head => {
-  const valor = filaBase ? num(filaBase[head]) : 0;
+  headers.slice(3).forEach(head => {
+    const valor = filaBase ? num(filaBase[head]) : 0;
 
-  let valorFormateado = valor;
+    let valorFormateado = valor;
 
-  // 🟢 GASTOS y LIQUIDACIONES en moneda
-  if (state.currentModule === "Gastos" || state.currentModule === "Liquidaciones") {
-    valorFormateado = `$${valor.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })}`;
-  } else {
-    // 🔒 PRODUCCIÓN igual que antes
-    valorFormateado = valor.toLocaleString("es-EC");
-  }
+    // 🟢 GASTOS y LIQUIDACIONES en moneda
+    if (state.currentModule === "Gastos" || state.currentModule === "Liquidaciones") {
+      valorFormateado = `$${valor.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })}`;
+    } else {
+      // 🔒 PRODUCCIÓN igual que antes
+      valorFormateado = valor.toLocaleString("es-EC");
+    }
 
-  dom.kpisContainer.innerHTML += `
+    dom.kpisContainer.innerHTML += `
     <div class="kpi">
       <h4>${head}</h4>
       <span>${valorFormateado}</span>
     </div>
   `;
-});
+  });
 
 }
 
@@ -420,7 +506,7 @@ function renderGrafico(tipo = state.tipoGrafico) {
         borderColor: "rgba(186,2,125,0.4)",
         backgroundColor: "rgba(186,2,125,0.25)",
         pointRadius: 3,
-        borderWidth: 2, 
+        borderWidth: 2,
         pointHoverRadius: 6
       }]
     },
@@ -446,9 +532,9 @@ function renderGrafico(tipo = state.tipoGrafico) {
           beginAtZero: false,
           min: yMin,
           max: yMax,
-ticks: {
-  callback: value => Math.round(value)
-}
+          ticks: {
+            callback: value => Math.round(value)
+          }
         }
       }
     }
@@ -567,12 +653,18 @@ dom.moduloBtns.forEach(btn => {
     if (state.currentModule === "Ventas" && !nombreBoton.includes("VENTAS")) {
       cerrarModuloVentas();
     }
+    if (state.currentModule === "Mano de Obra" && !nombreBoton.includes("MANO DE OBRA")) {
+  cerrarModuloManoObra();
+}
+
 
     if (nombreBoton.includes("PRODUCCIÓN")) state.currentModule = "Producción";
     else if (nombreBoton.includes("GASTOS")) state.currentModule = "Gastos";
     else if (nombreBoton.includes("LIQUIDACIONES")) state.currentModule = "Liquidaciones";
-    else if (nombreBoton.includes("RESUMEN")) state.currentModule = "Resumen";
     else if (nombreBoton.includes("VENTAS")) state.currentModule = "Ventas";
+    else if (nombreBoton.includes("MANO DE OBRA")) state.currentModule = "Mano de Obra";
+    else if (nombreBoton.includes("RESUMEN")) state.currentModule = "Resumen";
+
 
     dom.empresaSelect.innerHTML = "";
     dom.haciendaSelect.innerHTML = "";
@@ -583,10 +675,16 @@ dom.moduloBtns.forEach(btn => {
       return;
     }
 
+    if (state.currentModule === "Mano de Obra") {
+      cargarModuloManoObra();
+      return;
+    }
+
     if (state.currentModule === "Resumen") cargarResumen();
     else cargarDatosModulo(state.currentModule);
 
     ajustarLayoutPorModulo();
+
   };
 });
 

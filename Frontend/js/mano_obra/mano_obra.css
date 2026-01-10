@@ -1,0 +1,224 @@
+/* ======================================================
+   MODULO MANO DE OBRA — CSS
+   (Adaptado desde styles.css del módulo independiente)
+====================================================== */
+
+/* ===== SCOPE DEL MODULO ===== */
+.modulo-mano-obra {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ======================================================
+   MINI SISTEMA AGRÍCOLA — CSS ORIGINAL
+====================================================== */
+
+/* ================= GLOBAL ================= */
+.modulo-mano-obra * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Fredoka One', 'Poppins', 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, system-ui, sans-serif !important;
+}
+
+
+/* ================= SELECTORES ================= */
+.modulo-mano-obra .selectores {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.modulo-mano-obra .selectores label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #57565b;
+}
+
+.modulo-mano-obra .selectores select,
+.modulo-mano-obra .panel-select {
+  padding: 8px 34px 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+}
+
+/* ======================================================
+   CONTENEDORES DOBLES
+====================================================== */
+
+.modulo-mano-obra .contenido-doble {
+  display: flex;
+  gap: 20px;
+  height: 50vh;
+  max-height: 50vh;
+  overflow: hidden;
+}
+
+/* PANEL BASE */
+.modulo-mano-obra .panel {
+  background: rgba(255,255,255,0.9);
+  border-radius: 20px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* IZQUIERDO */
+.modulo-mano-obra .contenido-doble .panel:first-child {
+  width: 40%;
+}
+
+/* DERECHO */
+.modulo-mano-obra .contenido-doble .panel:last-child {
+  width: 60%;
+}
+
+/* ================= PANEL HEADER ================= */
+.modulo-mano-obra .panel-header,
+.modulo-mano-obra .fila-titulo-select {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ================= PANEL BODY ================= */
+.modulo-mano-obra .panel-body {
+  flex: 1;
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+/* ======================================================
+   TABLAS
+====================================================== */
+
+.modulo-mano-obra .panel table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12px;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* CABECERA Y FOOTER */
+.modulo-mano-obra .panel thead,
+.modulo-mano-obra .panel tfoot {
+  background: #e0e8fb;
+  position: sticky;
+  z-index: 3;
+}
+
+.modulo-mano-obra .panel thead { top: 0; }
+.modulo-mano-obra .panel tfoot { bottom: 0; font-weight: 700; }
+
+/* CELDAS */
+.modulo-mano-obra .panel th,
+.modulo-mano-obra .panel td {
+  padding: 7px 6px;
+  text-align: center;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* SCROLL */
+.modulo-mano-obra .panel tbody {
+  display: block;
+  overflow-y: auto;
+  max-height: calc(50vh - 145px);
+}
+
+.modulo-mano-obra .panel thead tr,
+.modulo-mano-obra .panel tbody tr,
+.modulo-mano-obra .panel tfoot tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+/* FILAS */
+.modulo-mano-obra .panel tbody tr:nth-child(even) {
+  background: #f8f8f8;
+}
+
+.modulo-mano-obra .panel tbody tr:hover {
+  background: #fcedfb;
+}
+
+/* CLICKABLE */
+.modulo-mano-obra .clickable {
+  cursor: pointer;
+  color: #cb1c91;
+  font-weight: 600;
+}
+
+/* ================= BOTÓN PANEL ================= */
+.modulo-mano-obra .panel-boton {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #b11e71;
+  background: #f5e8f1;
+  border: 1px solid #e5c3d9;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* ======================================================
+   MODAL GRAFICA
+====================================================== */
+
+.modulo-mano-obra .modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.3s ease;
+  z-index: 999;
+}
+
+.modulo-mano-obra .modal-overlay.activo {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modulo-mano-obra .modal-contenido {
+  width: 95vw;
+  height: 70vh;
+  background: #ffffff;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* HEADER MODAL */
+.modulo-mano-obra .modal-header {
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modulo-mano-obra .modal-body {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#modulo-mano-obra {
+  padding: 20px 50px 30px;
+  height: 100%;
+  box-sizing: border-box;
+}
