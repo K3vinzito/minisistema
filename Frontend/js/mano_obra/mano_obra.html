@@ -1,108 +1,76 @@
-<<<<<<< HEAD
-<!-- mano_obra.html -->
-<div id="mano-obra-modulo" style="display:flex; flex-direction:column; gap:15px; padding:15px;">
-
-  <!-- TITULO + SUBTITULO -->
-  <div class="titulo" style="display:flex; align-items:center; gap:10px;">
-    <img src="img/mano-de-obra.png" alt="Mano de Obra" style="width:40px; height:40px;">
-    <div>
-      <h1 style="margin:0; font-size:24px;">MANO DE OBRA</h1>
-      <small style="color:#666;">Gestión de personal y jornales</small>
-    </div>
-  </div>
-
-  <!-- SELECTORES -->
-  <div class="selectores" style="display:flex; gap:15px; align-items:center;">
-    <label for="empresa-select-mano">Empresa:</label>
-    <select id="empresa-select-mano"></select>
-
-    <label for="hacienda-select-mano">Hacienda:</label>
-    <select id="hacienda-select-mano"></select>
-  </div>
-
-  <!-- CONTENIDO PRINCIPAL -->
-  <div id="mano-obra-contenido" style="margin-top:15px; text-align:center; color:#888;">
-    Cargando datos...
-  </div>
-
-</div>
-=======
 <!-- ================= MODULO MANO DE OBRA ================= -->
 
 
 <div id="modulo-mano-obra-activo">
 
+  <!-- ===== MODAL GRAFICA ===== -->
+  <div id="modalGrafica" class="modal-overlay">
+    <div class="modal-contenido">
 
+      <!-- HEADER MODAL -->
+      <div class="modal-header">
+        <h3>Gráfica por Labor</h3>
 
-<!-- ===== MODAL GRAFICA ===== -->
-<div id="modalGrafica" class="modal-overlay">
-  <div class="modal-contenido">
-
-    <!-- HEADER MODAL -->
-    <div class="modal-header">
-      <h3>Gráfica por Labor</h3>
-
-      <select id="selectLaborModal">
-        <option value="">Seleccione labor</option>
-      </select>
-    </div>
-
-    <!-- CONTENEDOR GRAFICA -->
-    <div class="modal-body">
-      <canvas id="graficaLabor"></canvas>
-    </div>
-
-  </div>
-</div>
-
-<!-- ===== CONTENIDO PRINCIPAL DEL MODULO ===== -->
-<div class="mano-obra-contenido">
-
-
-  
-  <!-- ===== CONTENEDORES DOBLES ===== -->
-  <div class="contenido-doble">
-
-    <!-- PANEL IZQUIERDO -->
-    <div class="panel">
-      <div class="panel-header fila-titulo-select">
-        <h3>Registro de Labores</h3>
-
-        <select id="laborSelect" class="panel-select">
-          <option value="">Todas las semanas</option>
+        <select id="selectLaborModal">
+          <option value="">Seleccione labor</option>
         </select>
       </div>
 
-      <div class="panel-body">
-        <table id="tabla-izquierda">
-          <thead></thead>
-          <tbody></tbody>
-          <tfoot></tfoot>
-        </table>
+      <!-- CONTENEDOR GRAFICA -->
+      <div class="modal-body">
+        <canvas id="graficaLabor"></canvas>
       </div>
+
     </div>
-
-    <!-- PANEL DERECHO -->
-    <div class="panel">
-      <div class="panel-header fila-titulo-select">
-        <h3>Detalle de Labores</h3>
-
-        <button id="btnGrafica" class="panel-boton">
-          📊 Gráfica
-        </button>
-      </div>
-
-      <div class="panel-body">
-        <table id="tabla-derecha">
-          <thead></thead>
-          <tbody></tbody>
-          <tfoot></tfoot>
-        </table>
-      </div>
-    </div>
-
   </div>
-</div>
+
+  <!-- ===== CONTENIDO PRINCIPAL DEL MODULO ===== -->
+  <div class="mano-obra-contenido">
+
+
+
+    <!-- ===== CONTENEDORES DOBLES ===== -->
+    <div class="contenido-doble">
+
+      <!-- PANEL IZQUIERDO -->
+      <div class="panel">
+        <div class="panel-header fila-titulo-select">
+          <h3>Registro de Labores</h3>
+
+          <select id="laborSelect" class="panel-select">
+            <option value="">Todas las semanas</option>
+          </select>
+        </div>
+
+        <div class="panel-body">
+          <table id="tabla-izquierda">
+            <thead></thead>
+            <tbody></tbody>
+            <tfoot></tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- PANEL DERECHO -->
+      <div class="panel">
+        <div class="panel-header fila-titulo-select">
+          <h3>Detalle de Labores</h3>
+
+          <button id="btnGrafica" class="panel-boton">
+            📊 Gráfica
+          </button>
+        </div>
+
+        <div class="panel-body">
+          <table id="tabla-derecha">
+            <thead></thead>
+            <tbody></tbody>
+            <tfoot></tfoot>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
   <!-- TODO el HTML actual de mano de obra -->
 </div>
->>>>>>> f6136e259dfae93bf3f67045d370eafc58c34fc3

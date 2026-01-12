@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 // mano_obra.js
 import { showLoader, hideLoader } from "../core.js"; // si usas loader
 
@@ -46,8 +46,7 @@ function actualizarDatos() {
 }
 
 // Exportar función para llamar desde el main cuando se seleccione el módulo
-export { cargarModuloManoObra };
-=======
+
 // ==================================================
 // MODULO MANO DE OBRA — INTEGRADO A AGROPORTAL
 // ==================================================
@@ -404,4 +403,4 @@ export function initManoObra() {
   // ==================================================
   cargarCSV();
 }
->>>>>>> f6136e259dfae93bf3f67045d370eafc58c34fc3
+
