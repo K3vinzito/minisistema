@@ -252,6 +252,12 @@ export function initManoObra() {
         <td><strong>$${totalV.toFixed(2)}</strong></td>
       </tr>`;
   }
+document.getElementById("cerrarModalGrafica")?.addEventListener("click", () => {
+    document.getElementById("modalGrafica")?.classList.remove("activo");
+    graficaLabor?.destroy();
+    graficaLabor = null;
+  });
+  
   document.getElementById("modalGrafica")?.addEventListener("click", e => {
     if (e.target.id === "modalGrafica") {
       e.target.classList.remove("activo");
