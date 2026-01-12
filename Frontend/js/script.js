@@ -118,7 +118,7 @@ function actualizarTituloModulo() {
     "Gastos": "img/gastos.png",
     "Liquidaciones": "img/liquidaciones.png",
     "Ventas": "img/iconoventas.png",
-    "Mano de Obra": "img/icono.png"
+    "Mano de Obra": "img/iconomanoO.png"
 
 
   };

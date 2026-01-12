@@ -252,6 +252,13 @@ export function initManoObra() {
         <td><strong>$${totalV.toFixed(2)}</strong></td>
       </tr>`;
   }
+  document.getElementById("modalGrafica")?.addEventListener("click", e => {
+    if (e.target.id === "modalGrafica") {
+      e.target.classList.remove("activo");
+      graficaLabor?.destroy();
+      graficaLabor = null;
+    }
+  });
 
   // ==================================================
   // MODAL + GRÁFICA
@@ -351,41 +358,228 @@ export function initManoObra() {
     };
   }
 
+  // ==================================================
+  // GRÁFICA LABOR
+  // ==================================================
+  /*
+function renderGraficaLabor(laborSeleccionada) {
+  if (!laborSeleccionada) return;
 
-  function renderGraficaLabor(labor) {
-    if (!labor) return;
+  const dataSemanas = {};
 
-    const data = {};
-    filtrarDatos().forEach(f => {
-      if (f[4] !== labor) return;
-      data[f[0]] ??= 0;
-      data[f[0]] += parseMoneda(f[6]);
+  // ⚠️ IMPORTANTE: usar datosCSV PURO (sin filtros globales)
+  datosCSV.forEach(fila => {
+    if (fila[4] !== laborSeleccionada) return;
+
+    const semana = fila[0];
+    const valor = parseMoneda(fila[6]);
+
+    if (!dataSemanas[semana]) dataSemanas[semana] = 0;
+    dataSemanas[semana] += valor;
+  });
+
+  // 🔢 ordenar semanas numéricamente
+  const labels = Object.keys(dataSemanas)
+    .sort((a, b) => Number(a) - Number(b));
+
+  const values = labels.map(s => dataSemanas[s]);
+
+  const canvas = document.getElementById("graficaLabor");
+  if (!canvas) return;
+
+  canvas.style.width = "100%";
+  canvas.style.height = "100%";
+
+  const ctx = canvas.getContext("2d");
+
+  if (graficaLabor) {
+    graficaLabor.destroy();
+  }
+
+  graficaLabor = new Chart(ctx, {
+    type: "line",
+    plugins: [ChartDataLabels],
+    data: {
+      labels,
+      datasets: [{
+        label: `Valor Monetario - ${laborSeleccionada}`,
+        data: values,
+        borderColor: "#3b82f6",
+        backgroundColor: "rgba(59, 130, 246, 0.2)",
+        tension: 0.3,
+        fill: true,
+        pointRadius: 5,
+        pointHoverRadius: 7
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: 20 },
+      plugins: {
+        legend: { position: "top" },
+        tooltip: {
+          callbacks: {
+            label: ctx => `$${ctx.raw.toFixed(2)}`
+          }
+        },
+        datalabels: {
+          anchor: "end",
+          align: "end",
+          formatter: v => `$${v.toFixed(2)}`,
+          font: { size: 10 },
+          color: "#6b7280",
+          offset: -2
+        }
+      },
+      scales: {
+        x: {
+          title: { display: true, text: "Semana" }
+        },
+        y: {
+          title: { display: true, text: "Valor Monetario ($)" },
+          beginAtZero: true,
+          ticks: {
+            callback: v => `$${v.toFixed(2)}`
+          },
+          suggestedMax: Math.max(...values) * 1.15
+        }
+      }
+    }
+  });
+}
+*/
+  function renderGraficaLabor(laborSeleccionada) {
+
+    const canvas = document.getElementById("graficaLabor");
+    if (!canvas) return;
+
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+
+    const ctx = canvas.getContext("2d");
+
+    // ✅ SIEMPRE destruir la gráfica anterior (para que no se quede pegada)
+    if (graficaLabor) {
+      graficaLabor.destroy();
+      graficaLabor = null;
+    }
+
+    // ✅ 1) Si no hay labor seleccionada → gráfica vacía (solo ejes)
+    if (!laborSeleccionada) {
+      graficaLabor = new Chart(ctx, {
+        type: "line",
+        plugins: [ChartDataLabels],
+        data: {
+          labels: [],
+          datasets: []
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: { padding: 20 },
+          plugins: {
+            legend: { position: "top" }
+          },
+          scales: {
+            x: { title: { display: true, text: "Semana" } },
+            y: {
+              title: { display: true, text: "Valor Monetario ($)" },
+              beginAtZero: true,
+              ticks: { callback: v => `$${Number(v).toFixed(2)}` }
+            }
+          }
+        }
+      });
+      return;
+    }
+
+    const dataSemanas = {};
+
+    // ⚠️ IMPORTANTE: usar datosCSV PURO (sin filtros globales)
+    datosCSV.forEach(fila => {
+      if (fila[4] !== laborSeleccionada) return;
+
+      const semana = fila[0];
+      const valor = parseMoneda(fila[6]);
+
+      if (!dataSemanas[semana]) dataSemanas[semana] = 0;
+      dataSemanas[semana] += valor;
     });
 
-    const ctx = document.getElementById("graficaLabor")?.getContext("2d");
-    if (!ctx) return;
+    // 🔢 ordenar semanas numéricamente
+    const labels = Object.keys(dataSemanas)
+      .sort((a, b) => Number(a) - Number(b));
 
-    graficaLabor?.destroy();
+    let values = labels.map(s => dataSemanas[s]);
+
+    // ✅ 2) Si no hay filas para esa labor (values vacío) → línea plana en 0 (1 punto)
+    // (Esto evita que la gráfica se quede "en blanco raro" o pegada a la anterior)
+    if (values.length === 0) {
+      values = [0];
+      // puedes dejar labels vacío si quieres eje sin datos, pero así se ve línea plana:
+      // labels = ["0"];  // <- no se puede porque labels es const arriba
+    }
+
+    // ✅ 3) Si todos los valores son 0 → línea plana en 0 (ya lo hace natural)
+    // Solo ajustamos suggestedMax para que no quede en 0 y se vea bien
+    const maxVal = values.length ? Math.max(...values) : 0;
+    const suggestedMax = maxVal > 0 ? maxVal * 1.15 : 1; // 👈 clave para valores 0
 
     graficaLabor = new Chart(ctx, {
       type: "line",
+      plugins: [ChartDataLabels],
       data: {
-        labels: Object.keys(data),
+        labels: values.length === 1 && labels.length === 0 ? ["0"] : labels, // ✅ mínimo para caso vacío
         datasets: [{
-          label: labor,
-          data: Object.values(data),
-          borderColor: "#ba027d",
-          backgroundColor: "rgba(186,2,125,0.25)",
+          label: `Valor Monetario - ${laborSeleccionada}`,
+          data: values,
+          borderColor: "#3b82f6",
+          backgroundColor: "rgba(59, 130, 246, 0.2)",
           tension: 0.3,
-          fill: true
+          fill: true,
+          pointRadius: 5,
+          pointHoverRadius: 7
         }]
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false
+        maintainAspectRatio: false,
+        layout: { padding: 20 },
+        plugins: {
+          legend: { position: "top" },
+          tooltip: {
+            callbacks: {
+              label: ctx => `$${ctx.raw.toFixed(2)}`
+            }
+          },
+          datalabels: {
+            anchor: "end",
+            align: "end",
+            formatter: v => `$${v.toFixed(2)}`,
+            font: { size: 10 },
+            color: "#6b7280",
+            offset: -2
+          }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: "Semana" }
+          },
+          y: {
+            title: { display: true, text: "Valor Monetario ($)" },
+            beginAtZero: true,
+            ticks: {
+              callback: v => `$${v.toFixed(2)}`
+            },
+            suggestedMax: suggestedMax
+          }
+        }
       }
     });
   }
+
+
 
   // ==================================================
   // REFRESCO GLOBAL (HOOK CON SCRIPT PRINCIPAL)
