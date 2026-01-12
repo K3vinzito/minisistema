@@ -10,7 +10,7 @@ router.get("/", async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT id, usuario, rol, activo, created_at
-       FROM public.usuarios
+       FROM usuarios
        ORDER BY id`
     );
 
@@ -33,7 +33,7 @@ router.post("/", async (req, res) => {
 
   try {
     const existe = await pool.query(
-      "SELECT id FROM public.usuarios WHERE usuario = $1",
+      "SELECT id FROM usuarios WHERE usuario = $1",
       [usuario]
     );
 
@@ -42,7 +42,7 @@ router.post("/", async (req, res) => {
     }
 
     await pool.query(
-      `INSERT INTO public.usuarios (usuario, password, rol, activo)
+      `INSERT INTO usuarios (usuario, password, rol, activo)
        VALUES ($1, $2, $3, true)`,
       [usuario, password, rol]
     );
@@ -63,7 +63,7 @@ router.put("/:id", async (req, res) => {
 
   try {
     await pool.query(
-      `UPDATE public.usuarios
+      `UPDATE usuarios
        SET usuario = $1, rol = $2
        WHERE id = $3`,
       [usuario, rol, id]
@@ -85,7 +85,7 @@ router.put("/:id/estado", async (req, res) => {
 
   try {
     await pool.query(
-      `UPDATE public.usuarios
+      `UPDATE usuarios
        SET activo = $1
        WHERE id = $2`,
       [activo, id]
