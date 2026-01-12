@@ -34,12 +34,14 @@ export function initManoObra() {
         .map(f => f.split(",").map(v => v.trim()));
 
       cargarSelectorSemanas();
+      inicializarSelectoresManoObra(); // 👈 CLAVE
       refrescar();
 
     } catch (err) {
       console.error("❌ Error CSV Mano de Obra:", err);
     }
   }
+
 
   // ==================================================
   // FILTRO GLOBAL (EMPRESA / HACIENDA / SEMANA)
@@ -209,15 +211,59 @@ export function initManoObra() {
     document.getElementById("modalGrafica")?.classList.add("activo");
     cargarSelectorLaboresModal();
   });
-function cargarEmpresasManoObra() {
-  const empresas = [
-    ...new Set(datosCSV.map(f => f[1]).filter(Boolean))
-  ];
+  function cargarEmpresasManoObra() {
+    if (!dom.empresaSelect) return;
 
-  dom.empresaSelect.innerHTML =
-    `<option value="GLOBAL">GLOBAL</option>` +
-    empresas.map(e => `<option value="${e}">${e}</option>`).join("");
-}
+    const empresas = [
+      ...new Set(datosCSV.map(f => f[1]).filter(Boolean))
+    ];
+
+    dom.empresaSelect.innerHTML =
+      `<option value="GLOBAL">GLOBAL</option>` +
+      empresas.map(e => `<option value="${e}">${e}</option>`).join("");
+  }
+
+  function cargarHaciendasManoObra() {
+    if (!dom.haciendaSelect) return;
+
+    const empresa = dom.empresaSelect.value;
+
+    const haciendas = [
+      ...new Set(
+        datosCSV
+          .filter(f => empresa === "GLOBAL" || f[1] === empresa)
+          .map(f => f[2])
+          .filter(Boolean)
+      )
+    ];
+
+    dom.haciendaSelect.innerHTML =
+      `<option value="GLOBAL">GLOBAL</option>` +
+      haciendas.map(h => `<option value="${h}">${h}</option>`).join("");
+  }
+  function inicializarSelectoresManoObra() {
+    if (!dom.empresaSelect || !dom.haciendaSelect) return;
+
+    cargarEmpresasManoObra();
+    cargarHaciendasManoObra();
+
+    dom.empresaSelect.onchange = () => {
+      semanaActual = "";
+      const selSemana = document.getElementById("laborSelect");
+      if (selSemana) selSemana.value = "";
+
+      cargarHaciendasManoObra();
+      refrescar();
+    };
+
+    dom.haciendaSelect.onchange = () => {
+      semanaActual = "";
+      const selSemana = document.getElementById("laborSelect");
+      if (selSemana) selSemana.value = "";
+
+      refrescar();
+    };
+  }
 
   function cargarSelectorLaboresModal() {
     const select = document.getElementById("selectLaborModal");
@@ -233,6 +279,29 @@ function cargarEmpresasManoObra() {
 
     select.onchange = () => renderGraficaLabor(select.value);
   }
+
+  function inicializarSelectoresGlobales() {
+    if (!dom.empresaSelect || !dom.haciendaSelect) return;
+
+    // 🔁 Cuando cambia EMPRESA
+    dom.empresaSelect.onchange = () => {
+      semanaActual = ""; // reset semana
+      const selectSemana = document.getElementById("laborSelect");
+      if (selectSemana) selectSemana.value = "";
+
+      refrescar();
+    };
+
+    // 🔁 Cuando cambia HACIENDA
+    dom.haciendaSelect.onchange = () => {
+      semanaActual = "";
+      const selectSemana = document.getElementById("laborSelect");
+      if (selectSemana) selectSemana.value = "";
+
+      refrescar();
+    };
+  }
+
 
   function renderGraficaLabor(labor) {
     if (!labor) return;
