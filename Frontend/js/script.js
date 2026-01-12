@@ -13,6 +13,7 @@ import { initVentas } from "./ventas/ventas.js";
 import { initManoObra } from "./mano_obra/mano_obra.js";
 
 
+
 // ===================== CONSTANTES
 export const MODULOS_SIN_SELECTORES = ["Resumen"];
 
