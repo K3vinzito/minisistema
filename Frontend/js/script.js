@@ -118,7 +118,7 @@ function actualizarTituloModulo() {
     "Gastos": "img/gastos.png",
     "Liquidaciones": "img/liquidaciones.png",
     "Ventas": "img/iconoventas.png",
-    "Mano de Obra": "img/icono.png"
+    "Mano de Obra": "img/iconomanoO.png"
 
 
   };
@@ -378,11 +378,6 @@ function renderTabla() {
     `<tr>${headersTabla.map(hd => {
       let val = row[hd] ?? "";
 
-      // ⛔ NO formatear números
-      // ⛔ NO num()
-      // ⛔ NO toFixed()
-      // ⛔ NO toLocaleString()
-
       if (state.currentModule === "Producción" && hd.toLowerCase().includes("rechazado")) {
         val = `<span class="detalle-clic" data-semana="${row[headers[0]]}">${val}</span>`;
       }
@@ -500,7 +495,7 @@ function renderGrafico(tipo = state.tipoGrafico) {
       datasets: [{
         label: tipo,
         data: valores,
-        valoresTexto, // 👈 guardamos el texto original
+        valoresTexto, 
         fill: true,
         tension: 0.4,
         borderColor: "rgba(186,2,125,0.4)",
@@ -635,7 +630,6 @@ overlay?.addEventListener("click", cerrarSidebarMobile);
 
 dom.moduloBtns.forEach(btn => {
   btn.onclick = () => {
-    // ✅ reset siempre al cambiar módulo
     resetPanelDetalles();
 
     if (window.innerWidth <= 768) {
@@ -697,7 +691,6 @@ document.addEventListener("click", (e) => {
   if (state.currentModule === "Liquidaciones") ordenarLiquidacionesPorValor();
 });
 
-// ✅ reset también cuando cambia empresa/hacienda
 dom.empresaSelect.onchange = () => {
   cargarHaciendas();
   refrescarUI();

@@ -194,6 +194,9 @@ body {
 .menu-item[data-modulo="resumen"]::before {
   background-image: url("img/report.png");
 }
+.menu-item[data-modulo="mano-obra"]::before {
+  background-image: url("img/manoobra.png");
+}
 
 
 .menu-item.active::after {

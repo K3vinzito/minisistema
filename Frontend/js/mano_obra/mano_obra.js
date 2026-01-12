@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 // mano_obra.js
 import { showLoader, hideLoader } from "../core.js"; // si usas loader
 
@@ -46,8 +46,7 @@ function actualizarDatos() {
 }
 
 // Exportar función para llamar desde el main cuando se seleccione el módulo
-export { cargarModuloManoObra };
-=======
+
 // ==================================================
 // MODULO MANO DE OBRA — INTEGRADO A AGROPORTAL
 // ==================================================
@@ -84,12 +83,14 @@ export function initManoObra() {
         .map(f => f.split(",").map(v => v.trim()));
 
       cargarSelectorSemanas();
+      inicializarSelectoresManoObra(); // 👈 CLAVE
       refrescar();
 
     } catch (err) {
       console.error("❌ Error CSV Mano de Obra:", err);
     }
   }
+
 
   // ==================================================
   // FILTRO GLOBAL (EMPRESA / HACIENDA / SEMANA)
@@ -251,6 +252,19 @@ export function initManoObra() {
         <td><strong>$${totalV.toFixed(2)}</strong></td>
       </tr>`;
   }
+document.getElementById("cerrarModalGrafica")?.addEventListener("click", () => {
+    document.getElementById("modalGrafica")?.classList.remove("activo");
+    graficaLabor?.destroy();
+    graficaLabor = null;
+  });
+  
+  document.getElementById("modalGrafica")?.addEventListener("click", e => {
+    if (e.target.id === "modalGrafica") {
+      e.target.classList.remove("activo");
+      graficaLabor?.destroy();
+      graficaLabor = null;
+    }
+  });
 
   // ==================================================
   // MODAL + GRÁFICA
@@ -259,15 +273,59 @@ export function initManoObra() {
     document.getElementById("modalGrafica")?.classList.add("activo");
     cargarSelectorLaboresModal();
   });
-function cargarEmpresasManoObra() {
-  const empresas = [
-    ...new Set(datosCSV.map(f => f[1]).filter(Boolean))
-  ];
+  function cargarEmpresasManoObra() {
+    if (!dom.empresaSelect) return;
 
-  dom.empresaSelect.innerHTML =
-    `<option value="GLOBAL">GLOBAL</option>` +
-    empresas.map(e => `<option value="${e}">${e}</option>`).join("");
-}
+    const empresas = [
+      ...new Set(datosCSV.map(f => f[1]).filter(Boolean))
+    ];
+
+    dom.empresaSelect.innerHTML =
+      `<option value="GLOBAL">GLOBAL</option>` +
+      empresas.map(e => `<option value="${e}">${e}</option>`).join("");
+  }
+
+  function cargarHaciendasManoObra() {
+    if (!dom.haciendaSelect) return;
+
+    const empresa = dom.empresaSelect.value;
+
+    const haciendas = [
+      ...new Set(
+        datosCSV
+          .filter(f => empresa === "GLOBAL" || f[1] === empresa)
+          .map(f => f[2])
+          .filter(Boolean)
+      )
+    ];
+
+    dom.haciendaSelect.innerHTML =
+      `<option value="GLOBAL">GLOBAL</option>` +
+      haciendas.map(h => `<option value="${h}">${h}</option>`).join("");
+  }
+  function inicializarSelectoresManoObra() {
+    if (!dom.empresaSelect || !dom.haciendaSelect) return;
+
+    cargarEmpresasManoObra();
+    cargarHaciendasManoObra();
+
+    dom.empresaSelect.onchange = () => {
+      semanaActual = "";
+      const selSemana = document.getElementById("laborSelect");
+      if (selSemana) selSemana.value = "";
+
+      cargarHaciendasManoObra();
+      refrescar();
+    };
+
+    dom.haciendaSelect.onchange = () => {
+      semanaActual = "";
+      const selSemana = document.getElementById("laborSelect");
+      if (selSemana) selSemana.value = "";
+
+      refrescar();
+    };
+  }
 
   function cargarSelectorLaboresModal() {
     const select = document.getElementById("selectLaborModal");
@@ -284,40 +342,250 @@ function cargarEmpresasManoObra() {
     select.onchange = () => renderGraficaLabor(select.value);
   }
 
-  function renderGraficaLabor(labor) {
-    if (!labor) return;
+  function inicializarSelectoresGlobales() {
+    if (!dom.empresaSelect || !dom.haciendaSelect) return;
 
-    const data = {};
-    filtrarDatos().forEach(f => {
-      if (f[4] !== labor) return;
-      data[f[0]] ??= 0;
-      data[f[0]] += parseMoneda(f[6]);
+    // 🔁 Cuando cambia EMPRESA
+    dom.empresaSelect.onchange = () => {
+      semanaActual = ""; // reset semana
+      const selectSemana = document.getElementById("laborSelect");
+      if (selectSemana) selectSemana.value = "";
+
+      refrescar();
+    };
+
+    // 🔁 Cuando cambia HACIENDA
+    dom.haciendaSelect.onchange = () => {
+      semanaActual = "";
+      const selectSemana = document.getElementById("laborSelect");
+      if (selectSemana) selectSemana.value = "";
+
+      refrescar();
+    };
+  }
+
+  // ==================================================
+  // GRÁFICA LABOR
+  // ==================================================
+  /*
+function renderGraficaLabor(laborSeleccionada) {
+  if (!laborSeleccionada) return;
+
+  const dataSemanas = {};
+
+  // ⚠️ IMPORTANTE: usar datosCSV PURO (sin filtros globales)
+  datosCSV.forEach(fila => {
+    if (fila[4] !== laborSeleccionada) return;
+
+    const semana = fila[0];
+    const valor = parseMoneda(fila[6]);
+
+    if (!dataSemanas[semana]) dataSemanas[semana] = 0;
+    dataSemanas[semana] += valor;
+  });
+
+  // 🔢 ordenar semanas numéricamente
+  const labels = Object.keys(dataSemanas)
+    .sort((a, b) => Number(a) - Number(b));
+
+  const values = labels.map(s => dataSemanas[s]);
+
+  const canvas = document.getElementById("graficaLabor");
+  if (!canvas) return;
+
+  canvas.style.width = "100%";
+  canvas.style.height = "100%";
+
+  const ctx = canvas.getContext("2d");
+
+  if (graficaLabor) {
+    graficaLabor.destroy();
+  }
+
+  graficaLabor = new Chart(ctx, {
+    type: "line",
+    plugins: [ChartDataLabels],
+    data: {
+      labels,
+      datasets: [{
+        label: `Valor Monetario - ${laborSeleccionada}`,
+        data: values,
+        borderColor: "#3b82f6",
+        backgroundColor: "rgba(59, 130, 246, 0.2)",
+        tension: 0.3,
+        fill: true,
+        pointRadius: 5,
+        pointHoverRadius: 7
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: 20 },
+      plugins: {
+        legend: { position: "top" },
+        tooltip: {
+          callbacks: {
+            label: ctx => `$${ctx.raw.toFixed(2)}`
+          }
+        },
+        datalabels: {
+          anchor: "end",
+          align: "end",
+          formatter: v => `$${v.toFixed(2)}`,
+          font: { size: 10 },
+          color: "#6b7280",
+          offset: -2
+        }
+      },
+      scales: {
+        x: {
+          title: { display: true, text: "Semana" }
+        },
+        y: {
+          title: { display: true, text: "Valor Monetario ($)" },
+          beginAtZero: true,
+          ticks: {
+            callback: v => `$${v.toFixed(2)}`
+          },
+          suggestedMax: Math.max(...values) * 1.15
+        }
+      }
+    }
+  });
+}
+*/
+  function renderGraficaLabor(laborSeleccionada) {
+
+    const canvas = document.getElementById("graficaLabor");
+    if (!canvas) return;
+
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+
+    const ctx = canvas.getContext("2d");
+
+    // ✅ SIEMPRE destruir la gráfica anterior (para que no se quede pegada)
+    if (graficaLabor) {
+      graficaLabor.destroy();
+      graficaLabor = null;
+    }
+
+    // ✅ 1) Si no hay labor seleccionada → gráfica vacía (solo ejes)
+    if (!laborSeleccionada) {
+      graficaLabor = new Chart(ctx, {
+        type: "line",
+        plugins: [ChartDataLabels],
+        data: {
+          labels: [],
+          datasets: []
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: { padding: 20 },
+          plugins: {
+            legend: { position: "top" }
+          },
+          scales: {
+            x: { title: { display: true, text: "Semana" } },
+            y: {
+              title: { display: true, text: "Valor Monetario ($)" },
+              beginAtZero: true,
+              ticks: { callback: v => `$${Number(v).toFixed(2)}` }
+            }
+          }
+        }
+      });
+      return;
+    }
+
+    const dataSemanas = {};
+
+    // ⚠️ IMPORTANTE: usar datosCSV PURO (sin filtros globales)
+    datosCSV.forEach(fila => {
+      if (fila[4] !== laborSeleccionada) return;
+
+      const semana = fila[0];
+      const valor = parseMoneda(fila[6]);
+
+      if (!dataSemanas[semana]) dataSemanas[semana] = 0;
+      dataSemanas[semana] += valor;
     });
 
-    const ctx = document.getElementById("graficaLabor")?.getContext("2d");
-    if (!ctx) return;
+    // 🔢 ordenar semanas numéricamente
+    const labels = Object.keys(dataSemanas)
+      .sort((a, b) => Number(a) - Number(b));
 
-    graficaLabor?.destroy();
+    let values = labels.map(s => dataSemanas[s]);
+
+    // ✅ 2) Si no hay filas para esa labor (values vacío) → línea plana en 0 (1 punto)
+    // (Esto evita que la gráfica se quede "en blanco raro" o pegada a la anterior)
+    if (values.length === 0) {
+      values = [0];
+      // puedes dejar labels vacío si quieres eje sin datos, pero así se ve línea plana:
+      // labels = ["0"];  // <- no se puede porque labels es const arriba
+    }
+
+    // ✅ 3) Si todos los valores son 0 → línea plana en 0 (ya lo hace natural)
+    // Solo ajustamos suggestedMax para que no quede en 0 y se vea bien
+    const maxVal = values.length ? Math.max(...values) : 0;
+    const suggestedMax = maxVal > 0 ? maxVal * 1.15 : 1; // 👈 clave para valores 0
 
     graficaLabor = new Chart(ctx, {
       type: "line",
+      plugins: [ChartDataLabels],
       data: {
-        labels: Object.keys(data),
+        labels: values.length === 1 && labels.length === 0 ? ["0"] : labels, // ✅ mínimo para caso vacío
         datasets: [{
-          label: labor,
-          data: Object.values(data),
-          borderColor: "#ba027d",
-          backgroundColor: "rgba(186,2,125,0.25)",
+          label: `Valor Monetario - ${laborSeleccionada}`,
+          data: values,
+          borderColor: "#3b82f6",
+          backgroundColor: "rgba(59, 130, 246, 0.2)",
           tension: 0.3,
-          fill: true
+          fill: true,
+          pointRadius: 5,
+          pointHoverRadius: 7
         }]
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false
+        maintainAspectRatio: false,
+        layout: { padding: 20 },
+        plugins: {
+          legend: { position: "top" },
+          tooltip: {
+            callbacks: {
+              label: ctx => `$${ctx.raw.toFixed(2)}`
+            }
+          },
+          datalabels: {
+            anchor: "end",
+            align: "end",
+            formatter: v => `$${v.toFixed(2)}`,
+            font: { size: 10 },
+            color: "#6b7280",
+            offset: -2
+          }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: "Semana" }
+          },
+          y: {
+            title: { display: true, text: "Valor Monetario ($)" },
+            beginAtZero: true,
+            ticks: {
+              callback: v => `$${v.toFixed(2)}`
+            },
+            suggestedMax: suggestedMax
+          }
+        }
       }
     });
   }
+
+
 
   // ==================================================
   // REFRESCO GLOBAL (HOOK CON SCRIPT PRINCIPAL)
@@ -335,4 +603,4 @@ function cargarEmpresasManoObra() {
   // ==================================================
   cargarCSV();
 }
->>>>>>> f6136e259dfae93bf3f67045d370eafc58c34fc3
+
