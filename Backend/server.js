@@ -7,6 +7,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+import usuariosRoutes from "./routes/usuarios.js";
+
+app.use("/api/usuarios", usuariosRoutes);
+
+
 // IMPORTAR DB (PostgreSQL)
 const pool = require("./db");
 
@@ -46,3 +51,4 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`✅ API corriendo en puerto ${PORT}`);
 });
+
