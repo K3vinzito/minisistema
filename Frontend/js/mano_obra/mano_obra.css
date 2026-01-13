@@ -210,6 +210,20 @@ tr.clickable-selected td {
 
 
 
+
+/* Columnas principales (#, Labor, Unidad, # Pers.) */
+#tabla-derecha td.col-principal {
+  background-color: #f9f9f9; /* gris claro */
+  font-weight: bold;
+}
+
+/* Columnas secundarias (Avance, P/U, Valor) */
+#tabla-derecha td.col-secundaria {
+  background-color: #ffffff; /* blanco o el color por defecto */
+}
+
+
+
 /* ================= TITULOS DE PANELES ================= */
 .modulo-mano-obra .panel-header h3 {
   font-size: 18px;      /* ⬅️ CAMBIA ESTE VALOR */

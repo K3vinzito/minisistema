@@ -265,83 +265,85 @@ function renderTablaLabores(categoriaSeleccionada) {
 
   // Cabecera según modo
   if (completo) {
-    thead.innerHTML = `
-      <tr>
-        <th>#</th>
-        <th>Labor</th>
-        <th>Unidad</th>
-        <th># Pers.</th>
-        <th>Avance</th>
-        <th>P/U</th>
-        <th>Valor</th>
-      </tr>`;
-  } else {
-    thead.innerHTML = `
-      <tr>
-        <th>#</th>
-        <th>Labor</th>
-        <th># Pers.</th>
-        <th>Valor</th>
-      </tr>`;
-  }
+  thead.innerHTML = `
+    <tr>
+      <th>#</th>
+      <th>Labor</th>
+      <th>Unidad</th>
+      <th># Pers.</th>
+      <th>Avance</th>
+      <th>P/U</th>
+      <th>Valor</th>
+    </tr>`;
+} else {
+  thead.innerHTML = `
+    <tr>
+      <th>#</th>
+      <th>Labor</th>
+      <th># Pers.</th>
+      <th>Valor</th>
+    </tr>`;
+}
 
-  tbody.innerHTML = "";
-  tfoot.innerHTML = "";
+tbody.innerHTML = "";
+tfoot.innerHTML = "";
 
-  let totalP = 0;
-  let totalV = 0;
-  let totalAvance = 0;
-  let i = 1;
+// Recorrer labores y crear filas
+let totalP = 0;
+let totalV = 0;
+let totalAvance = 0;
+let i = 1;
 
-  Object.entries(labores)
-    .sort((a, b) => a[0].localeCompare(b[0], "es", { sensitivity: "base" }))
-    .forEach(([labor, d]) => {
-      totalP += d.personas;
-      totalV += d.valor;
-      totalAvance += d.avance;
+Object.entries(labores)
+  .sort((a, b) => a[0].localeCompare(b[0], "es", { sensitivity: "base" }))
+  .forEach(([labor, d]) => {
+    totalP += d.personas;
+    totalV += d.valor;
+    totalAvance += d.avance;
 
-      const puPromedio = d.puCount > 0 ? d.puSum / d.puCount : 0;
+    const puPromedio = d.puCount > 0 ? d.puSum / d.puCount : 0;
 
-      if (completo) {
-        tbody.innerHTML += `
-          <tr>
-            <td>${i++}</td>
-            <td>${labor}</td>
-            <td>${d.unidad}</td>
-            <td>${formatPersonas(d.personas)}</td>
-            <td>${d.avance.toFixed(2)}</td>
-            <td>${puPromedio.toFixed(2)}</td>
-            <td>${formatValor(d.valor)}</td>
-          </tr>`;
-      } else {
-        tbody.innerHTML += `
-          <tr>
-            <td>${i++}</td>
-            <td>${labor}</td>
-            <td>${formatPersonas(d.personas)}</td>
-            <td>${formatValor(d.valor)}</td>
-          </tr>`;
-      }
-    });
+    if (completo) {
+      tbody.innerHTML += `
+        <tr>
+          <td class="col-principal">${i++}</td>
+          <td class="col-principal">${labor}</td>
+          <td class="col-principal">${d.unidad}</td>
+          <td class="col-principal">${formatPersonas(d.personas)}</td>
+          <td class="col-secundaria">${d.avance.toFixed(2)}</td>
+          <td class="col-secundaria">${puPromedio.toFixed(2)}</td>
+          <td class="col-secundaria">${formatValor(d.valor)}</td>
+        </tr>`;
+    } else {
+      tbody.innerHTML += `
+        <tr>
+          <td class="col-principal">${i++}</td>
+          <td class="col-principal">${labor}</td>
+          <td class="col-principal">${formatPersonas(d.personas)}</td>
+          <td class="col-secundaria">${formatValor(d.valor)}</td>
+        </tr>`;
+    }
+  });
 
-  // Pie de tabla
-  if (completo) {
-    tfoot.innerHTML = `
-      <tr>
-        <td colspan="3"><strong>TOTAL</strong></td>
-        <td><strong>${formatPersonas(totalP)}</strong></td>
-        <td><strong>${totalAvance.toFixed(2)}</strong></td>
-        <td><strong>-</strong></td>
-        <td><strong>${formatValor(totalV)}</strong></td>
-      </tr>`;
-  } else {
-    tfoot.innerHTML = `
-      <tr>
-        <td colspan="2"><strong>TOTAL</strong></td>
-        <td><strong>${formatPersonas(totalP)}</strong></td>
-        <td><strong>${formatValor(totalV)}</strong></td>
-      </tr>`;
-  }
+// Pie de tabla
+if (completo) {
+  tfoot.innerHTML = `
+    <tr>
+      <td colspan="3"><strong>TOTAL</strong></td>
+      <td><strong>${formatPersonas(totalP)}</strong></td>
+      <td><strong>${totalAvance.toFixed(2)}</strong></td>
+      <td><strong>-</strong></td>
+      <td><strong>${formatValor(totalV)}</strong></td>
+    </tr>`;
+} else {
+  tfoot.innerHTML = `
+    <tr>
+      <td colspan="2"><strong>TOTAL</strong></td>
+      <td><strong>${formatPersonas(totalP)}</strong></td>
+      <td><strong>${formatValor(totalV)}</strong></td>
+    </tr>`;
+}
+
 }
 
 // ==================================================
