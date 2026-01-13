@@ -1,4 +1,3 @@
-
 // mano_obra.js
 import { showLoader, hideLoader } from "../core.js"; // si usas loader
 
@@ -40,12 +39,12 @@ function inicializarSelectores() {
 
 function actualizarDatos() {
   const contenido = document.getElementById("mano-obra-contenido");
-  contenido.textContent = "Datos actualizados para " +
-    document.getElementById("empresa-select-mano").value + " / " +
+  contenido.textContent =
+    "Datos actualizados para " +
+    document.getElementById("empresa-select-mano").value +
+    " / " +
     document.getElementById("hacienda-select-mano").value;
 }
-
-// Exportar función para llamar desde el main cuando se seleccione el módulo
 
 // ==================================================
 // MODULO MANO DE OBRA — INTEGRADO A AGROPORTAL
@@ -62,11 +61,32 @@ export function initManoObra() {
   let semanaActual = "";
   let graficaLabor = null;
 
-  // ==================================================
-  // UTIL
-  // ==================================================
+  /* ===============================
+     UTILIDADES MONEDA / PERSONAS
+  ================================ */
+
+  // 👉 PARA CÁLCULOS (NO TOCAR)
   const parseMoneda = v =>
     Number(String(v || "").replace(/\$/g, "").replace(/,/g, "")) || 0;
+
+  // 👉 UI VALOR: $1,000.00
+  const formatValor = v => {
+    const n = Number(v);
+    if (isNaN(n)) return "$0.00";
+    return `$${n.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
+  };
+
+  // 👉 UI PERSONAS: 1,000
+  const formatPersonas = v => {
+    const n = Number(v);
+    if (isNaN(n)) return "0";
+    return n.toLocaleString("en-US", {
+      maximumFractionDigits: 0
+    });
+  };
 
   // ==================================================
   // CARGA CSV
@@ -83,7 +103,7 @@ export function initManoObra() {
         .map(f => f.split(",").map(v => v.trim()));
 
       cargarSelectorSemanas();
-      inicializarSelectoresManoObra(); // 👈 CLAVE
+      inicializarSelectoresManoObra();
       refrescar();
 
     } catch (err) {
@@ -91,9 +111,8 @@ export function initManoObra() {
     }
   }
 
-
   // ==================================================
-  // FILTRO GLOBAL (EMPRESA / HACIENDA / SEMANA)
+  // FILTRO GLOBAL
   // ==================================================
   function filtrarDatos() {
     const empresa = dom.empresaSelect.value;
@@ -107,68 +126,80 @@ export function initManoObra() {
     });
   }
 
-  // ==================================================
-  // SELECTOR DE SEMANAS (TABLA IZQUIERDA)
-  // ==================================================
-  function cargarSelectorSemanas() {
-    const select = document.getElementById("laborSelect");
-    if (!select) return;
+// ==================================================
+// SELECTOR DE SEMANAS (TABLA IZQUIERDA)
+// ==================================================
+function cargarSelectorSemanas() {
+  const select = document.getElementById("laborSelect");
+  if (!select) return;
 
-    const semanas = [
-      ...new Set(
-        datosCSV
-          .map(f => f[0])
-          .filter(Boolean)
-      )
-    ];
+  const semanas = [
+    ...new Set(
+      datosCSV
+        .map(f => f[0])
+        .filter(v => v !== undefined && v !== null && v !== "")
+    )
+  ].sort((a, b) => Number(a) - Number(b));
 
-    select.innerHTML =
-      `<option value="">Todas las semanas</option>` +
-      semanas.map(s => `<option value="${s}">${s}</option>`).join("");
+  select.innerHTML = `<option value="">Todas las semanas</option>`;
 
-    select.onchange = () => {
-      semanaActual = select.value;
-      refrescar();
-    };
-  }
+  semanas.forEach(s => {
+    const num = Number(s);
+    const label = `Semana ${String(num).padStart(2, "0")}`;
+
+    const option = document.createElement("option");
+    option.value = s;          // 👈 valor REAL del CSV (3, 10, etc)
+    option.textContent = label; // 👈 lo que ve el usuario
+
+    select.appendChild(option);
+  });
+
+  select.onchange = () => {
+    semanaActual = select.value; // sigue siendo 3, 10, etc
+    refrescar();
+  };
+}
+
 
   // ==================================================
   // TABLA IZQUIERDA — CATEGORÍAS
   // ==================================================
-  function renderTablaCategorias() {
-    const data = filtrarDatos();
-    const categorias = {};
+function renderTablaCategorias() {
+  const data = filtrarDatos();
+  const categorias = {};
 
-    data.forEach(f => {
-      const categoria = f[3];
-      if (!categoria) return;
+  data.forEach(f => {
+    const categoria = f[3];
+    if (!categoria) return;
 
-      categorias[categoria] ??= { personas: 0, valor: 0 };
-      categorias[categoria].personas += Number(f[5]) || 0;
-      categorias[categoria].valor += parseMoneda(f[6]);
-    });
+    categorias[categoria] ??= { personas: 0, valor: 0 };
+    categorias[categoria].personas += Number(f[5]) || 0;
+    categorias[categoria].valor += parseMoneda(f[6]);
+  });
 
-    const thead = document.querySelector("#tabla-izquierda thead");
-    const tbody = document.querySelector("#tabla-izquierda tbody");
-    const tfoot = document.querySelector("#tabla-izquierda tfoot");
-    if (!thead || !tbody || !tfoot) return;
+  const thead = document.querySelector("#tabla-izquierda thead");
+  const tbody = document.querySelector("#tabla-izquierda tbody");
+  const tfoot = document.querySelector("#tabla-izquierda tfoot");
+  if (!thead || !tbody || !tfoot) return;
 
-    thead.innerHTML = `
-      <tr>
-        <th>#</th>
-        <th>Categoría</th>
-        <th># Pers.</th>
-        <th>Valor</th>
-      </tr>`;
+  thead.innerHTML = `
+    <tr>
+      <th>#</th>
+      <th>Categoría</th>
+      <th># Pers.</th>
+      <th>Valor</th>
+    </tr>`;
 
-    tbody.innerHTML = "";
-    tfoot.innerHTML = "";
+  tbody.innerHTML = "";
+  tfoot.innerHTML = "";
 
-    let totalP = 0;
-    let totalV = 0;
-    let i = 1;
+  let totalP = 0;
+  let totalV = 0;
+  let i = 1;
 
-    Object.entries(categorias).forEach(([cat, d]) => {
+  Object.entries(categorias)
+    .sort((a, b) => a[0].localeCompare(b[0], "es", { sensitivity: "base" }))
+    .forEach(([cat, d]) => {
       totalP += d.personas;
       totalV += d.valor;
 
@@ -176,8 +207,8 @@ export function initManoObra() {
       tr.innerHTML = `
         <td>${i++}</td>
         <td>${cat}</td>
-        <td class="clickable">${d.personas}</td>
-        <td>$${d.valor.toFixed(2)}</td>
+        <td class="clickable">${formatPersonas(d.personas)}</td>
+        <td>${formatValor(d.valor)}</td>
       `;
 
       tr.querySelector(".clickable").onclick = () =>
@@ -186,78 +217,107 @@ export function initManoObra() {
       tbody.appendChild(tr);
     });
 
-    tfoot.innerHTML = `
-      <tr>
-        <td colspan="2"><strong>TOTAL</strong></td>
-        <td><strong>${totalP}</strong></td>
-        <td><strong>$${totalV.toFixed(2)}</strong></td>
-      </tr>`;
-  }
+  tfoot.innerHTML = `
+    <tr>
+      <td colspan="2"><strong>TOTAL</strong></td>
+      <td><strong>${formatPersonas(totalP)}</strong></td>
+      <td><strong>${formatValor(totalV)}</strong></td>
+    </tr>`;
+}
 
-  // ==================================================
-  // TABLA DERECHA — LABORES
-  // ==================================================
-  function renderTablaLabores(categoriaSeleccionada) {
-    const data = filtrarDatos();
-    const labores = {};
 
-    data.forEach(f => {
-      if (f[3] !== categoriaSeleccionada) return;
+// ==================================================
+// TABLA DERECHA — LABORES (SUMA y PROMEDIO P/U)
+// ==================================================
+function renderTablaLabores(categoriaSeleccionada) {
+  const data = filtrarDatos();
+  const labores = {};
 
-      const labor = f[4];
-      if (!labor) return;
+  data.forEach(f => {
+    if (f[3] !== categoriaSeleccionada) return; // columna CATEGORIA
 
-      labores[labor] ??= { personas: 0, valor: 0 };
-      labores[labor].personas += Number(f[5]) || 0;
-      labores[labor].valor += parseMoneda(f[6]);
-    });
+    const labor = f[4]; // columna LABOR
+    if (!labor) return;
 
-    const thead = document.querySelector("#tabla-derecha thead");
-    const tbody = document.querySelector("#tabla-derecha tbody");
-    const tfoot = document.querySelector("#tabla-derecha tfoot");
-    if (!thead || !tbody || !tfoot) return;
+    labores[labor] ??= { personas: 0, valor: 0, avance: 0, puSum: 0, puCount: 0, unidad: "" };
 
-    thead.innerHTML = `
-      <tr>
-        <th>#</th>
-        <th>Labor</th>
-        <th># Pers.</th>
-        <th>Valor</th>
-      </tr>`;
+    labores[labor].personas += Number(f[5]) || 0;       // # Pers.
+    labores[labor].valor += parseMoneda(f[6]);          // VALOR
+    labores[labor].avance += Number(f[8]) || 0;         // AVANCE
+    labores[labor].puSum += parseFloat(f[9]) || 0;      // P/U acumulado
+    labores[labor].puCount += 1;                        // contar registros para promedio
+    labores[labor].unidad = f[7] || labores[labor].unidad; // UNIDAD
+  });
 
-    tbody.innerHTML = "";
-    tfoot.innerHTML = "";
+  const thead = document.querySelector("#tabla-derecha thead");
+  const tbody = document.querySelector("#tabla-derecha tbody");
+  const tfoot = document.querySelector("#tabla-derecha tfoot");
+  if (!thead || !tbody || !tfoot) return;
 
-    let totalP = 0;
-    let totalV = 0;
-    let i = 1;
+  thead.innerHTML = `
+    <tr>
+      <th>#</th>
+      <th>Labor</th>
+      <th>Unidad</th>
+      <th># Pers.</th>
+      <th>Avance</th>
+      <th>P/U</th>
+      <th>Valor</th>
+    </tr>`;
 
-    Object.entries(labores).forEach(([labor, d]) => {
+  tbody.innerHTML = "";
+  tfoot.innerHTML = "";
+
+  let totalP = 0;
+  let totalV = 0;
+  let totalAvance = 0;
+  let totalPUPromedio = 0;
+  let i = 1;
+
+  Object.entries(labores)
+    .sort((a, b) => a[0].localeCompare(b[0], "es", { sensitivity: "base" }))
+    .forEach(([labor, d]) => {
       totalP += d.personas;
       totalV += d.valor;
+      totalAvance += d.avance;
+
+      // Promedio P/U
+      const puPromedio = d.puCount > 0 ? d.puSum / d.puCount : 0;
+
+      totalPUPromedio += puPromedio; // opcional, si quieres total promedio global
 
       tbody.innerHTML += `
         <tr>
           <td>${i++}</td>
           <td>${labor}</td>
-          <td>${d.personas}</td>
-          <td>$${d.valor.toFixed(2)}</td>
+          <td>${d.unidad}</td>
+          <td>${formatPersonas(d.personas)}</td>
+          <td>${d.avance.toFixed(2)}</td>
+          <td>${puPromedio.toFixed(2)}</td>
+          <td>${formatValor(d.valor)}</td>
         </tr>`;
     });
 
-    tfoot.innerHTML = `
-      <tr>
-        <td colspan="2"><strong>TOTAL</strong></td>
-        <td><strong>${totalP}</strong></td>
-        <td><strong>$${totalV.toFixed(2)}</strong></td>
-      </tr>`;
-  }
-document.getElementById("cerrarModalGrafica")?.addEventListener("click", () => {
+  tfoot.innerHTML = `
+    <tr>
+      <td colspan="3"><strong>TOTAL</strong></td>
+      <td><strong>${formatPersonas(totalP)}</strong></td>
+      <td><strong>${totalAvance.toFixed(2)}</strong></td>
+      <td><strong>-</strong></td>
+      <td><strong>${formatValor(totalV)}</strong></td>
+    </tr>`;
+}
+
+
+
+
+
+  document.getElementById("cerrarModalGrafica")?.addEventListener("click", () => {
     document.getElementById("modalGrafica")?.classList.remove("activo");
     graficaLabor?.destroy();
     graficaLabor = null;
   });
-  
+
   document.getElementById("modalGrafica")?.addEventListener("click", e => {
     if (e.target.id === "modalGrafica") {
       e.target.classList.remove("activo");
@@ -273,12 +333,11 @@ document.getElementById("cerrarModalGrafica")?.addEventListener("click", () => {
     document.getElementById("modalGrafica")?.classList.add("activo");
     cargarSelectorLaboresModal();
   });
+
   function cargarEmpresasManoObra() {
     if (!dom.empresaSelect) return;
 
-    const empresas = [
-      ...new Set(datosCSV.map(f => f[1]).filter(Boolean))
-    ];
+    const empresas = [...new Set(datosCSV.map(f => f[1]).filter(Boolean))];
 
     dom.empresaSelect.innerHTML =
       `<option value="GLOBAL">GLOBAL</option>` +
@@ -303,6 +362,7 @@ document.getElementById("cerrarModalGrafica")?.addEventListener("click", () => {
       `<option value="GLOBAL">GLOBAL</option>` +
       haciendas.map(h => `<option value="${h}">${h}</option>`).join("");
   }
+
   function inicializarSelectoresManoObra() {
     if (!dom.empresaSelect || !dom.haciendaSelect) return;
 
@@ -331,9 +391,7 @@ document.getElementById("cerrarModalGrafica")?.addEventListener("click", () => {
     const select = document.getElementById("selectLaborModal");
     if (!select) return;
 
-    const labores = [
-      ...new Set(filtrarDatos().map(f => f[4]).filter(Boolean))
-    ];
+    const labores = [...new Set(filtrarDatos().map(f => f[4]).filter(Boolean))];
 
     select.innerHTML =
       `<option value="">Seleccione una labor</option>` +
@@ -342,167 +400,24 @@ document.getElementById("cerrarModalGrafica")?.addEventListener("click", () => {
     select.onchange = () => renderGraficaLabor(select.value);
   }
 
-  function inicializarSelectoresGlobales() {
-    if (!dom.empresaSelect || !dom.haciendaSelect) return;
-
-    // 🔁 Cuando cambia EMPRESA
-    dom.empresaSelect.onchange = () => {
-      semanaActual = ""; // reset semana
-      const selectSemana = document.getElementById("laborSelect");
-      if (selectSemana) selectSemana.value = "";
-
-      refrescar();
-    };
-
-    // 🔁 Cuando cambia HACIENDA
-    dom.haciendaSelect.onchange = () => {
-      semanaActual = "";
-      const selectSemana = document.getElementById("laborSelect");
-      if (selectSemana) selectSemana.value = "";
-
-      refrescar();
-    };
-  }
-
   // ==================================================
   // GRÁFICA LABOR
   // ==================================================
-  /*
-function renderGraficaLabor(laborSeleccionada) {
-  if (!laborSeleccionada) return;
-
-  const dataSemanas = {};
-
-  // ⚠️ IMPORTANTE: usar datosCSV PURO (sin filtros globales)
-  datosCSV.forEach(fila => {
-    if (fila[4] !== laborSeleccionada) return;
-
-    const semana = fila[0];
-    const valor = parseMoneda(fila[6]);
-
-    if (!dataSemanas[semana]) dataSemanas[semana] = 0;
-    dataSemanas[semana] += valor;
-  });
-
-  // 🔢 ordenar semanas numéricamente
-  const labels = Object.keys(dataSemanas)
-    .sort((a, b) => Number(a) - Number(b));
-
-  const values = labels.map(s => dataSemanas[s]);
-
-  const canvas = document.getElementById("graficaLabor");
-  if (!canvas) return;
-
-  canvas.style.width = "100%";
-  canvas.style.height = "100%";
-
-  const ctx = canvas.getContext("2d");
-
-  if (graficaLabor) {
-    graficaLabor.destroy();
-  }
-
-  graficaLabor = new Chart(ctx, {
-    type: "line",
-    plugins: [ChartDataLabels],
-    data: {
-      labels,
-      datasets: [{
-        label: `Valor Monetario - ${laborSeleccionada}`,
-        data: values,
-        borderColor: "#3b82f6",
-        backgroundColor: "rgba(59, 130, 246, 0.2)",
-        tension: 0.3,
-        fill: true,
-        pointRadius: 5,
-        pointHoverRadius: 7
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      layout: { padding: 20 },
-      plugins: {
-        legend: { position: "top" },
-        tooltip: {
-          callbacks: {
-            label: ctx => `$${ctx.raw.toFixed(2)}`
-          }
-        },
-        datalabels: {
-          anchor: "end",
-          align: "end",
-          formatter: v => `$${v.toFixed(2)}`,
-          font: { size: 10 },
-          color: "#6b7280",
-          offset: -2
-        }
-      },
-      scales: {
-        x: {
-          title: { display: true, text: "Semana" }
-        },
-        y: {
-          title: { display: true, text: "Valor Monetario ($)" },
-          beginAtZero: true,
-          ticks: {
-            callback: v => `$${v.toFixed(2)}`
-          },
-          suggestedMax: Math.max(...values) * 1.15
-        }
-      }
-    }
-  });
-}
-*/
   function renderGraficaLabor(laborSeleccionada) {
-
     const canvas = document.getElementById("graficaLabor");
     if (!canvas) return;
 
-    canvas.style.width = "100%";
-    canvas.style.height = "100%";
-
     const ctx = canvas.getContext("2d");
 
-    // ✅ SIEMPRE destruir la gráfica anterior (para que no se quede pegada)
     if (graficaLabor) {
       graficaLabor.destroy();
       graficaLabor = null;
     }
 
-    // ✅ 1) Si no hay labor seleccionada → gráfica vacía (solo ejes)
-    if (!laborSeleccionada) {
-      graficaLabor = new Chart(ctx, {
-        type: "line",
-        plugins: [ChartDataLabels],
-        data: {
-          labels: [],
-          datasets: []
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          layout: { padding: 20 },
-          plugins: {
-            legend: { position: "top" }
-          },
-          scales: {
-            x: { title: { display: true, text: "Semana" } },
-            y: {
-              title: { display: true, text: "Valor Monetario ($)" },
-              beginAtZero: true,
-              ticks: { callback: v => `$${Number(v).toFixed(2)}` }
-            }
-          }
-        }
-      });
-      return;
-    }
+    if (!laborSeleccionada) return;
 
     const dataSemanas = {};
 
-    // ⚠️ IMPORTANTE: usar datosCSV PURO (sin filtros globales)
     datosCSV.forEach(fila => {
       if (fila[4] !== laborSeleccionada) return;
 
@@ -513,82 +428,53 @@ function renderGraficaLabor(laborSeleccionada) {
       dataSemanas[semana] += valor;
     });
 
-    // 🔢 ordenar semanas numéricamente
-    const labels = Object.keys(dataSemanas)
-      .sort((a, b) => Number(a) - Number(b));
-
-    let values = labels.map(s => dataSemanas[s]);
-
-    // ✅ 2) Si no hay filas para esa labor (values vacío) → línea plana en 0 (1 punto)
-    // (Esto evita que la gráfica se quede "en blanco raro" o pegada a la anterior)
-    if (values.length === 0) {
-      values = [0];
-      // puedes dejar labels vacío si quieres eje sin datos, pero así se ve línea plana:
-      // labels = ["0"];  // <- no se puede porque labels es const arriba
-    }
-
-    // ✅ 3) Si todos los valores son 0 → línea plana en 0 (ya lo hace natural)
-    // Solo ajustamos suggestedMax para que no quede en 0 y se vea bien
-    const maxVal = values.length ? Math.max(...values) : 0;
-    const suggestedMax = maxVal > 0 ? maxVal * 1.15 : 1; // 👈 clave para valores 0
+    const labels = Object.keys(dataSemanas).sort((a, b) => Number(a) - Number(b));
+    const values = labels.map(s => dataSemanas[s]);
+    const maxVal = Math.max(...values, 0);
 
     graficaLabor = new Chart(ctx, {
       type: "line",
       plugins: [ChartDataLabels],
       data: {
-        labels: values.length === 1 && labels.length === 0 ? ["0"] : labels, // ✅ mínimo para caso vacío
+        labels,
         datasets: [{
           label: `Valor Monetario - ${laborSeleccionada}`,
           data: values,
           borderColor: "#3b82f6",
-          backgroundColor: "rgba(59, 130, 246, 0.2)",
+          backgroundColor: "rgba(59,130,246,0.2)",
           tension: 0.3,
-          fill: true,
-          pointRadius: 5,
-          pointHoverRadius: 7
+          fill: true
         }]
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false,
-        layout: { padding: 20 },
         plugins: {
-          legend: { position: "top" },
           tooltip: {
             callbacks: {
-              label: ctx => `$${ctx.raw.toFixed(2)}`
+              label: ctx => formatValor(ctx.raw)
             }
           },
           datalabels: {
-            anchor: "end",
-            align: "end",
-            formatter: v => `$${v.toFixed(2)}`,
+            formatter: v => formatValor(v),
             font: { size: 10 },
-            color: "#6b7280",
-            offset: -2
+            color: "#6b7280"
           }
         },
         scales: {
-          x: {
-            title: { display: true, text: "Semana" }
-          },
           y: {
-            title: { display: true, text: "Valor Monetario ($)" },
             beginAtZero: true,
+            suggestedMax: maxVal * 1.15,
             ticks: {
-              callback: v => `$${v.toFixed(2)}`
-            },
-            suggestedMax: suggestedMax
+              callback: v => formatValor(v)
+            }
           }
         }
       }
     });
   }
 
-
-
   // ==================================================
-  // REFRESCO GLOBAL (HOOK CON SCRIPT PRINCIPAL)
+  // REFRESCO GLOBAL
   // ==================================================
   function refrescar() {
     renderTablaCategorias();
@@ -603,4 +489,3 @@ function renderGraficaLabor(laborSeleccionada) {
   // ==================================================
   cargarCSV();
 }
-

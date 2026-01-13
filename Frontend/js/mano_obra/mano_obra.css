@@ -33,19 +33,100 @@
 .modulo-mano-obra .selectores label {
   font-size: 12px;
   font-weight: 600;
-  color: #57565b;
+  color: #706f87;
 }
 
 .modulo-mano-obra .selectores select,
 .modulo-mano-obra .panel-select {
   padding: 8px 34px 8px 12px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   border-radius: 10px;
   border: 1px solid #e5e7eb;
   background: #fff;
   cursor: pointer;
 }
+
+
+/* ================== SWITCH VISTA — COMPACTO ================== */
+.switch-vista-compacta {
+  display: inline-block;
+  position: relative;
+  font-family: Arial, sans-serif;
+  user-select: none;
+}
+
+.switch-toggle-compact {
+  display: inline-block;
+  position: relative;
+}
+
+.switch-toggle-compact input {
+  display: none; /* ocultar checkbox */
+}
+
+/* Slider con etiquetas siempre visibles */
+.slider-compact {
+  position: relative;
+  width: 120px;       /* ancho total del switch */
+  height: 28px;       
+  background-color: #cacaca; /* fondo gris */
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1px;
+  box-sizing: border-box;
+}
+
+/* Etiquetas sobre el botón, centradas vertical y horizontalmente */
+.slider-compact .label-left,
+.slider-compact .label-right {
+  position: relative; /* sobre el botón */
+  z-index: 3;         /* siempre arriba */
+  font-size: 10px;
+  font-weight: bold;
+  color: #fff;
+  text-align: center;
+  width: 50%;         /* cada etiqueta ocupa la mitad del switch */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none; /* no bloquear el click */
+}
+
+/* Botón que se mueve detrás de las etiquetas */
+.slider-compact::before {
+  content: "";
+  position: absolute;
+  width: 50px;        /* ancho del botón */
+  height: 22px;       
+  background-color: #0c2f68; /* azul */
+  border-radius: 4px;
+  top: 3px;
+  left: 3px;
+  transition: 0.3s;
+  z-index: 2;         /* detrás de las etiquetas */
+}
+
+/* Mover el botón al estado “Completo” */
+.switch-toggle-compact input:checked + .slider-compact::before {
+  left: 67px; /* ancho total - ancho botón - padding */
+}
+
+/* Cursor pointer */
+.switch-toggle-compact .slider-compact {
+  cursor: pointer;
+}
+
+
+
+
+
+
+
+
+
 
 /* ======================================================
    CONTENEDORES DOBLES
@@ -54,8 +135,8 @@
 .modulo-mano-obra .contenido-doble {
   display: flex;
   gap: 20px;
-  height: 50vh;
-  max-height: 50vh;
+  height: 70vh;
+  max-height: 70vh;
   overflow: hidden;
 }
 
@@ -116,7 +197,17 @@
 }
 
 .modulo-mano-obra .panel thead { top: 0; }
-.modulo-mano-obra .panel tfoot { bottom: 0; font-weight: 700; }
+.modulo-mano-obra .panel tfoot { bottom: 0; font-size: 13px; font-weight: 400; }
+
+
+/* ================= TITULOS DE PANELES ================= */
+.modulo-mano-obra .panel-header h3 {
+  font-size: 18px;      /* ⬅️ CAMBIA ESTE VALOR */
+  font-weight: 500;
+  color: #565053;
+}
+
+
 
 /* CELDAS */
 .modulo-mano-obra .panel th,
@@ -130,7 +221,7 @@
 .modulo-mano-obra .panel tbody {
   display: block;
   overflow-y: auto;
-  max-height: calc(50vh - 145px);
+  max-height: calc(70vh - 150px);
 }
 
 .modulo-mano-obra .panel thead tr,
@@ -218,7 +309,7 @@
   justify-content: center;
 }
 #modulo-mano-obra {
-  padding: 20px 50px 30px;
+  padding: 0px 0px 0px;
   height: 100%;
   box-sizing: border-box;
 }
@@ -249,7 +340,7 @@
 
 /* Altura garantizada del modal */
 .modulo-mano-obra .modal-contenido {
-  height: 70vh;
+  height: 85vh;
 }
 
 .modulo-mano-obra .panel tbody td:last-child {

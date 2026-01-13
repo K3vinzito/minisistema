@@ -128,7 +128,7 @@ function actualizarTituloModulo() {
     "Producción": "PRODUCCIÓN AGRÍCOLA",
     "Gastos": "CONTROL DE GASTOS",
     "Liquidaciones": "LIQUIDACIONES COMERCIALES",
-    "Ventas": "Modulo Ventas Cacao",
+    "Ventas": "VENTAS DE CACAO",
     "Mano de Obra": "MANO DE OBRA"
   };
 

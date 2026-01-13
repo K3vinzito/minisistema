@@ -56,24 +56,49 @@
         </div>
       </div>
 
-      <!-- PANEL DERECHO -->
-      <div class="panel">
-        <div class="panel-header fila-titulo-select">
-          <h3>Detalle de Labores</h3>
+<!-- PANEL DERECHO -->
+<div class="panel">
+  <div class="panel-header fila-titulo-select" style="display:flex; align-items:center; justify-content:space-between;">
+    <h3 id="titulo-detalle-labores">Detalle de Labores</h3>
 
-          <button id="btnGrafica" class="panel-boton">
-            📊 Gráfica
-          </button>
-        </div>
+    <div style="display:flex; align-items:center; gap:10px;">
 
-        <div class="panel-body">
-          <table id="tabla-derecha">
-            <thead></thead>
-            <tbody></tbody>
-            <tfoot></tfoot>
-          </table>
+      <!-- ETIQUETA MODO + SWITCH VISTA -->
+      <div style="display:flex; align-items:center; gap:5px; font-size:12px; font-weight:bold;">
+        <span>Modo:</span>
+        <div class="switch-vista-compacta">
+          <label class="switch-toggle-compact">
+            <input type="checkbox" id="switchModoVista" checked>
+            <span class="slider-compact">
+              <span class="label-left">Ligero</span>
+              <span class="label-right">Completo</span>
+            </span>
+          </label>
         </div>
       </div>
+
+      <!-- BOTON GRAFICA -->
+      <button id="btnGrafica" class="panel-boton">
+        📊 Gráfica
+      </button>
+
+    </div>
+  </div>
+
+  <div class="panel-body">
+    <table id="tabla-derecha">
+      <thead></thead>
+      <tbody></tbody>
+      <tfoot></tfoot>
+    </table>
+  </div>
+</div>
+
+
+
+
+
+
 
     </div>
   </div>
