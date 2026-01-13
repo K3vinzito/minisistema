@@ -69,14 +69,15 @@
 .slider-compact {
   position: relative;
   width: 120px;       /* ancho total del switch */
-  height: 25px;       
-  background-color: #cacaca; /* fondo gris */
+  height: 26px;       
+  background-color: #d2d2d2; /* fondo gris */
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 1px;
   box-sizing: border-box;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0);
 }
 
 /* Etiquetas sobre el botón, centradas vertical y horizontalmente */
@@ -86,7 +87,7 @@
   z-index: 3;         /* siempre arriba */
   font-size: 10px;
   font-weight: bold;
-  color: #fff;
+  color: #ffffff;
   text-align: center;
   width: 50%;         /* cada etiqueta ocupa la mitad del switch */
   display: flex;
@@ -104,7 +105,7 @@
   background-color: #0c2f68; /* azul */
   border-radius: 4px;
   top: 3px;
-  left: 3px;
+  left: 1px;
   transition: 0.3s;
   z-index: 2;         /* detrás de las etiquetas */
 }
@@ -119,6 +120,43 @@
   cursor: pointer;
 }
 
+
+
+#tabla-derecha tbody tr,
+#tabla-derecha tfoot tr {
+  transition: all 0.4s ease-in-out; /* suaviza cambios de altura y opacidad */
+}
+
+#tabla-derecha td,
+#tabla-derecha th {
+  transition: background-color 0.3s, color 0.3s, width 0.3s;
+}
+
+/* Para ocultar columnas secundarias con transición */
+.col-secundaria {
+  opacity: 1;
+  transition: opacity 0.4s ease-in-out, width 0.4s ease-in-out, padding 0.4s ease-in-out;
+}
+
+.col-secundaria.oculto {
+  opacity: 0;
+  width: 0;
+  padding: 0;
+}
+
+.slider-compact::before {
+  width: 50px;   /* más pequeño para Ligero */
+  height: 18px;  /* opcional: un poco más bajo */
+  top: 4px;
+  left: 5px;
+  transition: all 0.3s;
+}
+
+.switch-toggle-compact input:checked + .slider-compact::before {
+  width: 55px;  /* más grande para Completo */
+  height: 18px; /* opcional */
+  left: 62px;   /* mover hacia la derecha (ancho total - ancho botón - padding) */
+}
 
 
 
@@ -165,7 +203,7 @@
 .modulo-mano-obra .fila-titulo-select {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: left;
 }
 
 /* ================= PANEL BODY ================= */
@@ -239,6 +277,8 @@ tr.clickable-selected td {
   padding: 7px 6px;
   text-align: center;
   border-bottom: 1px solid #e5e7eb;
+  height: 20px;
+   padding: 4px 6px;
 }
 
 /* SCROLL */

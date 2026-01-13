@@ -435,10 +435,25 @@ tfoot.innerHTML = `
   // ==================================================
   // MODAL + GRÁFICA
   // ==================================================
-  document.getElementById("btnGrafica")?.addEventListener("click", () => {
-    document.getElementById("modalGrafica")?.classList.add("activo");
-    cargarSelectorLaboresModal();
-  });
+// Abrir modal
+document.getElementById("btnGrafica")?.addEventListener("click", () => {
+  document.getElementById("modalGrafica")?.classList.add("activo");
+  cargarSelectorLaboresModal();
+});
+
+// Cerrar modal al hacer clic en el botón correcto
+document.getElementById("cerrarModalGrafica")?.addEventListener("click", () => {
+  document.getElementById("modalGrafica")?.classList.remove("activo");
+});
+
+// Cerrar modal al hacer clic fuera del contenido
+document.getElementById("modalGrafica")?.addEventListener("click", e => {
+  if (e.target.id === "modalGrafica") {
+    e.currentTarget.classList.remove("activo");
+  }
+});
+
+
 
   function cargarEmpresasManoObra() {
     if (!dom.empresaSelect) return;
