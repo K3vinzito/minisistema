@@ -3,6 +3,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 import usuariosRoutes from "./routes/usuarios.js";
+import authRoutes from "./routes/auth.js";
+app.use("/api/auth", authRoutes);
+
 
 dotenv.config();
 
