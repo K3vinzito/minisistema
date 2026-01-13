@@ -45,6 +45,7 @@
   border: 1px solid #e5e7eb;
   background: #fff;
   cursor: pointer;
+  color: #696969;
 }
 
 
@@ -302,7 +303,7 @@ tr.clickable-selected td {
 }
 
 .modulo-mano-obra .panel tbody tr:hover {
-  background: #fcedfb;
+  background: #dbf3f3;
 }
 
 /* CLICKABLE */
