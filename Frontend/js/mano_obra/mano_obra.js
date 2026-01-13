@@ -390,32 +390,43 @@ function renderTablaCategorias() {
   let totalV = 0;
   let i = 1;
 
-  Object.entries(categorias)
-    .sort((a, b) => a[0].localeCompare(b[0], "es", { sensitivity: "base" }))
-    .forEach(([cat, d]) => {
-      totalP += d.personas;
-      totalV += d.valor;
+Object.entries(categorias)
+  .sort((a, b) => a[0].localeCompare(b[0], "es", { sensitivity: "base" }))
+  .forEach(([cat, d]) => {
+    totalP += d.personas;
+    totalV += d.valor;
 
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${i++}</td>
-        <td>${cat}</td>
-        <td class="clickable">${formatPersonas(d.personas)}</td>
-        <td>${formatValor(d.valor)}</td>
-      `;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${i++}</td>
+      <td>${cat}</td>
+      <td class="clickable">${formatPersonas(d.personas)}</td>
+      <td>${formatValor(d.valor)}</td>
+    `;
 
-      // Actualizamos la categoría al hacer clic
-      tr.querySelector(".clickable").onclick = () => renderTablaLabores(cat);
+    // 👉 Evento clic en valor de categoría
+    tr.querySelector(".clickable").onclick = () => {
+      // 1️⃣ quitar selección anterior
+      document.querySelectorAll("#tabla-izquierda tbody tr.clickable-selected")
+              .forEach(r => r.classList.remove("clickable-selected"));
 
-      tbody.appendChild(tr);
-    });
+      // 2️⃣ marcar la fila actual como seleccionada
+      tr.classList.add("clickable-selected");
 
-  tfoot.innerHTML = `
-    <tr>
-      <td colspan="2"><strong>TOTAL</strong></td>
-      <td><strong>${formatPersonas(totalP)}</strong></td>
-      <td><strong>${formatValor(totalV)}</strong></td>
-    </tr>`;
+      // 3️⃣ refrescar la tabla derecha con esta categoría
+      renderTablaLabores(cat);
+    };
+
+    tbody.appendChild(tr);
+  });
+
+tfoot.innerHTML = `
+  <tr>
+    <td colspan="2"><strong>TOTAL</strong></td>
+    <td><strong>${formatPersonas(totalP)}</strong></td>
+    <td><strong>${formatValor(totalV)}</strong></td>
+  </tr>`;
+
 }
 
 

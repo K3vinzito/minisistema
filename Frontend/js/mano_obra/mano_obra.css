@@ -200,6 +200,16 @@
 .modulo-mano-obra .panel tfoot { bottom: 0; font-size: 13px; font-weight: 400; }
 
 
+
+/* Resaltar la categoría seleccionada en la tabla izquierda */
+tr.clickable-selected td {
+  background-color: #fff9b9; /* azul indicador */
+  color: #040404;               /* letras blancas */
+  font-weight: bold;
+}
+
+
+
 /* ================= TITULOS DE PANELES ================= */
 .modulo-mano-obra .panel-header h3 {
   font-size: 18px;      /* ⬅️ CAMBIA ESTE VALOR */
