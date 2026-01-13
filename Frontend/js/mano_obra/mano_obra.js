@@ -227,26 +227,35 @@ function renderTablaCategorias() {
 
 
 // ==================================================
-// TABLA DERECHA — LABORES (SUMA y PROMEDIO P/U)
+// TABLA DERECHA — LABORES (SUMA y PROMEDIO P/U) + SWITCH FUNCIONAL
 // ==================================================
+let categoriaSeleccionadaActual = null; // guardamos la categoría clickeada
+
 function renderTablaLabores(categoriaSeleccionada) {
+  if (!categoriaSeleccionada) return;
+
+  categoriaSeleccionadaActual = categoriaSeleccionada; // actualizar categoría actual
+
   const data = filtrarDatos();
   const labores = {};
 
-  data.forEach(f => {
-    if (f[3] !== categoriaSeleccionada) return; // columna CATEGORIA
+  // Estado del switch
+  const completo = document.getElementById("switchModoVista")?.checked ?? true;
 
-    const labor = f[4]; // columna LABOR
+  data.forEach(f => {
+    if (f[3] !== categoriaSeleccionada) return;
+
+    const labor = f[4];
     if (!labor) return;
 
     labores[labor] ??= { personas: 0, valor: 0, avance: 0, puSum: 0, puCount: 0, unidad: "" };
 
-    labores[labor].personas += Number(f[5]) || 0;       // # Pers.
-    labores[labor].valor += parseMoneda(f[6]);          // VALOR
-    labores[labor].avance += Number(f[8]) || 0;         // AVANCE
-    labores[labor].puSum += parseFloat(f[9]) || 0;      // P/U acumulado
-    labores[labor].puCount += 1;                        // contar registros para promedio
-    labores[labor].unidad = f[7] || labores[labor].unidad; // UNIDAD
+    labores[labor].personas += Number(f[5]) || 0;
+    labores[labor].valor += parseMoneda(f[6]);
+    labores[labor].avance += Number(f[8]) || 0;
+    labores[labor].puSum += parseFloat(f[9]) || 0;
+    labores[labor].puCount += 1;
+    labores[labor].unidad = f[7] || labores[labor].unidad;
   });
 
   const thead = document.querySelector("#tabla-derecha thead");
@@ -254,16 +263,27 @@ function renderTablaLabores(categoriaSeleccionada) {
   const tfoot = document.querySelector("#tabla-derecha tfoot");
   if (!thead || !tbody || !tfoot) return;
 
-  thead.innerHTML = `
-    <tr>
-      <th>#</th>
-      <th>Labor</th>
-      <th>Unidad</th>
-      <th># Pers.</th>
-      <th>Avance</th>
-      <th>P/U</th>
-      <th>Valor</th>
-    </tr>`;
+  // Cabecera según modo
+  if (completo) {
+    thead.innerHTML = `
+      <tr>
+        <th>#</th>
+        <th>Labor</th>
+        <th>Unidad</th>
+        <th># Pers.</th>
+        <th>Avance</th>
+        <th>P/U</th>
+        <th>Valor</th>
+      </tr>`;
+  } else {
+    thead.innerHTML = `
+      <tr>
+        <th>#</th>
+        <th>Labor</th>
+        <th># Pers.</th>
+        <th>Valor</th>
+      </tr>`;
+  }
 
   tbody.innerHTML = "";
   tfoot.innerHTML = "";
@@ -271,7 +291,6 @@ function renderTablaLabores(categoriaSeleccionada) {
   let totalP = 0;
   let totalV = 0;
   let totalAvance = 0;
-  let totalPUPromedio = 0;
   let i = 1;
 
   Object.entries(labores)
@@ -281,50 +300,124 @@ function renderTablaLabores(categoriaSeleccionada) {
       totalV += d.valor;
       totalAvance += d.avance;
 
-      // Promedio P/U
       const puPromedio = d.puCount > 0 ? d.puSum / d.puCount : 0;
 
-      totalPUPromedio += puPromedio; // opcional, si quieres total promedio global
+      if (completo) {
+        tbody.innerHTML += `
+          <tr>
+            <td>${i++}</td>
+            <td>${labor}</td>
+            <td>${d.unidad}</td>
+            <td>${formatPersonas(d.personas)}</td>
+            <td>${d.avance.toFixed(2)}</td>
+            <td>${puPromedio.toFixed(2)}</td>
+            <td>${formatValor(d.valor)}</td>
+          </tr>`;
+      } else {
+        tbody.innerHTML += `
+          <tr>
+            <td>${i++}</td>
+            <td>${labor}</td>
+            <td>${formatPersonas(d.personas)}</td>
+            <td>${formatValor(d.valor)}</td>
+          </tr>`;
+      }
+    });
 
-      tbody.innerHTML += `
-        <tr>
-          <td>${i++}</td>
-          <td>${labor}</td>
-          <td>${d.unidad}</td>
-          <td>${formatPersonas(d.personas)}</td>
-          <td>${d.avance.toFixed(2)}</td>
-          <td>${puPromedio.toFixed(2)}</td>
-          <td>${formatValor(d.valor)}</td>
-        </tr>`;
+  // Pie de tabla
+  if (completo) {
+    tfoot.innerHTML = `
+      <tr>
+        <td colspan="3"><strong>TOTAL</strong></td>
+        <td><strong>${formatPersonas(totalP)}</strong></td>
+        <td><strong>${totalAvance.toFixed(2)}</strong></td>
+        <td><strong>-</strong></td>
+        <td><strong>${formatValor(totalV)}</strong></td>
+      </tr>`;
+  } else {
+    tfoot.innerHTML = `
+      <tr>
+        <td colspan="2"><strong>TOTAL</strong></td>
+        <td><strong>${formatPersonas(totalP)}</strong></td>
+        <td><strong>${formatValor(totalV)}</strong></td>
+      </tr>`;
+  }
+}
+
+// ==================================================
+// SWITCH DINÁMICO — CAMBIO DE VISTA
+// ==================================================
+const switchVista = document.getElementById("switchModoVista");
+switchVista?.addEventListener("change", () => {
+  if (categoriaSeleccionadaActual) {
+    renderTablaLabores(categoriaSeleccionadaActual);
+  }
+});
+
+// ==================================================
+// TABLA IZQUIERDA — al hacer clic en categoría
+// ==================================================
+function renderTablaCategorias() {
+  const data = filtrarDatos();
+  const categorias = {};
+
+  data.forEach(f => {
+    const categoria = f[3];
+    if (!categoria) return;
+
+    categorias[categoria] ??= { personas: 0, valor: 0 };
+    categorias[categoria].personas += Number(f[5]) || 0;
+    categorias[categoria].valor += parseMoneda(f[6]);
+  });
+
+  const thead = document.querySelector("#tabla-izquierda thead");
+  const tbody = document.querySelector("#tabla-izquierda tbody");
+  const tfoot = document.querySelector("#tabla-izquierda tfoot");
+  if (!thead || !tbody || !tfoot) return;
+
+  thead.innerHTML = `
+    <tr>
+      <th>#</th>
+      <th>Categoría</th>
+      <th># Pers.</th>
+      <th>Valor</th>
+    </tr>`;
+
+  tbody.innerHTML = "";
+  tfoot.innerHTML = "";
+
+  let totalP = 0;
+  let totalV = 0;
+  let i = 1;
+
+  Object.entries(categorias)
+    .sort((a, b) => a[0].localeCompare(b[0], "es", { sensitivity: "base" }))
+    .forEach(([cat, d]) => {
+      totalP += d.personas;
+      totalV += d.valor;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${i++}</td>
+        <td>${cat}</td>
+        <td class="clickable">${formatPersonas(d.personas)}</td>
+        <td>${formatValor(d.valor)}</td>
+      `;
+
+      // Actualizamos la categoría al hacer clic
+      tr.querySelector(".clickable").onclick = () => renderTablaLabores(cat);
+
+      tbody.appendChild(tr);
     });
 
   tfoot.innerHTML = `
     <tr>
-      <td colspan="3"><strong>TOTAL</strong></td>
+      <td colspan="2"><strong>TOTAL</strong></td>
       <td><strong>${formatPersonas(totalP)}</strong></td>
-      <td><strong>${totalAvance.toFixed(2)}</strong></td>
-      <td><strong>-</strong></td>
       <td><strong>${formatValor(totalV)}</strong></td>
     </tr>`;
 }
 
-
-
-
-
-  document.getElementById("cerrarModalGrafica")?.addEventListener("click", () => {
-    document.getElementById("modalGrafica")?.classList.remove("activo");
-    graficaLabor?.destroy();
-    graficaLabor = null;
-  });
-
-  document.getElementById("modalGrafica")?.addEventListener("click", e => {
-    if (e.target.id === "modalGrafica") {
-      e.target.classList.remove("activo");
-      graficaLabor?.destroy();
-      graficaLabor = null;
-    }
-  });
 
   // ==================================================
   // MODAL + GRÁFICA
