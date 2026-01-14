@@ -7,7 +7,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Fredoka One', 'Poppins', 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, system-ui, sans-serif !important;
+  font-family: 'Nunito', 'Segoe UI', 'Helvetica Neue', Arial, system-ui, sans-serif !important;
 }
 
 body {
@@ -47,9 +47,8 @@ body {
 
 /* ================= TITULO PRINCIPAL ================= */
 #titulo {
-  font-family: 'Fredoka One', sans-serif;
   font-size: 25px !important;
-  font-weight: 600 !important;
+  font-weight: 900 !important;
   color: #0945bc !important;
   letter-spacing: 0.5px !important;
   /*margin-bottom: 16px !important;*/
@@ -74,7 +73,7 @@ body {
 
 .titulo-principal {
   font-size: 24px !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
   color: #b11e71 !important;
 }
 
@@ -220,6 +219,45 @@ body {
   color: #ba027d;
   box-shadow: 0 3px 10px rgba(186, 2, 125, 0.18);
 }
+
+
+/* Contenedor del selector de periodo */
+.selector-periodo {
+  margin-top: auto;              /* Empuja el selector al fondo */
+  padding: 12px 10px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  /* 🔑 Forzar alineación real a la izquierda */
+  align-items: stretch;          /* evita centrado heredado */
+  text-align: left;
+}
+
+/* Label */
+.selector-periodo label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-align: left;
+}
+
+/* Select */
+.selector-periodo select {
+  width: 100%;                   /* ocupa todo el ancho del sidebar */
+  padding: 8px 10px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  cursor: pointer;
+  text-align: left;
+}
+
+
+
+
 
 /* ================= MAIN ================= */
 .main {

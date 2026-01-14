@@ -11,7 +11,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
   <!-- ================== ESTILOS ================== -->
   <link id="css-resumen" rel="stylesheet" href="js/resumen/resumen.css" disabled>
   <link id="css-resumen-print" rel="stylesheet" href="js/resumen/resumen.print.css" media="print" disabled>
@@ -40,25 +41,38 @@
     <div class="app">
 
       <!-- Sidebar -->
-      <aside class="sidebar">
-        <div class="sidebar-toggle" aria-label="Abrir/cerrar menú">☰</div>
+<aside class="sidebar">
+  <div class="sidebar-toggle" aria-label="Abrir/cerrar menú">☰</div>
 
-        <div class="brand">
-          <img src="img/LOGO.png" alt="PORTAL AGRO" class="brand-logo"><br>
-          <span class="brand-title">___________________________</span><br>
-          <span class="brand-subtitle">Usuario: Administrador</span><br>
-          <span class="brand-subtitle">Desarrollador:® 𝄃𝄃𝄂𝄂𝄀𝄁𝄃𝄂𝄂𝄃</span>
-        </div>
+  <div class="brand">
+    <img src="img/LOGO.png" alt="PORTAL AGRO" class="brand-logo"><br>
+    <span class="brand-title">___________________________</span><br>
+    <span class="brand-subtitle">Usuario: Administrador</span><br>
+    <span class="brand-subtitle">Desarrollador:® 𝄃𝄃𝄂𝄂𝄀𝄁𝄃𝄂𝄂𝄃</span>
+  </div>
 
-        <nav class="menu">
-          <a class="menu-item active" data-modulo="produccion">PRODUCCIÓN</a>
-          <a class="menu-item" data-modulo="gastos">GASTOS</a>
-          <a class="menu-item" data-modulo="liquidaciones">LIQUIDACIONES</a>
-          <a class="menu-item" data-modulo="ventas">VENTAS</a>
-          <a class="menu-item" data-modulo="mano-obra">MANO DE OBRA</a>
-          <a class="menu-item" data-modulo="resumen">RESUMEN</a>
-        </nav>
-      </aside>
+  <nav class="menu">
+    <a class="menu-item active" data-modulo="produccion">PRODUCCIÓN</a>
+    <a class="menu-item" data-modulo="gastos">GASTOS</a>
+    <a class="menu-item" data-modulo="liquidaciones">LIQUIDACIONES</a>
+    <a class="menu-item" data-modulo="ventas">VENTAS</a>
+    <a class="menu-item" data-modulo="mano-obra">MANO DE OBRA</a>
+    <a class="menu-item" data-modulo="resumen">RESUMEN</a>
+  </nav>
+
+  <!-- Footer fijo abajo -->
+  <div class="sidebar-footer" style="margin-top:auto; padding:16px;">
+    <div class="selector-periodo">
+      <label for="selectPeriodo">Periodo</label>
+      <select id="selectPeriodo">
+        <option value="2025" selected>Periodo 2025</option>
+        <option value="2026">Periodo 2026</option>
+      </select>
+    </div>
+  </div>
+</aside>
+
+
 
       <div class="sidebar-overlay"></div>
 

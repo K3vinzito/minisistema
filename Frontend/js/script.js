@@ -4,6 +4,9 @@
 const API_BASE = "https://minisistema-production.up.railway.app";
 let cssResumen = null;
 
+// ===================== PERIODO ACTIVO
+let PERIODO_ACTUAL = "2025";
+
 import { state, dom, num, showLoader, hideLoader } from "./core.js";
 import { cargarDetallesProduccion, ordenarProduccionPorValor } from "./produccion.js";
 import { cargarDetallesGastos, ordenarGastosPorValor } from "./gastos.js";
@@ -11,6 +14,7 @@ import { cargarDetallesLiquidaciones, ordenarLiquidacionesPorValor } from "./liq
 import { cargarResumen } from "./resumen/resumen.js";
 import { initVentas } from "./ventas/ventas.js";
 import { initManoObra } from "./mano_obra/mano_obra.js";
+
 
 
 
@@ -25,10 +29,14 @@ const HECTAREAS = {
 const MODULOS_CON_DETALLES = ["Producción", "Gastos", "Liquidaciones"];
 
 const sheetURLs = {
-  Producción: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRWUa0XHVhUxy79IY5bv2vppEWhA50Mye4loI4wCErMtGjSM7uP1MHWcCSb8ciUwi6YT2XO7iQhKhFq/pub?gid=0&single=true&output=csv",
+  Producción: {
+    "2025": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRWUa0XHVhUxy79IY5bv2vppEWhA50Mye4loI4wCErMtGjSM7uP1MHWcCSb8ciUwi6YT2XO7iQhKhFq/pub?gid=0&single=true&output=csv",
+    "2026": "https://docs.google.com/spreadsheets/d/e/2PACX-1vTpvPPa9WlbCXFtVaAOlCDqc0mINFuuw23qevVT941zEOBZWJs_16Y1zbd3EJhhyx9WfNjqKsVjif7T/pub?gid=0&single=true&output=csv"
+  },
   Gastos: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSGqKfSKtI7fdrgu6Ssz43ZFgXrrTf4B8fzWdKt6PAUJiRibhzE75cW9YNAN10T6cU3ORoqst4OTZiD/pub?gid=0&single=true&output=csv",
   Liquidaciones: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSme-Xj4jhGJVEG8QwV-plPbjvhvpEhLRY4gII1Uf85wmRBeVXa-adOqMkUl8EpQMBKvZdUg504-Zd2/pub?gid=0&single=true&output=csv"
 };
+
 
 const MAPA_RUBROS_GASTOS = {
   Fumigacion: "FUMIGACION", Fertilizacion: "FERTILIZANTES",
@@ -124,12 +132,12 @@ function actualizarTituloModulo() {
   };
 
   const texto = {
-    "Resumen": "RESUMEN EJECUTIVO",
-    "Producción": "PRODUCCIÓN AGRÍCOLA",
-    "Gastos": "CONTROL DE GASTOS",
-    "Liquidaciones": "LIQUIDACIONES COMERCIALES",
-    "Ventas": "VENTAS DE CACAO",
-    "Mano de Obra": "MANO DE OBRA"
+    "Resumen": "Resumen Ejecutivo",
+    "Producción": "Produccion Agricola",
+    "Gastos": "Control de Gastos",
+    "Liquidaciones": "Liquidaciones Comerciales",
+    "Ventas": "Ventas de Cacao",
+    "Mano de Obra": "Mano de Obra"
   };
 
   const subtitulo = {
@@ -207,7 +215,16 @@ function resetPanelDetalles() {
 async function cargarDatosModulo(modulo) {
   showLoader(modulo);
   try {
-    const res = await fetch(sheetURLs[modulo]);
+
+    /* ===================== URL SEGÚN MÓDULO ===================== */
+    let url = sheetURLs[modulo];
+
+    // 🔵 SOLO PRODUCCIÓN depende del periodo
+    if (modulo === "Producción") {
+      url = sheetURLs.Producción[PERIODO_ACTUAL];
+    }
+
+    const res = await fetch(url);
     const csv = await res.text();
     const parsed = Papa.parse(csv.trim(), { skipEmptyLines: true });
     const lines = parsed.data;
@@ -233,12 +250,15 @@ async function cargarDatosModulo(modulo) {
 
     state.dataModules[modulo] = data;
     refrescarUI();
+
   } catch (err) {
     console.error("Error cargando Google Sheets:", err);
   } finally {
     hideLoader(modulo);
   }
 }
+
+
 
 // ===================== UI PRINCIPAL
 
@@ -400,29 +420,31 @@ function renderTabla() {
     }).join("")}</tr>`
   ).join("");
 
-  document.querySelectorAll(".detalle-clic").forEach(el => {
-    el.onclick = () => {
+document.querySelectorAll(".detalle-clic").forEach(el => {
+  el.onclick = () => {
 
-      // quitar activo anterior
-      document.querySelectorAll(".detalle-clic.activo")
-        .forEach(a => a.classList.remove("activo"));
+    // quitar activo anterior
+    document.querySelectorAll(".detalle-clic.activo")
+      .forEach(a => a.classList.remove("activo"));
 
-      // marcar el actual
-      el.classList.add("activo");
+    // marcar el actual
+    el.classList.add("activo");
 
-      if (state.currentModule === "Producción") {
-        cargarDetallesProduccion(el.dataset.semana);
-      }
+    if (state.currentModule === "Producción") {
+      // 🔹 pasar siempre el periodo activo
+      cargarDetallesProduccion(el.dataset.semana, PERIODO_ACTUAL);
+    }
 
-      if (state.currentModule === "Gastos") {
-        cargarDetallesGastos(el.dataset.semana, el.dataset.rubro);
-      }
+    if (state.currentModule === "Gastos") {
+      cargarDetallesGastos(el.dataset.semana, el.dataset.rubro);
+    }
 
-      if (state.currentModule === "Liquidaciones") {
-        cargarDetallesLiquidaciones(el.dataset.semana, el.dataset.tipo);
-      }
-    };
-  });
+    if (state.currentModule === "Liquidaciones") {
+      cargarDetallesLiquidaciones(el.dataset.semana, el.dataset.tipo);
+    }
+  };
+});
+
 
   const hect = HECTAREAS[h?.toUpperCase()] ? ` (${HECTAREAS[h.toUpperCase()]} has)` : "";
   dom.tituloTabla.innerText = `${state.currentModule} - ${e} / ${h}${hect}`;
@@ -713,4 +735,30 @@ document.querySelector(".zona-inferior").style.display = "flex";
 cssResumen = document.getElementById("css-resumen");
 if (cssResumen) cssResumen.disabled = true;
 
+/* ===================== SELECTOR DE PERIODO ===================== */
+const selectPeriodo = document.getElementById("selectPeriodo");
+
+if (selectPeriodo) {
+  selectPeriodo.value = PERIODO_ACTUAL;
+
+selectPeriodo.addEventListener("change", () => {
+  PERIODO_ACTUAL = selectPeriodo.value;
+
+  if (state.currentModule === "Producción") {
+    // recarga datos de la tabla principal
+    cargarDatosModulo("Producción").then(() => {
+      // 🔹 recarga detalles de la semana seleccionada (si hay alguno activo)
+      const semanaActiva = document.querySelector(".detalle-clic.activo")?.dataset.semana;
+      if (semanaActiva) {
+        cargarDetallesProduccion(semanaActiva, PERIODO_ACTUAL);
+      }
+    });
+  }
+});
+
+
+}
+
 cargarDatosModulo(state.currentModule);
+
+

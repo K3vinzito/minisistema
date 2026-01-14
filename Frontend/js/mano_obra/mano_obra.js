@@ -310,8 +310,8 @@ Object.entries(labores)
           <td class="col-principal">${labor}</td>
           <td class="col-principal">${d.unidad}</td>
           <td class="col-principal">${formatPersonas(d.personas)}</td>
-          <td class="col-secundaria">${d.avance.toFixed(2)}</td>
-          <td class="col-secundaria">${puPromedio.toFixed(2)}</td>
+          <td class="col-secundaria">${formatPersonas(d.avance)}</td>
+          <td class="col-secundaria pu-monetario">${formatValor(puPromedio)}</td>
           <td class="col-secundaria">${formatValor(d.valor)}</td>
         </tr>`;
     } else {
@@ -331,7 +331,7 @@ if (completo) {
     <tr>
       <td colspan="3"><strong>TOTAL</strong></td>
       <td><strong>${formatPersonas(totalP)}</strong></td>
-      <td><strong>${totalAvance.toFixed(2)}</strong></td>
+      <td><strong>${formatPersonas(totalAvance)}</strong></td>
       <td><strong>-</strong></td>
       <td><strong>${formatValor(totalV)}</strong></td>
     </tr>`;
