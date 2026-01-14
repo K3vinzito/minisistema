@@ -99,16 +99,18 @@ const filtrados = filas.filter(f => {
 
 
 function renderTabla(items, total) {
-  const formatearMoneda = (valor) => {
+  const formatearNumero = (valor) => {
     const n = Number(valor) || 0;
-    return `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return n.toLocaleString("es-EC", {
+      maximumFractionDigits: 0
+    });
   };
 
   const filas = items.map(item => `
     <tr>
       <td>${item.TIPO}</td>
       <td class="detalle-largo">${item.DETALLE}</td>
-      <td>${formatearMoneda(item.VALOR)}</td>
+      <td>${formatearNumero(item.VALOR)}</td>
     </tr>
   `).join("");
 
@@ -116,10 +118,11 @@ function renderTabla(items, total) {
     ${filas}
     <tr class="fila-total">
       <td colspan="2">TOTAL</td>
-      <td>${formatearMoneda(total)}</td>
+      <td>${formatearNumero(total)}</td>
     </tr>
   `;
 }
+
 
 export function ordenarProduccionPorValor() {
   if (!detallesOriginales.length) return;
