@@ -1,133 +1,41 @@
 import express from "express";
-import bcrypt from "bcrypt";
-import pool from "../db.js";
-import { authRequired, requireRole } from "../middleware/authMiddleware.js";
+import cors from "cors";
+import dotenv from "dotenv";
 
-const router = express.Router();
+import usuariosRoutes from "./routes/usuarios.js";
+import authRoutes from "./routes/auth.js";
 
-/* ===============================
-   GET → Listar usuarios (ADMIN)
-================================ */
-router.get(
-  "/",
-  authRequired,
-  requireRole("admin"),
-  async (req, res) => {
-    try {
-      const result = await pool.query(
-        `SELECT id, usuario, rol, activo, created_at
-         FROM usuarios
-         ORDER BY id`
-      );
+dotenv.config();
 
-      res.json(result.rows);
-    } catch (err) {
-      console.error("Error listar usuarios:", err);
-      res.status(500).json({ error: "Error al listar usuarios" });
-    }
-  }
-);
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-/* ===============================
-   POST → Crear usuario (ADMIN)
-================================ */
-router.post(
-  "/",
-  authRequired,
-  requireRole("admin"),
-  async (req, res) => {
-    const { usuario, password, rol } = req.body;
+// ==================
+// Middlewares globales
+// ==================
+app.use(cors());
+app.use(express.json());
 
-    if (!usuario || !password || !rol) {
-      return res.status(400).json({ error: "Datos incompletos" });
-    }
+// ==================
+// Rutas
+// ==================
+app.use("/api/auth", authRoutes);
+app.use("/api/usuarios", usuariosRoutes);
 
-    try {
-      const existe = await pool.query(
-        "SELECT id FROM usuarios WHERE usuario = $1",
-        [usuario]
-      );
+// ==================
+// Ruta de prueba
+// ==================
+app.get("/api/db-test", (req, res) => {
+  res.json({
+    ok: true,
+    message: "Backend funcionando correctamente",
+    time: new Date()
+  });
+});
 
-      if (existe.rowCount > 0) {
-        return res.status(409).json({ error: "Usuario ya existe" });
-      }
-
-      const hash = await bcrypt.hash(password, 10);
-
-      await pool.query(
-        `INSERT INTO usuarios (usuario, password, rol, activo)
-         VALUES ($1, $2, $3, true)`,
-        [usuario, hash, rol]
-      );
-
-      res.json({ ok: true, message: "Usuario creado" });
-    } catch (err) {
-      console.error("Error crear usuario:", err);
-      res.status(500).json({ error: "Error al crear usuario" });
-    }
-  }
-);
-
-/* ===============================
-   PUT → Editar usuario (ADMIN)
-================================ */
-router.put(
-  "/:id",
-  authRequired,
-  requireRole("admin"),
-  async (req, res) => {
-    const { id } = req.params;
-    const { usuario, rol } = req.body;
-
-    if (!usuario || !rol) {
-      return res.status(400).json({ error: "Datos incompletos" });
-    }
-
-    try {
-      await pool.query(
-        `UPDATE usuarios
-         SET usuario = $1, rol = $2
-         WHERE id = $3`,
-        [usuario, rol, id]
-      );
-
-      res.json({ ok: true, message: "Usuario actualizado" });
-    } catch (err) {
-      console.error("Error actualizar usuario:", err);
-      res.status(500).json({ error: "Error al actualizar usuario" });
-    }
-  }
-);
-
-/* ===============================
-   PUT → Activar / Desactivar (ADMIN)
-================================ */
-router.put(
-  "/:id/estado",
-  authRequired,
-  requireRole("admin"),
-  async (req, res) => {
-    const { id } = req.params;
-    const { activo } = req.body;
-
-    if (typeof activo !== "boolean") {
-      return res.status(400).json({ error: "Estado inválido" });
-    }
-
-    try {
-      await pool.query(
-        `UPDATE usuarios
-         SET activo = $1
-         WHERE id = $2`,
-        [activo, id]
-      );
-
-      res.json({ ok: true, message: "Estado actualizado" });
-    } catch (err) {
-      console.error("Error estado usuario:", err);
-      res.status(500).json({ error: "Error al cambiar estado" });
-    }
-  }
-);
-
-export default router;
+// ==================
+// Start server
+// ==================
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+});
