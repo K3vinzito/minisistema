@@ -1,7 +1,7 @@
 /* ================================================================
             MINI SISTEMA AGRÍCOLA — SCRIPT PRINCIPAL
 ================================================================ */
-const API_BASE = "https://minisistema-production.up.railway.app";
+const API_BASE = "https://minisistema.onrender.com";
 let cssResumen = null;
 
 // ===================== PERIODO ACTIVO
