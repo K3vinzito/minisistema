@@ -1,4 +1,4 @@
-const API_BASE = "https://minisistema.onrender.com"; // tu backend real
+const API_BASE = "https://minisistema.onrender.com";
 
 let modo = "login";
 
@@ -54,7 +54,20 @@ btnSubmit.addEventListener("click", async () => {
       return;
     }
 
-    // ✅ LOGIN OK
+    // =====================
+    // REGISTER OK
+    // =====================
+    if (modo === "register") {
+      errorMsg.style.color = "lime";
+      errorMsg.textContent = "Usuario creado. Ahora inicia sesión.";
+      modo = "login";
+      toggleForm.click();
+      return;
+    }
+
+    // =====================
+    // LOGIN OK
+    // =====================
     localStorage.setItem("token", data.token);
     localStorage.setItem("usuario", JSON.stringify(data.usuario));
     localStorage.setItem("rol", data.usuario.rol);
@@ -67,7 +80,6 @@ btnSubmit.addEventListener("click", async () => {
   }
 });
 
-// Enter para enviar
 [usuarioInput, passwordInput].forEach(input => {
   input.addEventListener("keyup", e => {
     if (e.key === "Enter") btnSubmit.click();
