@@ -1010,4 +1010,34 @@ body.modulo-mano-obra-activo .selectores {
 }
 
 
+/* =========================
+   BOTÓN CERRAR SESIÓN
+========================= */
+.btn-logout {
+  width: 100%;
+  margin-top: 16px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #c535e5, #ee4e4e);
+  color: #fff;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.btn-logout:hover {
+  background: linear-gradient(135deg, #ff8b89, #f38181);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+.btn-logout:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+}
+
 

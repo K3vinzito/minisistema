@@ -58,10 +58,21 @@ btnSubmit.addEventListener("click", async () => {
     // REGISTER OK
     // =====================
     if (modo === "register") {
-      errorMsg.style.color = "lime";
-      errorMsg.textContent = "Usuario creado. Ahora inicia sesión.";
-      modo = "login";
-      toggleForm.click();
+      // Mensaje claro de éxito
+      errorMsg.style.color = "#3cff6b";
+      errorMsg.textContent = "✅ Registro exitoso. Ahora inicia sesión.";
+
+      // Limpiar campos
+      usuarioInput.value = "";
+      passwordInput.value = "";
+
+      // Cambiar a login automáticamente
+      setTimeout(() => {
+        modo = "login";
+        toggleForm.click();
+        errorMsg.textContent = "";
+      }, 1500);
+
       return;
     }
 

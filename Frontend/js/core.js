@@ -91,3 +91,16 @@ export function hideLoader(modulo) {
     }
   }, 350);
 }
+
+const btnLogout = document.getElementById("btnLogout");
+
+if (btnLogout) {
+  btnLogout.addEventListener("click", () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
+    localStorage.removeItem("rol");
+
+    window.location.href = "login.html";
+  });
+}
+
