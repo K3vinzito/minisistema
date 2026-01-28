@@ -32,7 +32,7 @@ export function initVentas() {
     clientes.forEach((c) => {
       tablaClientes.innerHTML += `
         <tr>
-          <td>${c.razon}</td>
+          <td>${c.razon_social}</td>
           <td>${c.ruc}</td>
           <td>${c.direccion}</td>
           <td>${c.personal}</td>
@@ -52,7 +52,7 @@ export function initVentas() {
  window.editarCliente = function (id) {
   const c = clientes.find(x => x.id === id);
   if (!c) return;
-    document.getElementById("razonSocial").value = c.razon;
+    document.getElementById("razonSocial").value = c.razon_social;
     document.getElementById("ruc").value = c.ruc;
     document.getElementById("direccion").value = c.direccion;
     document.getElementById("personal").value = c.personal;
