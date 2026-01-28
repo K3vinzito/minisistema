@@ -27,6 +27,8 @@
   }
 
  body {
+
+
   font-family: 'Nunito', sans-serif;
   background: linear-gradient(135deg, #f4f6fb, #e9ecf3);
   display: flex;
@@ -163,6 +165,21 @@ body::after {
     min-height: 18px;
     margin-top: 10px;
   }
+  .bannerZoom {
+  display: flex;
+  justify-content: center;
+  margin: 8px auto 16px auto;
+  max-width: 320px;
+  background: #fff4c2;
+  color: #7a5f00;
+  font-size: 14px;
+  text-align: center;
+  padding: 12px 18px;
+  border-radius: 6px;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
 </style>
 
 <body>
@@ -180,6 +197,9 @@ body::after {
         <div class="switch" id="toggleForm">
             ¿No tienes cuenta? Registrarse
         </div>
+          <div id="bannerZoom" class="bannerZoom">
+            ⚠ Se recomienda visualizar la página en 90%
+          </div>
     </div>
     <script>
         const token = localStorage.getItem("token");

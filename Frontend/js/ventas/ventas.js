@@ -1,4 +1,7 @@
 export function initVentas() {
+  const API_BASE = "https://minisistema.onrender.com";
+  const API_CLIENTES = `${API_BASE}/api/clientes`;
+
 
   /* ======================================================
      TABS VENTAS
@@ -18,7 +21,7 @@ export function initVentas() {
   /* ======================================================
      DIRECTORIO
   ====================================================== */
-  const clientes = [];
+  let clientes = [];
   let editIndex = null;
 
   const tablaClientes = document.getElementById("tablaClientes");
@@ -26,7 +29,7 @@ export function initVentas() {
 
   function renderClientes() {
     tablaClientes.innerHTML = "";
-    clientes.forEach((c, i) => {
+    clientes.forEach((c) => {
       tablaClientes.innerHTML += `
         <tr>
           <td>${c.razon}</td>
@@ -37,16 +40,18 @@ export function initVentas() {
           <td>${c.telefono}</td>
           <td>${c.email}</td>
           <td>
-            <button class="btn-editar" onclick="editarCliente(${i})">Editar</button>
-            <button class="btn-eliminar" onclick="eliminarCliente(${i})">Eliminar</button>
+            <button class="btn-editar" onclick="editarCliente(${c.id})">Editar</button>
+            <button class="btn-eliminar" onclick="eliminarCliente(${c.id})">Eliminar</button>
+
           </td>
         </tr>
       `;
     });
   }
 
-  window.editarCliente = function (i) {
-    const c = clientes[i];
+ window.editarCliente = function (id) {
+  const c = clientes.find(x => x.id === id);
+  if (!c) return;
     document.getElementById("razonSocial").value = c.razon;
     document.getElementById("ruc").value = c.ruc;
     document.getElementById("direccion").value = c.direccion;
@@ -54,60 +59,96 @@ export function initVentas() {
     document.getElementById("cargo").value = c.cargo;
     document.getElementById("telefono").value = c.telefono;
     document.getElementById("email").value = c.email;
-    editIndex = i;
+    editIndex = id;
   };
 
-  window.eliminarCliente = function (i) {
-    if (editIndex === i) editIndex = null;
-    clientes.splice(i, 1);
-    renderClientes();
-    actualizarSelectRazon();
+window.eliminarCliente = async function (id) {
+  try {
+    const res = await fetch(`${API_CLIENTES}/${id}`, { method: "DELETE" });
+    if (!res.ok) throw new Error("No se pudo eliminar");
+
+    if (editIndex === id) editIndex = null;
+
+    await cargarDirectorio();
     actualizarSelectOrigen();
     actualizarSelectUnidad();
-    guardarDirectorio();
-  };
+  } catch (err) {
+    console.error(err);
+    alert("Error eliminando cliente");
+  }
+};
+
 
   function guardarDirectorio() {
     localStorage.setItem("directorio", JSON.stringify(clientes));
   }
 
-  function cargarDirectorio() {
-    const data = JSON.parse(localStorage.getItem("directorio") || "[]");
-    clientes.length = 0;
-    data.forEach(c => clientes.push(c));
-    renderClientes();
-    actualizarSelectRazon();
-    actualizarSelectOrigen();
-    actualizarSelectUnidad();
+  async function cargarDirectorio() {
+    try {
+      const res = await fetch(API_CLIENTES);
+      if (!res.ok) throw new Error("No se pudo cargar clientes");
+      clientes = await res.json();
+      renderClientes();
+      actualizarSelectRazon();
+    } catch (err) {
+      console.error(err);
+      alert("Error cargando clientes desde el servidor");
+    }
   }
 
-  guardarClienteBtn.addEventListener("click", () => {
-    const cliente = {
-      razon: document.getElementById("razonSocial").value,
-      ruc: document.getElementById("ruc").value,
-      direccion: document.getElementById("direccion").value,
-      personal: document.getElementById("personal").value,
-      cargo: document.getElementById("cargo").value,
-      telefono: document.getElementById("telefono").value,
-      email: document.getElementById("email").value
-    };
+
+ guardarClienteBtn.addEventListener("click", async () => {
+  const payload = {
+    razon_social: document.getElementById("razonSocial").value.trim(),
+    ruc: document.getElementById("ruc").value.trim(),
+    direccion: document.getElementById("direccion").value.trim(),
+    personal: document.getElementById("personal").value.trim(),
+    cargo: document.getElementById("cargo").value.trim(),
+    telefono: document.getElementById("telefono").value.trim(),
+    email: document.getElementById("email").value.trim()
+  };
+
+  try {
+    let res;
 
     if (editIndex !== null) {
-      clientes[editIndex] = cliente;
-      editIndex = null;
+      // UPDATE
+      res = await fetch(`${API_CLIENTES}/${editIndex}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
     } else {
-      clientes.push(cliente);
+      // CREATE
+      res = await fetch(API_CLIENTES, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
     }
 
-    renderClientes();
-    actualizarSelectRazon();
+    if (res.status === 409) {
+      const msg = await res.json();
+      alert(msg.message);
+      return;
+    }
+
+    if (!res.ok) throw new Error("Error guardando cliente");
+
+    editIndex = null;
+    await cargarDirectorio();
     actualizarSelectOrigen();
     actualizarSelectUnidad();
-    guardarDirectorio();
 
     ["razonSocial", "ruc", "direccion", "personal", "cargo", "telefono", "email"]
       .forEach(id => document.getElementById(id).value = "");
-  });
+
+  } catch (err) {
+    console.error(err);
+    alert("Error guardando cliente");
+  }
+});
+
 
   /* ======================================================
      SELECTS
@@ -169,7 +210,7 @@ export function initVentas() {
   // ================= DIRECTORIO =================
   // clientes = [];
   //let editIndex = null;
- // const tablaClientes = document.getElementById("tablaClientes");
+  // const tablaClientes = document.getElementById("tablaClientes");
   //const guardarClienteBtn = document.getElementById("guardarCliente");
 
 
@@ -194,9 +235,9 @@ export function initVentas() {
     actualizarSelectUnidad();
     guardarDirectorio();
   }
- 
 
-  
+
+
   document.querySelectorAll("#directorio .directorio-form input").forEach(input => {
     input.addEventListener("keydown", e => {
       if (e.key === "Enter") {
@@ -330,8 +371,8 @@ export function initVentas() {
 
   // Botón “Nuevo Registro”
   btnNuevoRegistro.addEventListener("click", () => agregarFilaAutorizacion());
- 
-  
+
+
   // ================= BOTÓN GENERAR ORDEN =================
   btnGenerarOrden.addEventListener("click", () => {
     const filasAut = document.querySelectorAll(".autorizacion-inputs");
@@ -766,107 +807,107 @@ export function initVentas() {
     }
   }
 
-// ========================= FUNCIONES DE FILA =========================
-function agregarEventosFila(row) {
-  const btnEditar = row.querySelector(".btn-editar");
-  const btnEliminar = row.querySelector(".btn-eliminar");
+  // ========================= FUNCIONES DE FILA =========================
+  function agregarEventosFila(row) {
+    const btnEditar = row.querySelector(".btn-editar");
+    const btnEliminar = row.querySelector(".btn-eliminar");
 
-  // === ESTILO MINIMALISTA BASE ===
-  const estiloAccion = btn => {
-    btn.style.background = "#fff";
-    btn.style.border = "1px solid #ccc";
-    btn.style.borderRadius = "4px";
-    btn.style.width = "32px";
-    btn.style.height = "32px";
-    btn.style.cursor = "pointer";
-    btn.style.display = "flex";
-    btn.style.alignItems = "center";
-    btn.style.justifyContent = "center";
-    btn.style.padding = "0";
-    btn.style.marginRight = "4px"; // separación entre botones
-  };
+    // === ESTILO MINIMALISTA BASE ===
+    const estiloAccion = btn => {
+      btn.style.background = "#fff";
+      btn.style.border = "1px solid #ccc";
+      btn.style.borderRadius = "4px";
+      btn.style.width = "32px";
+      btn.style.height = "32px";
+      btn.style.cursor = "pointer";
+      btn.style.display = "flex";
+      btn.style.alignItems = "center";
+      btn.style.justifyContent = "center";
+      btn.style.padding = "0";
+      btn.style.marginRight = "4px"; // separación entre botones
+    };
 
-  estiloAccion(btnEditar);
-  estiloAccion(btnEliminar);
+    estiloAccion(btnEditar);
+    estiloAccion(btnEliminar);
 
-  // === ICONOS ===
-  const iconEditar = "✏️";    // lápiz
-  const iconGuardar = "💾";   // disco de guardar
-  const iconEliminar = "🗑️";  // papelera
-  const iconRestaurar = "↩️";  // flecha restaurar
-  const iconAdjuntar = "📎";  // clip
+    // === ICONOS ===
+    const iconEditar = "✏️";    // lápiz
+    const iconGuardar = "💾";   // disco de guardar
+    const iconEliminar = "🗑️";  // papelera
+    const iconRestaurar = "↩️";  // flecha restaurar
+    const iconAdjuntar = "📎";  // clip
 
-  btnEditar.innerHTML = iconEditar;
-  btnEditar.title = "Editar";
+    btnEditar.innerHTML = iconEditar;
+    btnEditar.title = "Editar";
 
-  // Mantener el emoji según contenedor
-  if (row.parentElement === factAprobadasBody) {
-    btnEliminar.innerHTML = iconRestaurar;
-    btnEliminar.title = "Restaurar";
-  } else {
-    btnEliminar.innerHTML = iconEliminar;
-    btnEliminar.title = "Eliminar";
-  }
-
-  // ================= EDITAR / GUARDAR =================
-  btnEditar.addEventListener("click", () => {
-    const celdas = row.querySelectorAll(".fact-cell");
-    const editable = celdas[0].isContentEditable;
-
-    if (!editable) {
-      celdas.forEach(c => {
-        c.contentEditable = true;
-        c.style.background = "#fff";
-        c.style.border = "1px solid #d1d5db";
-        c.style.borderRadius = "4px";
-        c.style.padding = "2px 4px";
-      });
-      btnEditar.innerHTML = iconGuardar;
-      btnEditar.title = "Guardar";
+    // Mantener el emoji según contenedor
+    if (row.parentElement === factAprobadasBody) {
+      btnEliminar.innerHTML = iconRestaurar;
+      btnEliminar.title = "Restaurar";
     } else {
-      celdas.forEach(c => {
-        c.contentEditable = false;
-        c.style.background = "#f9fafb";
-        c.style.border = "none";
-        c.style.padding = "0";
-      });
-      btnEditar.innerHTML = iconEditar;
-      btnEditar.title = "Editar";
-      guardarFacturacion();
-    }
-  });
-
-  // ================= ELIMINAR / RESTAURAR =================
-  btnEliminar.addEventListener("click", () => {
-    if (btnEliminar.title === "Eliminar") {
-      row.remove();
-    } else if (btnEliminar.title === "Restaurar") {
-      factHistBody.appendChild(row);
       btnEliminar.innerHTML = iconEliminar;
       btnEliminar.title = "Eliminar";
     }
-    guardarFacturacion();
-  });
 
-  // ================= BOTÓN CARGAR DOCUMENTOS =================
-  let btnCargar = row.querySelector(".btn-cargar-doc");
-  if (!btnCargar) {
-    btnCargar = document.createElement("button");
-    btnCargar.className = "btn-cargar-doc";
-    btnCargar.innerHTML = iconAdjuntar;
-    estiloAccion(btnCargar);
-    btnCargar.title = "Adjuntar documentos";
-    btnCargar.onclick = () => abrirModal(row);
-    row.querySelector(".fact-acciones").appendChild(btnCargar);
+    // ================= EDITAR / GUARDAR =================
+    btnEditar.addEventListener("click", () => {
+      const celdas = row.querySelectorAll(".fact-cell");
+      const editable = celdas[0].isContentEditable;
+
+      if (!editable) {
+        celdas.forEach(c => {
+          c.contentEditable = true;
+          c.style.background = "#fff";
+          c.style.border = "1px solid #d1d5db";
+          c.style.borderRadius = "4px";
+          c.style.padding = "2px 4px";
+        });
+        btnEditar.innerHTML = iconGuardar;
+        btnEditar.title = "Guardar";
+      } else {
+        celdas.forEach(c => {
+          c.contentEditable = false;
+          c.style.background = "#f9fafb";
+          c.style.border = "none";
+          c.style.padding = "0";
+        });
+        btnEditar.innerHTML = iconEditar;
+        btnEditar.title = "Editar";
+        guardarFacturacion();
+      }
+    });
+
+    // ================= ELIMINAR / RESTAURAR =================
+    btnEliminar.addEventListener("click", () => {
+      if (btnEliminar.title === "Eliminar") {
+        row.remove();
+      } else if (btnEliminar.title === "Restaurar") {
+        factHistBody.appendChild(row);
+        btnEliminar.innerHTML = iconEliminar;
+        btnEliminar.title = "Eliminar";
+      }
+      guardarFacturacion();
+    });
+
+    // ================= BOTÓN CARGAR DOCUMENTOS =================
+    let btnCargar = row.querySelector(".btn-cargar-doc");
+    if (!btnCargar) {
+      btnCargar = document.createElement("button");
+      btnCargar.className = "btn-cargar-doc";
+      btnCargar.innerHTML = iconAdjuntar;
+      estiloAccion(btnCargar);
+      btnCargar.title = "Adjuntar documentos";
+      btnCargar.onclick = () => abrirModal(row);
+      row.querySelector(".fact-acciones").appendChild(btnCargar);
+    }
   }
-}
 
-// ========================= CREAR FILA =========================
-function crearFila(d, contenedor) {
-  const row = document.createElement("div");
-  row.className = "fact-hist-row";
-  row.dataset.archivos = d.archivos || "[]";
-  row.innerHTML = `
+  // ========================= CREAR FILA =========================
+  function crearFila(d, contenedor) {
+    const row = document.createElement("div");
+    row.className = "fact-hist-row";
+    row.dataset.archivos = d.archivos || "[]";
+    row.innerHTML = `
     <div><input type="checkbox" class="fact-check"></div>
     <div class="fact-cell">${d.razon}</div>
     <div class="fact-cell">${d.origen}</div>
@@ -881,84 +922,84 @@ function crearFila(d, contenedor) {
       <button class="btn-eliminar" title="Eliminar"></button>
     </div>
   `;
-  contenedor.appendChild(row);
+    contenedor.appendChild(row);
 
-  // Agregar eventos de la fila
-  agregarEventosFila(row);
-}
-
-// ========================= CARGAR FACTURACIÓN =========================
-function cargarFacturacion() {
-  const historial = JSON.parse(localStorage.getItem("factHistorial") || "[]");
-  const aprobadas = JSON.parse(localStorage.getItem("factAprobadas") || "[]");
-
-  historial.forEach(d => crearFila(d, factHistBody));
-  aprobadas.forEach(d => crearFila(d, factAprobadasBody));
-}
-
-// ========================= GUARDAR FACTURACIÓN =========================
-function guardarFacturacion() {
-  const historial = [];
-  const aprobadas = [];
-
-  function guardarFilas(filas, arr) {
-    filas.forEach(row => {
-      const c = row.querySelectorAll(".fact-cell");
-      arr.push({
-        razon: c[0]?.textContent || "",
-        origen: c[1]?.textContent || "",
-        cant: c[2]?.textContent || "",
-        unidad: c[3]?.textContent || "",
-        precio: c[4]?.textContent || "",
-        subtotal: c[5]?.textContent || "",
-        retencion: c[6]?.textContent || "",
-        pago: c[7]?.textContent || "",
-        archivos: row.dataset.archivos || "[]"
-      });
-    });
+    // Agregar eventos de la fila
+    agregarEventosFila(row);
   }
 
-  guardarFilas(factHistBody.querySelectorAll(".fact-hist-row"), historial);
-  guardarFilas(factAprobadasBody.querySelectorAll(".fact-hist-row"), aprobadas);
+  // ========================= CARGAR FACTURACIÓN =========================
+  function cargarFacturacion() {
+    const historial = JSON.parse(localStorage.getItem("factHistorial") || "[]");
+    const aprobadas = JSON.parse(localStorage.getItem("factAprobadas") || "[]");
 
-  localStorage.setItem("factHistorial", JSON.stringify(historial));
-  localStorage.setItem("factAprobadas", JSON.stringify(aprobadas));
-}
+    historial.forEach(d => crearFila(d, factHistBody));
+    aprobadas.forEach(d => crearFila(d, factAprobadasBody));
+  }
 
-// ========================= BOTÓN APROBAR =========================
-btnAprobar.addEventListener("click", () => {
-  const filas = factHistBody.querySelectorAll(".fact-hist-row");
-  filas.forEach(fila => {
-    const check = fila.querySelector(".fact-check");
-    if (check && check.checked) {
-      check.checked = false; // desmarcar
-      factAprobadasBody.appendChild(fila);
+  // ========================= GUARDAR FACTURACIÓN =========================
+  function guardarFacturacion() {
+    const historial = [];
+    const aprobadas = [];
 
-      const btnEliminar = fila.querySelector(".btn-eliminar");
-      const iconEliminar = "🗑️";
-      const iconRestaurar = "↩️";
-
-      // Cambiar a restaurar
-      btnEliminar.innerHTML = iconRestaurar;
-      btnEliminar.title = "Restaurar";
-
-      // Reasignar evento del botón restaurar
-      btnEliminar.onclick = () => {
-        factHistBody.appendChild(fila);
-        btnEliminar.innerHTML = iconEliminar;
-        btnEliminar.title = "Eliminar";
-        guardarFacturacion();
-      };
+    function guardarFilas(filas, arr) {
+      filas.forEach(row => {
+        const c = row.querySelectorAll(".fact-cell");
+        arr.push({
+          razon: c[0]?.textContent || "",
+          origen: c[1]?.textContent || "",
+          cant: c[2]?.textContent || "",
+          unidad: c[3]?.textContent || "",
+          precio: c[4]?.textContent || "",
+          subtotal: c[5]?.textContent || "",
+          retencion: c[6]?.textContent || "",
+          pago: c[7]?.textContent || "",
+          archivos: row.dataset.archivos || "[]"
+        });
+      });
     }
-  });
-  guardarFacturacion();
-});
 
-// ========================= INICIALIZACIÓN =========================
-document.addEventListener("DOMContentLoaded", () => {
-  cargarDirectorio();
-  cargarFacturacion();
-});
+    guardarFilas(factHistBody.querySelectorAll(".fact-hist-row"), historial);
+    guardarFilas(factAprobadasBody.querySelectorAll(".fact-hist-row"), aprobadas);
+
+    localStorage.setItem("factHistorial", JSON.stringify(historial));
+    localStorage.setItem("factAprobadas", JSON.stringify(aprobadas));
+  }
+
+  // ========================= BOTÓN APROBAR =========================
+  btnAprobar.addEventListener("click", () => {
+    const filas = factHistBody.querySelectorAll(".fact-hist-row");
+    filas.forEach(fila => {
+      const check = fila.querySelector(".fact-check");
+      if (check && check.checked) {
+        check.checked = false; // desmarcar
+        factAprobadasBody.appendChild(fila);
+
+        const btnEliminar = fila.querySelector(".btn-eliminar");
+        const iconEliminar = "🗑️";
+        const iconRestaurar = "↩️";
+
+        // Cambiar a restaurar
+        btnEliminar.innerHTML = iconRestaurar;
+        btnEliminar.title = "Restaurar";
+
+        // Reasignar evento del botón restaurar
+        btnEliminar.onclick = () => {
+          factHistBody.appendChild(fila);
+          btnEliminar.innerHTML = iconEliminar;
+          btnEliminar.title = "Eliminar";
+          guardarFacturacion();
+        };
+      }
+    });
+    guardarFacturacion();
+  });
+
+  // ========================= INICIALIZACIÓN =========================
+  document.addEventListener("DOMContentLoaded", () => {
+    cargarDirectorio();
+    cargarFacturacion();
+  });
 
 
 

@@ -84,17 +84,7 @@
       <!-- Main -->
       <main class="main">
 
-        <!-- Login -->
-        <div id="loginBox" class="login-box">
-          <h2>Ingreso Administrador</h2>
-          <input type="text" id="usuario" placeholder="Usuario" value="Administrador" />
-          <input type="password" id="password" placeholder="Contraseña">
-          <button id="btnLogin">Ingresar</button>
-          <p id="loginError"></p>
-          <div id="bannerZoom" class="bannerZoom">
-            ⚠ Se recomienda visualizar la página en 80%
-          </div>
-        </div>
+      
 
         <!-- Contenido -->
         <div id="contenido" class="contenido-principal"
@@ -262,25 +252,15 @@
   <script src="js/liquidaciones.js" type="module"></script>
   <script src="js/script.js" type="module"></script>
 
-
   <script>
-    // Login simple
-    const btnLogin = document.getElementById('btnLogin');
-    const usuarioInput = document.getElementById('usuario');
-    const passwordInput = document.getElementById('password');
-    const loginBox = document.getElementById('loginBox');
-    const contenido = document.getElementById('contenido');
-    const loginError = document.getElementById('loginError');
+  const token = localStorage.getItem("token");
+  if (!token) {
+    window.location.href = "login.html";
+  }
+</script>
 
-    btnLogin.addEventListener('click', () => {
-      if (usuarioInput.value.trim() === "Administrador" && passwordInput.value.trim() === "123") {
-        loginBox.style.display = 'none';
-        contenido.style.display = 'flex';
-      } else loginError.textContent = "⚠︎ Usuario o contraseña incorrectos";
-    });
 
-    [usuarioInput, passwordInput].forEach(i => i.addEventListener('keyup', e => { if (e.key === "Enter") btnLogin.click(); }));
-  </script>
+
 </body>
 
 </html>

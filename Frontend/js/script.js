@@ -2,6 +2,7 @@
             MINI SISTEMA AGRÍCOLA — SCRIPT PRINCIPAL
 ================================================================ */
 const API_BASE = "https://minisistema.onrender.com";
+const ROL_USUARIO = localStorage.getItem("rol") || "usuario";
 let cssResumen = null;
 
 // ===================== PERIODO ACTIVO
@@ -165,6 +166,15 @@ function actualizarTituloModulo() {
     </div>
   `;
 }
+
+if (ROL_USUARIO !== "admin") {
+  document.querySelectorAll(".menu-item").forEach(item => {
+    if (item.innerText.includes("VENTAS")) {
+      item.style.display = "none";
+    }
+  });
+}
+
 
 
 
@@ -677,7 +687,14 @@ dom.moduloBtns.forEach(btn => {
     if (nombreBoton.includes("PRODUCCIÓN")) state.currentModule = "Producción";
     else if (nombreBoton.includes("GASTOS")) state.currentModule = "Gastos";
     else if (nombreBoton.includes("LIQUIDACIONES")) state.currentModule = "Liquidaciones";
-    else if (nombreBoton.includes("VENTAS")) state.currentModule = "Ventas";
+else if (nombreBoton.includes("VENTAS")) {
+  if (ROL_USUARIO !== "admin") {
+    alert("No tiene permisos para acceder a este módulo");
+    return;
+  }
+  state.currentModule = "Ventas";
+}
+
     else if (nombreBoton.includes("MANO DE OBRA")) state.currentModule = "Mano de Obra";
     else if (nombreBoton.includes("RESUMEN")) state.currentModule = "Resumen";
 
@@ -760,5 +777,10 @@ selectPeriodo.addEventListener("change", () => {
 }
 
 cargarDatosModulo(state.currentModule);
+// ===================== MOSTRAR CONTENIDO PRINCIPAL
+const contenido = document.getElementById("contenido");
+if (contenido) {
+  contenido.style.display = "flex";
+}
 
 
