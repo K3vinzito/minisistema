@@ -1,6 +1,8 @@
 export function initVentas() {
   const API_BASE = "https://minisistema.onrender.com";
   const API_CLIENTES = `${API_BASE}/api/clientes`;
+  const API_VENTAS = `${API_BASE}/api/ventas`;
+
 
 
   /* ======================================================
@@ -149,20 +151,69 @@ window.eliminarCliente = async function (id) {
   }
 });
 
+  /* ======================================================*/
+function construirOrdenesDesdeUI() {
+  const filas = document.querySelectorAll(".autorizacion-inputs");
+  const mapa = new Map(); // key: cliente_id
+
+  filas.forEach(fila => {
+    const sel = fila.querySelector(".aut-razon");
+    const cliente_id = Number(sel.value);
+    const razon_social = sel.options[sel.selectedIndex]?.text?.trim() || "";
+
+    const origen = fila.querySelector(".aut-origen").value.trim();
+    const cantidad = Number(fila.querySelector(".aut-cant").value || 0);
+    const unidad = fila.querySelector(".aut-unidad").value.trim();
+    const precio = Number(fila.querySelector(".aut-precio").value || 0);
+    const subtotal = Number(fila.querySelector(".aut-subtotal").value || 0);
+    const retencion = Number(fila.querySelector(".aut-retencion").value || 0);
+    const pago = Number(fila.querySelector(".aut-pago").value || 0);
+    const semana = fila.querySelector(".aut-sem").value;
+    const fecha = fila.querySelector(".aut-fecha").value;
+
+    // validación mínima (sin inventar reglas nuevas)
+    if (!cliente_id || !razon_social) return;
+    if (!origen) return;
+    if (!cantidad || !precio) return;
+
+    const detalle = { origen, cantidad, unidad, precio, subtotal, retencion, pago };
+
+    if (!mapa.has(cliente_id)) {
+      mapa.set(cliente_id, {
+        cliente_id,
+        razon_social,
+        semana,
+        fecha,
+        detalles: [detalle],
+      });
+    } else {
+      mapa.get(cliente_id).detalles.push(detalle);
+    }
+  });
+
+  return [...mapa.values()];
+}
+
 
   /* ======================================================
      SELECTS
   ====================================================== */
   function actualizarSelectRazon() {
-    document.querySelectorAll(".aut-razon").forEach(select => {
-      const selected = select.value;
-      select.innerHTML = `<option value="">Seleccione</option>`;
-      clientes.forEach(c => {
-        select.innerHTML += `<option value="${c.razon_social}">${c.razon_social}</option>`;
-      });
-      select.value = selected;
+  document.querySelectorAll(".aut-razon").forEach(select => {
+    const selected = select.value;
+
+    select.innerHTML = `<option value="">Seleccione</option>`;
+    clientes.forEach(c => {
+      select.innerHTML += `<option value="${c.id}">${c.razon_social}</option>`;
     });
-  }
+
+    // intenta mantener selección anterior
+    if ([...select.options].some(o => o.value === selected)) {
+      select.value = selected;
+    }
+  });
+}
+
 
   function actualizarSelectOrigen() {
     ["MIRELYA", "ONAHOUSE"].forEach(() => { });
@@ -373,7 +424,7 @@ window.eliminarCliente = async function (id) {
   btnNuevoRegistro.addEventListener("click", () => agregarFilaAutorizacion());
 
 
-  // ================= BOTÓN GENERAR ORDEN =================
+  /*/* ================= BOTÓN GENERAR ORDEN =================
   btnGenerarOrden.addEventListener("click", () => {
     const filasAut = document.querySelectorAll(".autorizacion-inputs");
     if (!filasAut.length) return;
@@ -441,15 +492,163 @@ window.eliminarCliente = async function (id) {
       }, 400);
     }
   });
+*/
+// ================= BOTÓN GENERAR ORDEN =================
+btnGenerarOrden.addEventListener("click", async () => {
+  const filasAut = document.querySelectorAll(".autorizacion-inputs");
+  if (!filasAut.length) {
+    alert("No hay registros para generar orden");
+    return;
+  }
 
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("Sesión no válida. Inicie sesión nuevamente.");
+    return;
+  }
 
+  // =====================================================
+  // AGRUPAR POR CLIENTE (una orden por razón social)
+  // =====================================================
+  const ordenesMap = {};
 
+  filasAut.forEach(fila => {
+    const selectRazon = fila.querySelector(".aut-razon");
+    const cliente_id = Number(selectRazon.value);
+    const razon_social = selectRazon.options[selectRazon.selectedIndex]?.text || "";
 
+    const origen = fila.querySelector(".aut-origen").value;
+    const cantidad = Number(fila.querySelector(".aut-cant").value);
+    const unidad = fila.querySelector(".aut-unidad").value;
+    const precio = Number(fila.querySelector(".aut-precio").value);
+    const subtotal = Number(fila.querySelector(".aut-subtotal").value);
+    const retencion = Number(fila.querySelector(".aut-retencion").value);
+    const pago = Number(fila.querySelector(".aut-pago").value);
+    const semana = fila.querySelector(".aut-sem").value;
+    const fecha = fila.querySelector(".aut-fecha").value;
 
+    // Validación mínima (sin inventar reglas)
+    if (!cliente_id || !razon_social || !origen || !cantidad || !precio) return;
 
+    if (!ordenesMap[cliente_id]) {
+      ordenesMap[cliente_id] = {
+        cliente_id,
+        razon_social,
+        semana,
+        fecha,
+        detalles: []
+      };
+    }
 
+    ordenesMap[cliente_id].detalles.push({
+      origen,
+      cantidad,
+      unidad,
+      precio,
+      subtotal,
+      retencion,
+      pago
+    });
+  });
 
+  const ordenes = Object.values(ordenesMap);
 
+  if (!ordenes.length) {
+    alert("No hay órdenes válidas para guardar");
+    return;
+  }
+
+  // =====================================================
+  // ENVIAR ÓRDENES AL BACKEND
+  // =====================================================
+  try {
+    for (const orden of ordenes) {
+      const res = await fetch(`${API_BASE}/api/ventas/orden`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(orden)
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Error al generar orden");
+      }
+    }
+
+    // =====================================================
+    // MOSTRAR EN FACTURACIÓN (TU MISMA LÓGICA)
+    // =====================================================
+    let ultimaFila = null;
+
+    ordenes.forEach(o => {
+      o.detalles.forEach(d => {
+        const row = document.createElement("div");
+        row.className = "fact-hist-row";
+        row.dataset.archivos = "[]";
+        row.innerHTML = `
+          <div><input type="checkbox" class="fact-check"></div>
+          <div class="fact-cell">${o.razon_social}</div>
+          <div class="fact-cell">${d.origen}</div>
+          <div class="fact-cell">${d.cantidad}</div>
+          <div class="fact-cell">${d.unidad}</div>
+          <div class="fact-cell">${d.precio}</div>
+          <div class="fact-cell">${d.subtotal}</div>
+          <div class="fact-cell">${d.retencion}</div>
+          <div class="fact-cell">${d.pago}</div>
+          <div class="fact-acciones">
+            <button class="btn-editar" title="Editar">✏️</button>
+            <button class="btn-eliminar" title="Eliminar">🗑️</button>
+          </div>
+        `;
+        factHistBody.appendChild(row);
+        agregarEventosFila(row);
+        ultimaFila = row;
+      });
+    });
+
+    guardarFacturacion();
+
+    // =====================================================
+    // LIMPIAR AUTORIZACIÓN
+    // =====================================================
+    const contenedor = document.querySelector(".autorizacion-registro");
+    contenedor.querySelectorAll(".autorizacion-inputs").forEach(fila => fila.remove());
+    actualizarTotales();
+
+    // =====================================================
+    // CAMBIAR A FACTURACIÓN
+    // =====================================================
+    const tabVentas = document.querySelector(".ventas-tab[data-tab='facturacion']");
+    if (tabVentas) tabVentas.click();
+
+    // =====================================================
+    // PARPADEO SUAVE
+    // =====================================================
+    if (ultimaFila) {
+      ultimaFila.style.transition = "background 0.6s ease";
+      let parpadeos = 0;
+      const interval = setInterval(() => {
+        if (parpadeos >= 3) {
+          ultimaFila.style.background = "";
+          clearInterval(interval);
+          return;
+        }
+        ultimaFila.style.background =
+          ultimaFila.style.background === "rgba(255, 249, 157, 0.6)"
+            ? ""
+            : "rgba(255, 249, 157, 0.6)";
+        parpadeos += 0.5;
+      }, 400);
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert(err.message);
+  }
+});
 
 
   // ================= FACTURACION =================
@@ -1001,13 +1200,6 @@ window.eliminarCliente = async function (id) {
     cargarFacturacion();
   });
 
-
-
-
-
-
-
-
   /* ================= RESUMEN KARDEX ================= */
 
   const resumenData = [
@@ -1250,18 +1442,6 @@ window.eliminarCliente = async function (id) {
         }
       });
   });
-
-
-
-
-
-
-
-
-
-
-
-
 
 
   // 👉 Autorización (fila inicial)
