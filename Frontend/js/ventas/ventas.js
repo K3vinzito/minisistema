@@ -158,7 +158,7 @@ window.eliminarCliente = async function (id) {
       const selected = select.value;
       select.innerHTML = `<option value="">Seleccione</option>`;
       clientes.forEach(c => {
-        select.innerHTML += `<option value="${c.razon}">${c.razon}</option>`;
+        select.innerHTML += `<option value="${c.razon_social}">${c.razon_social}</option>`;
       });
       select.value = selected;
     });
@@ -216,7 +216,7 @@ window.eliminarCliente = async function (id) {
 
   function editarCliente(i) {
     const c = clientes[i];
-    document.getElementById("razonSocial").value = c.razon;
+    document.getElementById("razonSocial").value = c.razon_social;
     document.getElementById("ruc").value = c.ruc;
     document.getElementById("direccion").value = c.direccion;
     document.getElementById("personal").value = c.personal;
@@ -909,7 +909,7 @@ window.eliminarCliente = async function (id) {
     row.dataset.archivos = d.archivos || "[]";
     row.innerHTML = `
     <div><input type="checkbox" class="fact-check"></div>
-    <div class="fact-cell">${d.razon}</div>
+    <div class="fact-cell">${d.razon_social}</div>
     <div class="fact-cell">${d.origen}</div>
     <div class="fact-cell">${d.cant}</div>
     <div class="fact-cell">${d.unidad}</div>
