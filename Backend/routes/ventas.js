@@ -2,16 +2,13 @@ import express from "express";
 import pool from "../db.js";
 import { authRequired } from "../middleware/authMiddleware.js";
 
-
 const router = express.Router();
+
+/* ======================================================
+   CREAR ORDEN DE VENTA
+====================================================== */
 router.post("/orden", authRequired, async (req, res) => {
-  const {
-    cliente_id,
-    razon_social,
-    semana,
-    fecha,
-    detalles
-  } = req.body;
+  const { cliente_id, razon_social, semana, fecha, detalles } = req.body;
 
   if (!cliente_id || !razon_social || !detalles?.length) {
     return res.status(400).json({ error: "Datos incompletos" });
@@ -22,7 +19,6 @@ router.post("/orden", authRequired, async (req, res) => {
   try {
     await client.query("BEGIN");
 
-    // ===== CALCULAR TOTALES =====
     let total_cantidad = 0;
     let total_subtotal = 0;
     let total_retencion = 0;
@@ -35,7 +31,6 @@ router.post("/orden", authRequired, async (req, res) => {
       total_pago += Number(d.pago);
     });
 
-    // ===== INSERT ORDEN =====
     const ordenRes = await client.query(
       `INSERT INTO orden_venta
        (cliente_id, razon_social, semana, fecha,
@@ -55,6 +50,42 @@ router.post("/orden", authRequired, async (req, res) => {
     );
 
     const ordenId = ordenRes.rows[0].id;
+
+    for (const d of detalles) {
+      await client.query(
+        `INSERT INTO orden_venta_detalle
+         (orden_id, origen, cantidad, unidad, precio,
+          subtotal, retencion, pago)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+        [
+          ordenId,
+          d.origen,
+          d.cantidad,
+          d.unidad,
+          d.precio,
+          d.subtotal,
+          d.retencion,
+          d.pago
+        ]
+      );
+    }
+
+    await client.query("COMMIT");
+
+    res.json({ ok: true, orden_id: ordenId });
+
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error(err);
+    res.status(500).json({ error: "Error al guardar orden" });
+  } finally {
+    client.release();
+  }
+});
+
+/* ======================================================
+   FACTURACIÓN — DETALLE DE ÓRDENES PENDIENTES
+====================================================== */
 router.get("/pendientes-detalle", authRequired, async (req, res) => {
   try {
     const result = await pool.query(`
@@ -82,56 +113,16 @@ router.get("/pendientes-detalle", authRequired, async (req, res) => {
   }
 });
 
-    // ===== INSERT DETALLES =====
-    for (const d of detalles) {
-      await client.query(
-        `INSERT INTO orden_venta_detalle
-         (orden_id, origen, cantidad, unidad, precio,
-          subtotal, retencion, pago)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
-        [
-          ordenId,
-          d.origen,
-          d.cantidad,
-          d.unidad,
-          d.precio,
-          d.subtotal,
-          d.retencion,
-          d.pago
-        ]
-      );
-    }
-
-    await client.query("COMMIT");
-
-    res.json({
-      ok: true,
-      orden_id: ordenId
-    });
-
-  } catch (err) {
-    await client.query("ROLLBACK");
-    console.error(err);
-    res.status(500).json({ error: "Error al guardar orden" });
-  } finally {
-    client.release();
-  }
-});
+/* ======================================================
+   LISTAR ÓRDENES (CABECERA)
+====================================================== */
 router.get("/pendientes", authRequired, async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT
-        o.id,
-        o.razon_social,
-        o.semana,
-        o.fecha,
-        o.total_cantidad,
-        o.total_subtotal,
-        o.total_retencion,
-        o.total_pago
-      FROM orden_venta o
-      WHERE o.estado = 'PENDIENTE'
-      ORDER BY o.created_at DESC
+      SELECT *
+      FROM orden_venta
+      WHERE estado = 'PENDIENTE'
+      ORDER BY created_at DESC
     `);
 
     res.json(result.rows);
@@ -140,29 +131,31 @@ router.get("/pendientes", authRequired, async (req, res) => {
     res.status(500).json({ error: "Error al listar pendientes" });
   }
 });
+
+/* ======================================================
+   DETALLE POR ORDEN
+====================================================== */
 router.get("/orden/:id", authRequired, async (req, res) => {
-  const { id } = req.params;
-
   try {
-    const detalles = await pool.query(
-      `SELECT * FROM orden_venta_detalle
-       WHERE orden_id = $1`,
-      [id]
+    const result = await pool.query(
+      "SELECT * FROM orden_venta_detalle WHERE orden_id = $1",
+      [req.params.id]
     );
-
-    res.json(detalles.rows);
+    res.json(result.rows);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error al obtener detalle" });
+    res.status(500).json({ error: "Error obteniendo detalle" });
   }
 });
-router.delete("/detalle/:id", authRequired, async (req, res) => {
-  const { id } = req.params;
 
+/* ======================================================
+   ELIMINAR DETALLE
+====================================================== */
+router.delete("/detalle/:id", authRequired, async (req, res) => {
   try {
     await pool.query(
       "DELETE FROM orden_venta_detalle WHERE id = $1",
-      [id]
+      [req.params.id]
     );
     res.json({ ok: true });
   } catch (err) {
@@ -171,21 +164,20 @@ router.delete("/detalle/:id", authRequired, async (req, res) => {
   }
 });
 
+/* ======================================================
+   APROBAR ORDEN
+====================================================== */
 router.put("/aprobar/:id", authRequired, async (req, res) => {
-  const { id } = req.params;
-
   try {
     await pool.query(
-      `UPDATE orden_venta
-       SET estado = 'APROBADA'
-       WHERE id = $1`,
-      [id]
+      "UPDATE orden_venta SET estado = 'APROBADA' WHERE id = $1",
+      [req.params.id]
     );
-
     res.json({ ok: true });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error al aprobar orden" });
+    res.status(500).json({ error: "Error aprobando orden" });
   }
 });
+
 export default router;
