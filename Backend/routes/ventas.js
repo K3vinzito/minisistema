@@ -55,7 +55,7 @@ router.post("/orden", authRequired, async (req, res) => {
     );
 
     const ordenId = ordenRes.rows[0].id;
-router.get("/pendientes-detalle", authMiddleware, async (req, res) => {
+router.get("/pendientes-detalle", authRequired, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT
@@ -156,6 +156,21 @@ router.get("/orden/:id", authRequired, async (req, res) => {
     res.status(500).json({ error: "Error al obtener detalle" });
   }
 });
+router.delete("/detalle/:id", authRequired, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await pool.query(
+      "DELETE FROM orden_venta_detalle WHERE id = $1",
+      [id]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error eliminando detalle" });
+  }
+});
+
 router.put("/aprobar/:id", authRequired, async (req, res) => {
   const { id } = req.params;
 

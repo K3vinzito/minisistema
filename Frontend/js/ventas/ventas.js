@@ -299,73 +299,36 @@ function construirOrdenesDesdeUI() {
   actualizarSelectOrigen();
   actualizarSelectUnidad();
 
+// ================= CARGAR FACTURACIÓN DESDE BD (DETALLE REAL) =================
 async function cargarOrdenesPendientes() {
-  const token = localStorage.getItem("token");
-  factHistBody.innerHTML = "";
-
-  const res = await fetch(`${API_VENTAS}/pendientes`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-
-  const detalles = await res.json();
-
-  detalles.forEach(d => {
-    crearFila({
-      razon_social: d.razon_social,
-      origen: d.origen,
-      cant: d.cantidad,
-      unidad: d.unidad,
-      precio: d.precio,
-      subtotal: d.subtotal,
-      retencion: d.retencion,
-      pago: d.pago,
-      orden_id: d.orden_id
-    }, factHistBody);
-  });
-}
-
-
-
-/*
-  async function cargarOrdenesPendientes() {
   const token = localStorage.getItem("token");
   if (!token) return;
 
   factHistBody.innerHTML = "";
 
   try {
-    const res = await fetch(`${API_BASE}/api/ventas/pendientes`, {
-      headers: {
-        "Authorization": `Bearer ${token}`
-      }
+    const res = await fetch(`${API_VENTAS}/pendientes-detalle`, {
+      headers: { Authorization: `Bearer ${token}` }
     });
 
-    if (!res.ok) throw new Error("No se pudieron cargar órdenes");
+    if (!res.ok) throw new Error("No se pudo cargar facturación");
 
-    const ordenes = await res.json();
+    const detalles = await res.json();
 
-    for (const o of ordenes) {
-      const row = document.createElement("div");
-      row.className = "fact-hist-row";
-      row.dataset.ordenId = o.id;
-
-      row.innerHTML = `
-        <div><input type="checkbox" class="fact-check"></div>
-        <div class="fact-cell">${o.razon_social}</div>
-        <div class="fact-cell">${o.semana}</div>
-        <div class="fact-cell">${o.total_cantidad}</div>
-        <div class="fact-cell">$${Number(o.total_subtotal).toFixed(2)}</div>
-        <div class="fact-cell">$${Number(o.total_retencion).toFixed(2)}</div>
-        <div class="fact-cell">$${Number(o.total_pago).toFixed(2)}</div>
-        <div class="fact-acciones">
-          <button class="btn-ver">👁</button>
-          <button class="btn-aprobar">✔</button>
-        </div>
-      `;
-
-      factHistBody.appendChild(row);
-      agregarEventosFacturacion(row);
-    }
+    detalles.forEach(d => {
+      crearFila({
+        razon_social: d.razon_social,
+        origen: d.origen,
+        cant: d.cantidad,
+        unidad: d.unidad,
+        precio: d.precio,
+        subtotal: d.subtotal,
+        retencion: d.retencion,
+        pago: d.pago,
+        orden_id: d.orden_id,
+        detalle_id: d.detalle_id
+      }, factHistBody);
+    });
 
   } catch (err) {
     console.error(err);
@@ -374,7 +337,7 @@ async function cargarOrdenesPendientes() {
 }
 
 
-*/
+
 function agregarEventosFacturacion(row) {
   const ordenId = row.dataset.ordenId;
   const btnVer = row.querySelector(".btn-ver");
@@ -544,98 +507,28 @@ function agregarEventosFacturacion(row) {
   btnNuevoRegistro.addEventListener("click", () => agregarFilaAutorizacion());
 
 
-  /*/* ================= BOTÓN GENERAR ORDEN =================
-  btnGenerarOrden.addEventListener("click", () => {
-    const filasAut = document.querySelectorAll(".autorizacion-inputs");
-    if (!filasAut.length) return;
-
-    let ultimaFila = null;
-
-    filasAut.forEach(fila => {
-      const razon = fila.querySelector(".aut-razon").value;
-      const origen = fila.querySelector(".aut-origen").value;
-      const cant = fila.querySelector(".aut-cant").value;
-      const unidad = fila.querySelector(".aut-unidad").value;
-      const precio = fila.querySelector(".aut-precio").value;
-      const subtotal = fila.querySelector(".aut-subtotal").value;
-      const retencion = fila.querySelector(".aut-retencion").value;
-      const pago = fila.querySelector(".aut-pago").value;
-
-      const row = document.createElement("div");
-      row.className = "fact-hist-row";
-      row.dataset.archivos = "[]";
-      row.innerHTML = `
-      <div><input type="checkbox" class="fact-check"></div>
-      <div class="fact-cell">${razon}</div>
-      <div class="fact-cell">${origen}</div>
-      <div class="fact-cell">${cant}</div>
-      <div class="fact-cell">${unidad}</div>
-      <div class="fact-cell">${precio}</div>
-      <div class="fact-cell">${subtotal}</div>
-      <div class="fact-cell">${retencion}</div>
-      <div class="fact-cell">${pago}</div>
-      <div class="fact-acciones">
-        <button class="btn-editar" title="Editar">✏️</button>
-        <button class="btn-eliminar" title="Eliminar">🗑️</button>
-      </div>
-    `;
-      factHistBody.appendChild(row);
-      agregarEventosFila(row);
-      ultimaFila = row;
-    });
-
-    guardarFacturacion();
-
-    // LIMPIAR AUTORIZACION
-    const contenedor = document.querySelector(".autorizacion-registro");
-    contenedor.querySelectorAll(".autorizacion-inputs").forEach(fila => fila.remove());
-    actualizarTotales();
-
-    // CAMBIAR A PESTAÑA FACTURACION
-    const tabVentas = document.querySelector(".ventas-tab[data-tab='facturacion']");
-    if (tabVentas) tabVentas.click();
-
-    // PARPADEO SUAVE DE LA NUEVA FILA
-    if (ultimaFila) {
-      ultimaFila.style.transition = "background 0.6s ease";
-      let parpadeos = 0;
-      const maxParpadeos = 3;
-
-      const interval = setInterval(() => {
-        if (parpadeos >= maxParpadeos) {
-          ultimaFila.style.background = ""; // Restablece color original
-          clearInterval(interval);
-          return;
-        }
-        ultimaFila.style.background = ultimaFila.style.background === "rgba(255, 249, 157, 0.6)" ? "" : "rgba(255, 249, 157, 0.6)";
-        parpadeos += 0.5; // cada cambio cuenta como medio parpadeo
-      }, 400);
-    }
-  });
-*/
-// ================= BOTÓN GENERAR ORDEN =================
+ 
+// ================= BOTÓN GENERAR ORDEN (CORREGIDO) =================
 btnGenerarOrden.addEventListener("click", async () => {
-  const filasAut = document.querySelectorAll(".autorizacion-inputs");
-  if (!filasAut.length) {
+  const filas = document.querySelectorAll(".autorizacion-inputs");
+  if (!filas.length) {
     alert("No hay registros para generar orden");
     return;
   }
 
   const token = localStorage.getItem("token");
   if (!token) {
-    alert("Sesión no válida. Inicie sesión nuevamente.");
+    alert("Sesión inválida");
     return;
   }
 
-  // =====================================================
-  // AGRUPAR POR CLIENTE (una orden por razón social)
-  // =====================================================
-  const ordenesMap = {};
+  // ===== AGRUPAR POR CLIENTE (1 ORDEN / VARIOS DETALLES) =====
+  const ordenes = {};
 
-  filasAut.forEach(fila => {
-    const selectRazon = fila.querySelector(".aut-razon");
-    const cliente_id = Number(selectRazon.value);
-    const razon_social = selectRazon.options[selectRazon.selectedIndex]?.text || "";
+  filas.forEach(fila => {
+    const sel = fila.querySelector(".aut-razon");
+    const cliente_id = Number(sel.value);
+    const razon_social = sel.options[sel.selectedIndex]?.text || "";
 
     const origen = fila.querySelector(".aut-origen").value;
     const cantidad = Number(fila.querySelector(".aut-cant").value);
@@ -647,11 +540,10 @@ btnGenerarOrden.addEventListener("click", async () => {
     const semana = fila.querySelector(".aut-sem").value;
     const fecha = fila.querySelector(".aut-fecha").value;
 
-    // Validación mínima (sin inventar reglas)
-    if (!cliente_id || !razon_social || !origen || !cantidad || !precio) return;
+    if (!cliente_id || !origen || !cantidad || !precio) return;
 
-    if (!ordenesMap[cliente_id]) {
-      ordenesMap[cliente_id] = {
+    if (!ordenes[cliente_id]) {
+      ordenes[cliente_id] = {
         cliente_id,
         razon_social,
         semana,
@@ -660,7 +552,7 @@ btnGenerarOrden.addEventListener("click", async () => {
       };
     }
 
-    ordenesMap[cliente_id].detalles.push({
+    ordenes[cliente_id].detalles.push({
       origen,
       cantidad,
       unidad,
@@ -671,104 +563,43 @@ btnGenerarOrden.addEventListener("click", async () => {
     });
   });
 
-  const ordenes = Object.values(ordenesMap);
-
-  if (!ordenes.length) {
-    alert("No hay órdenes válidas para guardar");
+  const payloads = Object.values(ordenes);
+  if (!payloads.length) {
+    alert("No hay órdenes válidas");
     return;
   }
 
-  // =====================================================
-  // ENVIAR ÓRDENES AL BACKEND
-  // =====================================================
   try {
-    for (const orden of ordenes) {
-      const res = await fetch(`${API_BASE}/api/ventas/orden`, {
+    for (const orden of payloads) {
+      const res = await fetch(`${API_VENTAS}/orden`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(orden)
       });
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || "Error al generar orden");
+        throw new Error(err.error || "Error al guardar orden");
       }
     }
 
-    // =====================================================
-    // MOSTRAR EN FACTURACIÓN (TU MISMA LÓGICA)
-    // =====================================================
-    let ultimaFila = null;
-
-    ordenes.forEach(o => {
-      o.detalles.forEach(d => {
-        const row = document.createElement("div");
-        row.className = "fact-hist-row";
-        row.dataset.archivos = "[]";
-        row.innerHTML = `
-          <div><input type="checkbox" class="fact-check"></div>
-          <div class="fact-cell">${o.razon_social}</div>
-          <div class="fact-cell">${d.origen}</div>
-          <div class="fact-cell">${d.cantidad}</div>
-          <div class="fact-cell">${d.unidad}</div>
-          <div class="fact-cell">${d.precio}</div>
-          <div class="fact-cell">${d.subtotal}</div>
-          <div class="fact-cell">${d.retencion}</div>
-          <div class="fact-cell">${d.pago}</div>
-          <div class="fact-acciones">
-            <button class="btn-editar" title="Editar">✏️</button>
-            <button class="btn-eliminar" title="Eliminar">🗑️</button>
-          </div>
-        `;
-        factHistBody.appendChild(row);
-        agregarEventosFila(row);
-        ultimaFila = row;
-      });
-    });
-
-    guardarFacturacion();
-
-    // =====================================================
-    // LIMPIAR AUTORIZACIÓN
-    // =====================================================
-    const contenedor = document.querySelector(".autorizacion-registro");
-    contenedor.querySelectorAll(".autorizacion-inputs").forEach(fila => fila.remove());
+    // limpiar autorización
+    document.querySelectorAll(".autorizacion-inputs").forEach(f => f.remove());
     actualizarTotales();
 
-    // =====================================================
-    // CAMBIAR A FACTURACIÓN
-    // =====================================================
-    const tabVentas = document.querySelector(".ventas-tab[data-tab='facturacion']");
-    if (tabVentas) tabVentas.click();
-
-    // =====================================================
-    // PARPADEO SUAVE
-    // =====================================================
-    if (ultimaFila) {
-      ultimaFila.style.transition = "background 0.6s ease";
-      let parpadeos = 0;
-      const interval = setInterval(() => {
-        if (parpadeos >= 3) {
-          ultimaFila.style.background = "";
-          clearInterval(interval);
-          return;
-        }
-        ultimaFila.style.background =
-          ultimaFila.style.background === "rgba(255, 249, 157, 0.6)"
-            ? ""
-            : "rgba(255, 249, 157, 0.6)";
-        parpadeos += 0.5;
-      }, 400);
-    }
+    // ir a facturación
+    document.querySelector(".ventas-tab[data-tab='facturacion']").click();
+    cargarFacturacion();
 
   } catch (err) {
     console.error(err);
     alert(err.message);
   }
 });
+
 
 
   // ================= FACTURACION =================
