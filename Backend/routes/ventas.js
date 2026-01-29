@@ -1,10 +1,10 @@
 import express from "express";
 import pool from "../db.js";
-import { authMiddleware } from "../middleware/authMiddleware.js";
+import { authRequired } from "../middleware/authMiddleware.js";
 
 
 const router = express.Router();
-router.post("/orden", authMiddleware, async (req, res) => {
+router.post("/orden", authRequired, async (req, res) => {
   const {
     cliente_id,
     razon_social,
@@ -91,7 +91,7 @@ router.post("/orden", authMiddleware, async (req, res) => {
     client.release();
   }
 });
-router.get("/pendientes", authMiddleware, async (req, res) => {
+router.get("/pendientes", authRequired, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT
@@ -114,7 +114,7 @@ router.get("/pendientes", authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Error al listar pendientes" });
   }
 });
-router.get("/orden/:id", authMiddleware, async (req, res) => {
+router.get("/orden/:id", authRequired, async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -130,7 +130,7 @@ router.get("/orden/:id", authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Error al obtener detalle" });
   }
 });
-router.put("/aprobar/:id", authMiddleware, async (req, res) => {
+router.put("/aprobar/:id", authRequired, async (req, res) => {
   const { id } = req.params;
 
   try {
