@@ -55,6 +55,32 @@ router.post("/orden", authRequired, async (req, res) => {
     );
 
     const ordenId = ordenRes.rows[0].id;
+router.get("/pendientes-detalle", authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        d.id              AS detalle_id,
+        o.id              AS orden_id,
+        o.razon_social,
+        d.origen,
+        d.cantidad,
+        d.unidad,
+        d.precio,
+        d.subtotal,
+        d.retencion,
+        d.pago
+      FROM orden_venta o
+      JOIN orden_venta_detalle d ON d.orden_id = o.id
+      WHERE o.estado = 'PENDIENTE'
+      ORDER BY o.created_at DESC, d.id ASC
+    `);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error cargando detalle de facturación" });
+  }
+});
 
     // ===== INSERT DETALLES =====
     for (const d of detalles) {

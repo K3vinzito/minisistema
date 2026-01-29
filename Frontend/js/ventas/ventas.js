@@ -81,10 +81,6 @@ window.eliminarCliente = async function (id) {
 };
 
 
-  function guardarDirectorio() {
-    localStorage.setItem("directorio", JSON.stringify(clientes));
-  }
-
   async function cargarDirectorio() {
     try {
       const res = await fetch(API_CLIENTES);
@@ -302,6 +298,130 @@ function construirOrdenesDesdeUI() {
   cargarDirectorio();
   actualizarSelectOrigen();
   actualizarSelectUnidad();
+
+async function cargarOrdenesPendientes() {
+  const token = localStorage.getItem("token");
+  factHistBody.innerHTML = "";
+
+  const res = await fetch(`${API_VENTAS}/pendientes`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  const detalles = await res.json();
+
+  detalles.forEach(d => {
+    crearFila({
+      razon_social: d.razon_social,
+      origen: d.origen,
+      cant: d.cantidad,
+      unidad: d.unidad,
+      precio: d.precio,
+      subtotal: d.subtotal,
+      retencion: d.retencion,
+      pago: d.pago,
+      orden_id: d.orden_id
+    }, factHistBody);
+  });
+}
+
+
+
+/*
+  async function cargarOrdenesPendientes() {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  factHistBody.innerHTML = "";
+
+  try {
+    const res = await fetch(`${API_BASE}/api/ventas/pendientes`, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (!res.ok) throw new Error("No se pudieron cargar órdenes");
+
+    const ordenes = await res.json();
+
+    for (const o of ordenes) {
+      const row = document.createElement("div");
+      row.className = "fact-hist-row";
+      row.dataset.ordenId = o.id;
+
+      row.innerHTML = `
+        <div><input type="checkbox" class="fact-check"></div>
+        <div class="fact-cell">${o.razon_social}</div>
+        <div class="fact-cell">${o.semana}</div>
+        <div class="fact-cell">${o.total_cantidad}</div>
+        <div class="fact-cell">$${Number(o.total_subtotal).toFixed(2)}</div>
+        <div class="fact-cell">$${Number(o.total_retencion).toFixed(2)}</div>
+        <div class="fact-cell">$${Number(o.total_pago).toFixed(2)}</div>
+        <div class="fact-acciones">
+          <button class="btn-ver">👁</button>
+          <button class="btn-aprobar">✔</button>
+        </div>
+      `;
+
+      factHistBody.appendChild(row);
+      agregarEventosFacturacion(row);
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("Error cargando facturación");
+  }
+}
+
+
+*/
+function agregarEventosFacturacion(row) {
+  const ordenId = row.dataset.ordenId;
+  const btnVer = row.querySelector(".btn-ver");
+  const btnAprobar = row.querySelector(".btn-aprobar");
+
+  // VER DETALLE
+  btnVer.onclick = async () => {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(`${API_BASE}/api/ventas/orden/${ordenId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const detalles = await res.json();
+    console.log("Detalle orden:", detalles);
+    alert("Detalle mostrado en consola (siguiente paso será modal)");
+  };
+
+  // APROBAR
+  btnAprobar.onclick = async () => {
+  const seleccionadas = [...factHistBody.querySelectorAll(".fact-hist-row")]
+    .filter(r => r.querySelector(".fact-check")?.checked);
+
+  if (!seleccionadas.length) {
+    alert("Seleccione al menos una orden");
+    return;
+  }
+
+  const ordenes = [...new Set(
+    seleccionadas.map(r => Number(r.dataset.ordenId))
+  )];
+
+  const token = localStorage.getItem("token");
+
+  await fetch(`${API_VENTAS}/aprobar`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({ ordenes })
+  });
+
+  cargarFacturacion();
+};
+
+}
 
 
 
@@ -1128,13 +1248,15 @@ btnGenerarOrden.addEventListener("click", async () => {
   }
 
   // ========================= CARGAR FACTURACIÓN =========================
-  function cargarFacturacion() {
-    const historial = JSON.parse(localStorage.getItem("factHistorial") || "[]");
-    const aprobadas = JSON.parse(localStorage.getItem("factAprobadas") || "[]");
+function cargarFacturacion() {
+  cargarOrdenesPendientes();
 
-    historial.forEach(d => crearFila(d, factHistBody));
-    aprobadas.forEach(d => crearFila(d, factAprobadasBody));
-  }
+
+  historial.forEach(d => crearFila(d, factHistBody));
+   const aprobadas = JSON.parse(localStorage.getItem("factAprobadas") || "[]");
+  aprobadas.forEach(d => crearFila(d, factAprobadasBody));
+}
+
 
   // ========================= GUARDAR FACTURACIÓN =========================
   function guardarFacturacion() {
@@ -1161,7 +1283,7 @@ btnGenerarOrden.addEventListener("click", async () => {
     guardarFilas(factHistBody.querySelectorAll(".fact-hist-row"), historial);
     guardarFilas(factAprobadasBody.querySelectorAll(".fact-hist-row"), aprobadas);
 
-    localStorage.setItem("factHistorial", JSON.stringify(historial));
+    /*localStorage.setItem("factHistorial", JSON.stringify(historial));*/
     localStorage.setItem("factAprobadas", JSON.stringify(aprobadas));
   }
 
