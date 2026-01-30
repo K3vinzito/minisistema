@@ -310,6 +310,74 @@ router.put("/aprobar/:id", authRequired, async (req, res) => {
   }
 });
 
+/* ======================================================
+   APROBAR DETALLES DE ORDEN
+====================================================== */
+router.put("/aprobar-detalle", authRequired, async (req, res) => {
+  const { detalles } = req.body;
+
+  if (!Array.isArray(detalles) || detalles.length === 0) {
+    return res.status(400).json({ error: "No hay detalles para aprobar" });
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    // 1. Aprobar los detalles seleccionados
+    await client.query(
+      `
+      UPDATE orden_venta_detalle
+      SET aprobado = true
+      WHERE id = ANY($1)
+      `,
+      [detalles]
+    );
+
+    // 2. Buscar órdenes afectadas
+    const { rows } = await client.query(
+      `
+      SELECT DISTINCT orden_id
+      FROM orden_venta_detalle
+      WHERE id = ANY($1)
+      `,
+      [detalles]
+    );
+
+    // 3. Para cada orden, verificar si TODOS los detalles están aprobados
+    for (const r of rows) {
+      const { rows: pendientes } = await client.query(
+        `
+        SELECT COUNT(*) 
+        FROM orden_venta_detalle
+        WHERE orden_id = $1 AND aprobado = false
+        `,
+        [r.orden_id]
+      );
+
+      if (Number(pendientes[0].count) === 0) {
+        await client.query(
+          `UPDATE orden_venta SET estado = 'APROBADA' WHERE id = $1`,
+          [r.orden_id]
+        );
+      }
+    }
+
+    await client.query("COMMIT");
+    res.json({ ok: true });
+
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error(err);
+    res.status(500).json({ error: "Error aprobando facturación" });
+  } finally {
+    client.release();
+  }
+});
+/* ======================================================
+   SUBIR ARCHIVOS A DETALLE DE ORDEN
+====================================================== */
 router.post(
   "/detalle/:id/archivo",
   authRequired,

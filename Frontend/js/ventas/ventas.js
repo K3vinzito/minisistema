@@ -2,9 +2,6 @@ export function initVentas() {
   const API_BASE = "https://minisistema.onrender.com";
   const API_CLIENTES = `${API_BASE}/api/clientes`;
   const API_VENTAS = `${API_BASE}/api/ventas`;
-
-
-
   /* ======================================================
      TABS VENTAS
   ====================================================== */
@@ -1226,39 +1223,38 @@ export function initVentas() {
   }
 
   // ========================= BOTÓN APROBAR =========================
- btnAprobar.addEventListener("click", async () => {
+btnAprobar.addEventListener("click", async () => {
   const filas = factHistBody.querySelectorAll(".fact-hist-row");
-  const ordenesAprobar = new Set();
+  const detallesAprobar = [];
 
   filas.forEach(fila => {
     const check = fila.querySelector(".fact-check");
     if (check && check.checked) {
-      ordenesAprobar.add(fila.dataset.ordenId);
+      detallesAprobar.push(Number(fila.dataset.detalleId));
     }
   });
 
-  if (ordenesAprobar.size === 0) {
-    alert("Seleccione al menos una orden para aprobar");
+  if (detallesAprobar.length === 0) {
+    alert("Seleccione al menos un registro para aprobar");
     return;
   }
 
-  if (!confirm("¿Desea aprobar las órdenes seleccionadas?")) return;
+  if (!confirm("¿Desea aprobar los registros seleccionados?")) return;
 
   try {
     const token = localStorage.getItem("token");
 
-    for (const ordenId of ordenesAprobar) {
-      const res = await fetch(`${API_VENTAS}/aprobar/${ordenId}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+    const res = await fetch(`${API_VENTAS}/aprobar-detalle`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ detalles: detallesAprobar })
+    });
 
-      if (!res.ok) throw new Error("Error aprobando orden " + ordenId);
-    }
+    if (!res.ok) throw new Error("Error aprobando facturación");
 
-    // Recargar desde BD (fuente única de verdad)
     cargarFacturacion();
 
   } catch (err) {
@@ -1266,6 +1262,7 @@ export function initVentas() {
     alert("Error aprobando facturación");
   }
 });
+
 
   // ========================= INICIALIZACIÓN =========================
   document.addEventListener("DOMContentLoaded", () => {
