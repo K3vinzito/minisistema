@@ -337,6 +337,11 @@ export function initVentas() {
   }
 
   function agregarEventosFila(row) {
+    if (row.closest("#fact-aprobadas-body")) {
+  row.querySelector(".btn-editar").disabled = true;
+  row.querySelector(".btn-eliminar").disabled = true;
+}
+
     const btnEditar = row.querySelector(".btn-editar");
     const btnEliminar = row.querySelector(".btn-eliminar");
     const btnAcciones = row.querySelector(".fact-acciones");
@@ -487,6 +492,7 @@ export function initVentas() {
         alert("Registro inválido");
         return;
       }
+      
 
       if (!confirm("¿Eliminar este registro?")) return;
 
@@ -1220,33 +1226,46 @@ export function initVentas() {
   }
 
   // ========================= BOTÓN APROBAR =========================
-  btnAprobar.addEventListener("click", () => {
-    const filas = factHistBody.querySelectorAll(".fact-hist-row");
-    filas.forEach(fila => {
-      const check = fila.querySelector(".fact-check");
-      if (check && check.checked) {
-        check.checked = false; // desmarcar
-        factAprobadasBody.appendChild(fila);
+ btnAprobar.addEventListener("click", async () => {
+  const filas = factHistBody.querySelectorAll(".fact-hist-row");
+  const ordenesAprobar = new Set();
 
-        const btnEliminar = fila.querySelector(".btn-eliminar");
-        const iconEliminar = "🗑️";
-        const iconRestaurar = "↩️";
-
-        // Cambiar a restaurar
-        btnEliminar.innerHTML = iconRestaurar;
-        btnEliminar.title = "Restaurar";
-
-        // Reasignar evento del botón restaurar
-        btnEliminar.onclick = () => {
-          factHistBody.appendChild(fila);
-          btnEliminar.innerHTML = iconEliminar;
-          btnEliminar.title = "Eliminar";
-          guardarFacturacion();
-        };
-      }
-    });
-    guardarFacturacion();
+  filas.forEach(fila => {
+    const check = fila.querySelector(".fact-check");
+    if (check && check.checked) {
+      ordenesAprobar.add(fila.dataset.ordenId);
+    }
   });
+
+  if (ordenesAprobar.size === 0) {
+    alert("Seleccione al menos una orden para aprobar");
+    return;
+  }
+
+  if (!confirm("¿Desea aprobar las órdenes seleccionadas?")) return;
+
+  try {
+    const token = localStorage.getItem("token");
+
+    for (const ordenId of ordenesAprobar) {
+      const res = await fetch(`${API_VENTAS}/aprobar/${ordenId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (!res.ok) throw new Error("Error aprobando orden " + ordenId);
+    }
+
+    // Recargar desde BD (fuente única de verdad)
+    cargarFacturacion();
+
+  } catch (err) {
+    console.error(err);
+    alert("Error aprobando facturación");
+  }
+});
 
   // ========================= INICIALIZACIÓN =========================
   document.addEventListener("DOMContentLoaded", () => {
