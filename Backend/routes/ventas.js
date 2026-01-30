@@ -152,44 +152,52 @@ router.get("/orden/:id", authRequired, async (req, res) => {
    ELIMINAR DETALLE
 ====================================================== */
 router.delete("/detalle/:id", authRequired, async (req, res) => {
+  const client = await pool.connect();
+
   try {
-    await pool.query(
+    await client.query("BEGIN");
+
+    const { rows } = await client.query(
+      "SELECT orden_id FROM orden_venta_detalle WHERE id = $1",
+      [req.params.id]
+    );
+
+    if (!rows.length) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Detalle no encontrado" });
+    }
+
+    const ordenId = rows[0].orden_id;
+
+    await client.query(
       "DELETE FROM orden_venta_detalle WHERE id = $1",
       [req.params.id]
     );
-    res.json({ ok: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error eliminando detalle" });
-  }
-});
-router.put("/detalle/:id", authRequired, async (req, res) => {
-  const { id } = req.params;
-  const {
-    origen,
-    cantidad,
-    unidad,
-    precio,
-    subtotal,
-    retencion,
-    pago
-  } = req.body;
 
-  try {
-    await pool.query(
-      `UPDATE orden_venta_detalle
-       SET origen=$1, cantidad=$2, unidad=$3, precio=$4,
-           subtotal=$5, retencion=$6, pago=$7
-       WHERE id=$8`,
-      [origen, cantidad, unidad, precio, subtotal, retencion, pago, id]
+    const countRes = await client.query(
+      "SELECT COUNT(*) FROM orden_venta_detalle WHERE orden_id = $1",
+      [ordenId]
     );
 
+    if (Number(countRes.rows[0].count) === 0) {
+      await client.query(
+        "DELETE FROM orden_venta WHERE id = $1",
+        [ordenId]
+      );
+    }
+
+    await client.query("COMMIT");
     res.json({ ok: true });
+
   } catch (err) {
+    await client.query("ROLLBACK");
     console.error(err);
-    res.status(500).json({ error: "Error actualizando detalle" });
+    res.status(500).json({ error: "Error eliminando detalle" });
+  } finally {
+    client.release();
   }
 });
+
 
 /* ======================================================
    APROBAR ORDEN

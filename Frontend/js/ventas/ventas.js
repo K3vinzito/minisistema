@@ -51,9 +51,9 @@ export function initVentas() {
     });
   }
 
- window.editarCliente = function (id) {
-  const c = clientes.find(x => x.id === id);
-  if (!c) return;
+  window.editarCliente = function (id) {
+    const c = clientes.find(x => x.id === id);
+    if (!c) return;
     document.getElementById("razonSocial").value = c.razon_social;
     document.getElementById("ruc").value = c.ruc;
     document.getElementById("direccion").value = c.direccion;
@@ -64,21 +64,21 @@ export function initVentas() {
     editIndex = id;
   };
 
-window.eliminarCliente = async function (id) {
-  try {
-    const res = await fetch(`${API_CLIENTES}/${id}`, { method: "DELETE" });
-    if (!res.ok) throw new Error("No se pudo eliminar");
+  window.eliminarCliente = async function (id) {
+    try {
+      const res = await fetch(`${API_CLIENTES}/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("No se pudo eliminar");
 
-    if (editIndex === id) editIndex = null;
+      if (editIndex === id) editIndex = null;
 
-    await cargarDirectorio();
-    actualizarSelectOrigen();
-    actualizarSelectUnidad();
-  } catch (err) {
-    console.error(err);
-    alert("Error eliminando cliente");
-  }
-};
+      await cargarDirectorio();
+      actualizarSelectOrigen();
+      actualizarSelectUnidad();
+    } catch (err) {
+      console.error(err);
+      alert("Error eliminando cliente");
+    }
+  };
 
 
   async function cargarDirectorio() {
@@ -95,120 +95,120 @@ window.eliminarCliente = async function (id) {
   }
 
 
- guardarClienteBtn.addEventListener("click", async () => {
-  const payload = {
-    razon_social: document.getElementById("razonSocial").value.trim(),
-    ruc: document.getElementById("ruc").value.trim(),
-    direccion: document.getElementById("direccion").value.trim(),
-    personal: document.getElementById("personal").value.trim(),
-    cargo: document.getElementById("cargo").value.trim(),
-    telefono: document.getElementById("telefono").value.trim(),
-    email: document.getElementById("email").value.trim()
-  };
+  guardarClienteBtn.addEventListener("click", async () => {
+    const payload = {
+      razon_social: document.getElementById("razonSocial").value.trim(),
+      ruc: document.getElementById("ruc").value.trim(),
+      direccion: document.getElementById("direccion").value.trim(),
+      personal: document.getElementById("personal").value.trim(),
+      cargo: document.getElementById("cargo").value.trim(),
+      telefono: document.getElementById("telefono").value.trim(),
+      email: document.getElementById("email").value.trim()
+    };
 
-  try {
-    let res;
+    try {
+      let res;
 
-    if (editIndex !== null) {
-      // UPDATE
-      res = await fetch(`${API_CLIENTES}/${editIndex}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-    } else {
-      // CREATE
-      res = await fetch(API_CLIENTES, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-    }
+      if (editIndex !== null) {
+        // UPDATE
+        res = await fetch(`${API_CLIENTES}/${editIndex}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      } else {
+        // CREATE
+        res = await fetch(API_CLIENTES, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      }
 
-    if (res.status === 409) {
-      const msg = await res.json();
-      alert(msg.message);
-      return;
-    }
+      if (res.status === 409) {
+        const msg = await res.json();
+        alert(msg.message);
+        return;
+      }
 
-    if (!res.ok) throw new Error("Error guardando cliente");
+      if (!res.ok) throw new Error("Error guardando cliente");
 
-    editIndex = null;
-    await cargarDirectorio();
-    actualizarSelectOrigen();
-    actualizarSelectUnidad();
+      editIndex = null;
+      await cargarDirectorio();
+      actualizarSelectOrigen();
+      actualizarSelectUnidad();
 
-    ["razonSocial", "ruc", "direccion", "personal", "cargo", "telefono", "email"]
-      .forEach(id => document.getElementById(id).value = "");
+      ["razonSocial", "ruc", "direccion", "personal", "cargo", "telefono", "email"]
+        .forEach(id => document.getElementById(id).value = "");
 
-  } catch (err) {
-    console.error(err);
-    alert("Error guardando cliente");
-  }
-});
-
-  /* ======================================================*/
-function construirOrdenesDesdeUI() {
-  const filas = document.querySelectorAll(".autorizacion-inputs");
-  const mapa = new Map(); // key: cliente_id
-
-  filas.forEach(fila => {
-    const sel = fila.querySelector(".aut-razon");
-    const cliente_id = Number(sel.value);
-    const razon_social = sel.options[sel.selectedIndex]?.text?.trim() || "";
-
-    const origen = fila.querySelector(".aut-origen").value.trim();
-    const cantidad = Number(fila.querySelector(".aut-cant").value || 0);
-    const unidad = fila.querySelector(".aut-unidad").value.trim();
-    const precio = Number(fila.querySelector(".aut-precio").value || 0);
-    const subtotal = Number(fila.querySelector(".aut-subtotal").value || 0);
-    const retencion = Number(fila.querySelector(".aut-retencion").value || 0);
-    const pago = Number(fila.querySelector(".aut-pago").value || 0);
-    const semana = fila.querySelector(".aut-sem").value;
-    const fecha = fila.querySelector(".aut-fecha").value;
-
-    // validación mínima (sin inventar reglas nuevas)
-    if (!cliente_id || !razon_social) return;
-    if (!origen) return;
-    if (!cantidad || !precio) return;
-
-    const detalle = { origen, cantidad, unidad, precio, subtotal, retencion, pago };
-
-    if (!mapa.has(cliente_id)) {
-      mapa.set(cliente_id, {
-        cliente_id,
-        razon_social,
-        semana,
-        fecha,
-        detalles: [detalle],
-      });
-    } else {
-      mapa.get(cliente_id).detalles.push(detalle);
+    } catch (err) {
+      console.error(err);
+      alert("Error guardando cliente");
     }
   });
 
-  return [...mapa.values()];
-}
+  /* ======================================================*/
+  function construirOrdenesDesdeUI() {
+    const filas = document.querySelectorAll(".autorizacion-inputs");
+    const mapa = new Map(); // key: cliente_id
+
+    filas.forEach(fila => {
+      const sel = fila.querySelector(".aut-razon");
+      const cliente_id = Number(sel.value);
+      const razon_social = sel.options[sel.selectedIndex]?.text?.trim() || "";
+
+      const origen = fila.querySelector(".aut-origen").value.trim();
+      const cantidad = Number(fila.querySelector(".aut-cant").value || 0);
+      const unidad = fila.querySelector(".aut-unidad").value.trim();
+      const precio = Number(fila.querySelector(".aut-precio").value || 0);
+      const subtotal = Number(fila.querySelector(".aut-subtotal").value || 0);
+      const retencion = Number(fila.querySelector(".aut-retencion").value || 0);
+      const pago = Number(fila.querySelector(".aut-pago").value || 0);
+      const semana = fila.querySelector(".aut-sem").value;
+      const fecha = fila.querySelector(".aut-fecha").value;
+
+      // validación mínima (sin inventar reglas nuevas)
+      if (!cliente_id || !razon_social) return;
+      if (!origen) return;
+      if (!cantidad || !precio) return;
+
+      const detalle = { origen, cantidad, unidad, precio, subtotal, retencion, pago };
+
+      if (!mapa.has(cliente_id)) {
+        mapa.set(cliente_id, {
+          cliente_id,
+          razon_social,
+          semana,
+          fecha,
+          detalles: [detalle],
+        });
+      } else {
+        mapa.get(cliente_id).detalles.push(detalle);
+      }
+    });
+
+    return [...mapa.values()];
+  }
 
 
   /* ======================================================
      SELECTS
   ====================================================== */
   function actualizarSelectRazon() {
-  document.querySelectorAll(".aut-razon").forEach(select => {
-    const selected = select.value;
+    document.querySelectorAll(".aut-razon").forEach(select => {
+      const selected = select.value;
 
-    select.innerHTML = `<option value="">Seleccione</option>`;
-    clientes.forEach(c => {
-      select.innerHTML += `<option value="${c.id}">${c.razon_social}</option>`;
+      select.innerHTML = `<option value="">Seleccione</option>`;
+      clientes.forEach(c => {
+        select.innerHTML += `<option value="${c.id}">${c.razon_social}</option>`;
+      });
+
+      // intenta mantener selección anterior
+      if ([...select.options].some(o => o.value === selected)) {
+        select.value = selected;
+      }
     });
-
-    // intenta mantener selección anterior
-    if ([...select.options].some(o => o.value === selected)) {
-      select.value = selected;
-    }
-  });
-}
+  }
 
 
   function actualizarSelectOrigen() {
@@ -299,169 +299,227 @@ function construirOrdenesDesdeUI() {
   actualizarSelectOrigen();
   actualizarSelectUnidad();
 
-// ================= CARGAR FACTURACIÓN DESDE BD (DETALLE REAL) =================
-async function cargarOrdenesPendientes() {
-  const token = localStorage.getItem("token");
-  if (!token) return;
+  // ================= CARGAR FACTURACIÓN DESDE BD (DETALLE REAL) =================
+  async function cargarOrdenesPendientes() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-  factHistBody.innerHTML = "";
-
-  try {
-    const res = await fetch(`${API_VENTAS}/pendientes-detalle`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    if (!res.ok) throw new Error("No se pudo cargar facturación");
-
-    const detalles = await res.json();
-
-    detalles.forEach(d => {
-      crearFila({
-        razon_social: d.razon_social,
-        origen: d.origen,
-        cant: d.cantidad,
-        unidad: d.unidad,
-        precio: d.precio,
-        subtotal: d.subtotal,
-        retencion: d.retencion,
-        pago: d.pago,
-        orden_id: d.orden_id,
-        detalle_id: d.detalle_id
-      }, factHistBody);
-    });
-
-  } catch (err) {
-    console.error(err);
-    alert("Error cargando facturación");
-  }
-}
-
-function agregarEventosFila(row) {
-  const btnEditar = row.querySelector(".btn-editar");
-  const btnEliminar = row.querySelector(".btn-eliminar");
-  const btnAcciones = row.querySelector(".fact-acciones");
-
-  const detalleId = row.dataset.detalleId;
-  const ordenId = row.dataset.ordenId;
-
-  const iconEditar = "✏️";
-  const iconGuardar = "💾";
-  const iconEliminar = "🗑️";
-  const iconAdjuntar = "📎";
-
-  btnEditar.innerHTML = iconEditar;
-  btnEliminar.innerHTML = iconEliminar;
-
-  /* =====================================================
-     EDITAR / GUARDAR
-  ===================================================== */
-  btnEditar.onclick = async () => {
-    const celdas = row.querySelectorAll(".fact-cell");
-    const editando = celdas[0].isContentEditable;
-
-    // ===== ENTRAR EN MODO EDICIÓN =====
-    if (!editando) {
-      celdas.forEach(c => {
-        c.contentEditable = true;
-        c.style.background = "#fff";
-        c.style.border = "1px solid #d1d5db";
-        c.style.borderRadius = "4px";
-        c.style.padding = "2px 4px";
-      });
-
-      btnEditar.innerHTML = iconGuardar;
-      btnEditar.title = "Guardar";
-      return;
-    }
-
-    // ===== GUARDAR CAMBIOS =====
-    const payload = {
-      origen: celdas[1].textContent.trim(),
-      cantidad: Number(celdas[2].textContent),
-      unidad: celdas[3].textContent.trim(),
-      precio: Number(celdas[4].textContent),
-      subtotal: Number(celdas[5].textContent),
-      retencion: Number(celdas[6].textContent),
-      pago: Number(celdas[7].textContent)
-    };
+    factHistBody.innerHTML = "";
 
     try {
-      const token = localStorage.getItem("token");
-
-      const res = await fetch(`${API_VENTAS}/detalle/${detalleId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!res.ok) throw new Error("No se pudo actualizar");
-
-      // salir de edición
-      celdas.forEach(c => {
-        c.contentEditable = false;
-        c.style.background = "#f9fafb";
-        c.style.border = "none";
-        c.style.padding = "0";
-      });
-
-      btnEditar.innerHTML = iconEditar;
-      btnEditar.title = "Editar";
-
-    } catch (err) {
-      console.error(err);
-      alert("Error guardando cambios");
-    }
-  };
-
-  /* =====================================================
-     ELIMINAR (BD REAL)
-  ===================================================== */
-  btnEliminar.onclick = async () => {
-    if (!detalleId) {
-      alert("Registro inválido");
-      return;
-    }
-
-    if (!confirm("¿Eliminar este registro?")) return;
-
-    try {
-      const token = localStorage.getItem("token");
-
-      const res = await fetch(`${API_VENTAS}/detalle/${detalleId}`, {
-        method: "DELETE",
+      const res = await fetch(`${API_VENTAS}/pendientes-detalle`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      if (!res.ok) throw new Error("No se pudo eliminar");
+      if (!res.ok) throw new Error("No se pudo cargar facturación");
 
-      row.remove();
+      const detalles = await res.json();
+
+      detalles.forEach(d => {
+        crearFila({
+          razon_social: d.razon_social,
+          origen: d.origen,
+          cant: d.cantidad,
+          unidad: d.unidad,
+          precio: d.precio,
+          subtotal: d.subtotal,
+          retencion: d.retencion,
+          pago: d.pago,
+          orden_id: d.orden_id,
+          detalle_id: d.detalle_id
+        }, factHistBody);
+      });
 
     } catch (err) {
       console.error(err);
-      alert("Error eliminando registro");
+      alert("Error cargando facturación");
     }
-  };
-
-  /* =====================================================
-     ADJUNTAR DOCUMENTOS
-  ===================================================== */
-  let btnCargar = row.querySelector(".btn-cargar-doc");
-  if (!btnCargar) {
-    btnCargar = document.createElement("button");
-    btnCargar.className = "btn-cargar-doc";
-    btnCargar.innerHTML = iconAdjuntar;
-    btnCargar.title = "Adjuntar documentos";
-    btnCargar.onclick = () => abrirModal(row);
-    btnAcciones.appendChild(btnCargar);
   }
-}
 
+  function agregarEventosFila(row) {
+    const btnEditar = row.querySelector(".btn-editar");
+    const btnEliminar = row.querySelector(".btn-eliminar");
+    const btnAcciones = row.querySelector(".fact-acciones");
 
+    const detalleId = row.dataset.detalleId;
+    const ordenId = row.dataset.ordenId;
 
+    const iconEditar = "✏️";
+    const iconGuardar = "💾";
+    const iconEliminar = "🗑️";
+    const iconAdjuntar = "📎";
 
+    btnEditar.innerHTML = iconEditar;
+    btnEliminar.innerHTML = iconEliminar;
+
+    /* =====================================================
+       EDITAR / GUARDAR
+    ===================================================== */
+    btnEditar.onclick = async () => {
+      const celdas = row.querySelectorAll(".fact-cell");
+      const editando = row.dataset.editando === "1";
+
+      // === ENTRAR EN MODO EDICIÓN ===
+      if (!editando) {
+        row.dataset.editando = "1";
+
+        // Razón social (select clientes)
+        const razonActual = celdas[0].textContent.trim();
+        const selRazon = document.createElement("select");
+        clientes.forEach(c => {
+          const opt = document.createElement("option");
+          opt.value = c.id;
+          opt.textContent = c.razon_social;
+          if (c.razon_social === razonActual) opt.selected = true;
+          selRazon.appendChild(opt);
+        });
+        celdas[0].innerHTML = "";
+        celdas[0].appendChild(selRazon);
+
+        // Origen
+        const selOrigen = document.createElement("select");
+        ["MIRELYA", "ONAHOUSE"].forEach(o => {
+          const opt = document.createElement("option");
+          opt.value = o;
+          opt.textContent = o;
+          if (o === celdas[1].textContent.trim()) opt.selected = true;
+          selOrigen.appendChild(opt);
+        });
+        celdas[1].innerHTML = "";
+        celdas[1].appendChild(selOrigen);
+
+        // Cantidad
+        const inpCant = document.createElement("input");
+        inpCant.type = "number";
+        inpCant.value = celdas[2].textContent;
+        celdas[2].innerHTML = "";
+        celdas[2].appendChild(inpCant);
+
+        // Unidad
+        const selUnidad = document.createElement("select");
+        ["KILO", "QUINTAL"].forEach(u => {
+          const opt = document.createElement("option");
+          opt.value = u;
+          opt.textContent = u;
+          if (u === celdas[3].textContent.trim()) opt.selected = true;
+          selUnidad.appendChild(opt);
+        });
+        celdas[3].innerHTML = "";
+        celdas[3].appendChild(selUnidad);
+
+        // Precio
+        const inpPrecio = document.createElement("input");
+        inpPrecio.type = "number";
+        inpPrecio.step = "0.01";
+        inpPrecio.value = celdas[4].textContent;
+        celdas[4].innerHTML = "";
+        celdas[4].appendChild(inpPrecio);
+
+        // Recalcular automático
+        function recalcular() {
+          const cant = Number(inpCant.value || 0);
+          const precio = Number(inpPrecio.value || 0);
+          const subtotal = cant * precio;
+          const ret = subtotal * 0.01;
+          const pago = subtotal - ret;
+
+          celdas[5].textContent = subtotal.toFixed(2);
+          celdas[6].textContent = ret.toFixed(2);
+          celdas[7].textContent = pago.toFixed(2);
+        }
+
+        inpCant.oninput = recalcular;
+        inpPrecio.oninput = recalcular;
+
+        btnEditar.innerHTML = "💾";
+        btnEditar.title = "Guardar";
+        return;
+      }
+
+      // === GUARDAR ===
+      try {
+        const token = localStorage.getItem("token");
+
+        const payload = {
+          origen: celdas[1].querySelector("select").value,
+          cantidad: Number(celdas[2].querySelector("input").value),
+          unidad: celdas[3].querySelector("select").value,
+          precio: Number(celdas[4].querySelector("input").value),
+          subtotal: Number(celdas[5].textContent),
+          retencion: Number(celdas[6].textContent),
+          pago: Number(celdas[7].textContent)
+        };
+
+        const res = await fetch(`${API_VENTAS}/detalle/${row.dataset.detalleId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) throw new Error("Error guardando");
+
+        // Volver a texto
+        celdas[0].textContent = celdas[0].querySelector("select").selectedOptions[0].text;
+        celdas[1].textContent = payload.origen;
+        celdas[2].textContent = payload.cantidad;
+        celdas[3].textContent = payload.unidad;
+        celdas[4].textContent = payload.precio.toFixed(2);
+
+        row.dataset.editando = "0";
+        btnEditar.innerHTML = "✏️";
+        btnEditar.title = "Editar";
+
+      } catch (err) {
+        console.error(err);
+        alert("Error al guardar cambios");
+      }
+    };
+
+    /* =====================================================
+       ELIMINAR (BD REAL)
+    ===================================================== */
+    btnEliminar.onclick = async () => {
+      if (!detalleId) {
+        alert("Registro inválido");
+        return;
+      }
+
+      if (!confirm("¿Eliminar este registro?")) return;
+
+      try {
+        const token = localStorage.getItem("token");
+
+        const res = await fetch(`${API_VENTAS}/detalle/${detalleId}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (!res.ok) throw new Error("No se pudo eliminar");
+
+        row.remove();
+
+      } catch (err) {
+        console.error(err);
+        alert("Error eliminando registro");
+      }
+    };
+
+    /* =====================================================
+       ADJUNTAR DOCUMENTOS
+    ===================================================== */
+    let btnCargar = row.querySelector(".btn-cargar-doc");
+    if (!btnCargar) {
+      btnCargar = document.createElement("button");
+      btnCargar.className = "btn-cargar-doc";
+      btnCargar.innerHTML = iconAdjuntar;
+      btnCargar.title = "Adjuntar documentos";
+      btnCargar.onclick = () => abrirModal(row);
+      btnAcciones.appendChild(btnCargar);
+    }
+  }
 
   // ================= AUTORIZACION =================
   const btnNuevoRegistro = document.getElementById("nuevoRegistro");
@@ -581,98 +639,98 @@ function agregarEventosFila(row) {
   btnNuevoRegistro.addEventListener("click", () => agregarFilaAutorizacion());
 
 
- 
-// ================= BOTÓN GENERAR ORDEN (CORREGIDO) =================
-btnGenerarOrden.addEventListener("click", async () => {
-  const filas = document.querySelectorAll(".autorizacion-inputs");
-  if (!filas.length) {
-    alert("No hay registros para generar orden");
-    return;
-  }
 
-  const token = localStorage.getItem("token");
-  if (!token) {
-    alert("Sesión inválida");
-    return;
-  }
-
-  // ===== AGRUPAR POR CLIENTE (1 ORDEN / VARIOS DETALLES) =====
-  const ordenes = {};
-
-  filas.forEach(fila => {
-    const sel = fila.querySelector(".aut-razon");
-    const cliente_id = Number(sel.value);
-    const razon_social = sel.options[sel.selectedIndex]?.text || "";
-
-    const origen = fila.querySelector(".aut-origen").value;
-    const cantidad = Number(fila.querySelector(".aut-cant").value);
-    const unidad = fila.querySelector(".aut-unidad").value;
-    const precio = Number(fila.querySelector(".aut-precio").value);
-    const subtotal = Number(fila.querySelector(".aut-subtotal").value);
-    const retencion = Number(fila.querySelector(".aut-retencion").value);
-    const pago = Number(fila.querySelector(".aut-pago").value);
-    const semana = fila.querySelector(".aut-sem").value;
-    const fecha = fila.querySelector(".aut-fecha").value;
-
-    if (!cliente_id || !origen || !cantidad || !precio) return;
-
-    if (!ordenes[cliente_id]) {
-      ordenes[cliente_id] = {
-        cliente_id,
-        razon_social,
-        semana,
-        fecha,
-        detalles: []
-      };
+  // ================= BOTÓN GENERAR ORDEN (CORREGIDO) =================
+  btnGenerarOrden.addEventListener("click", async () => {
+    const filas = document.querySelectorAll(".autorizacion-inputs");
+    if (!filas.length) {
+      alert("No hay registros para generar orden");
+      return;
     }
 
-    ordenes[cliente_id].detalles.push({
-      origen,
-      cantidad,
-      unidad,
-      precio,
-      subtotal,
-      retencion,
-      pago
-    });
-  });
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Sesión inválida");
+      return;
+    }
 
-  const payloads = Object.values(ordenes);
-  if (!payloads.length) {
-    alert("No hay órdenes válidas");
-    return;
-  }
+    // ===== AGRUPAR POR CLIENTE (1 ORDEN / VARIOS DETALLES) =====
+    const ordenes = {};
 
-  try {
-    for (const orden of payloads) {
-      const res = await fetch(`${API_VENTAS}/orden`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(orden)
-      });
+    filas.forEach(fila => {
+      const sel = fila.querySelector(".aut-razon");
+      const cliente_id = Number(sel.value);
+      const razon_social = sel.options[sel.selectedIndex]?.text || "";
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Error al guardar orden");
+      const origen = fila.querySelector(".aut-origen").value;
+      const cantidad = Number(fila.querySelector(".aut-cant").value);
+      const unidad = fila.querySelector(".aut-unidad").value;
+      const precio = Number(fila.querySelector(".aut-precio").value);
+      const subtotal = Number(fila.querySelector(".aut-subtotal").value);
+      const retencion = Number(fila.querySelector(".aut-retencion").value);
+      const pago = Number(fila.querySelector(".aut-pago").value);
+      const semana = fila.querySelector(".aut-sem").value;
+      const fecha = fila.querySelector(".aut-fecha").value;
+
+      if (!cliente_id || !origen || !cantidad || !precio) return;
+
+      if (!ordenes[cliente_id]) {
+        ordenes[cliente_id] = {
+          cliente_id,
+          razon_social,
+          semana,
+          fecha,
+          detalles: []
+        };
       }
+
+      ordenes[cliente_id].detalles.push({
+        origen,
+        cantidad,
+        unidad,
+        precio,
+        subtotal,
+        retencion,
+        pago
+      });
+    });
+
+    const payloads = Object.values(ordenes);
+    if (!payloads.length) {
+      alert("No hay órdenes válidas");
+      return;
     }
 
-    // limpiar autorización
-    document.querySelectorAll(".autorizacion-inputs").forEach(f => f.remove());
-    actualizarTotales();
+    try {
+      for (const orden of payloads) {
+        const res = await fetch(`${API_VENTAS}/orden`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(orden)
+        });
 
-    // ir a facturación
-    document.querySelector(".ventas-tab[data-tab='facturacion']").click();
-    cargarFacturacion();
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || "Error al guardar orden");
+        }
+      }
 
-  } catch (err) {
-    console.error(err);
-    alert(err.message);
-  }
-});
+      // limpiar autorización
+      document.querySelectorAll(".autorizacion-inputs").forEach(f => f.remove());
+      actualizarTotales();
+
+      // ir a facturación
+      document.querySelector(".ventas-tab[data-tab='facturacion']").click();
+      cargarFacturacion();
+
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    }
+  });
 
 
 
@@ -1031,112 +1089,18 @@ btnGenerarOrden.addEventListener("click", async () => {
     }
   }
 
-  // ========================= FUNCIONES DE FILA =========================
-  function agregarEventosFila(row) {
-    const btnEditar = row.querySelector(".btn-editar");
-    const btnEliminar = row.querySelector(".btn-eliminar");
-
-    // === ESTILO MINIMALISTA BASE ===
-    const estiloAccion = btn => {
-      btn.style.background = "#fff";
-      btn.style.border = "1px solid #ccc";
-      btn.style.borderRadius = "4px";
-      btn.style.width = "32px";
-      btn.style.height = "32px";
-      btn.style.cursor = "pointer";
-      btn.style.display = "flex";
-      btn.style.alignItems = "center";
-      btn.style.justifyContent = "center";
-      btn.style.padding = "0";
-      btn.style.marginRight = "4px"; // separación entre botones
-    };
-
-    estiloAccion(btnEditar);
-    estiloAccion(btnEliminar);
-
-    // === ICONOS ===
-    const iconEditar = "✏️";    // lápiz
-    const iconGuardar = "💾";   // disco de guardar
-    const iconEliminar = "🗑️";  // papelera
-    const iconRestaurar = "↩️";  // flecha restaurar
-    const iconAdjuntar = "📎";  // clip
-
-    btnEditar.innerHTML = iconEditar;
-    btnEditar.title = "Editar";
-
-    // Mantener el emoji según contenedor
-    if (row.parentElement === factAprobadasBody) {
-      btnEliminar.innerHTML = iconRestaurar;
-      btnEliminar.title = "Restaurar";
-    } else {
-      btnEliminar.innerHTML = iconEliminar;
-      btnEliminar.title = "Eliminar";
-    }
-
-    // ================= EDITAR / GUARDAR =================
-    btnEditar.addEventListener("click", () => {
-      const celdas = row.querySelectorAll(".fact-cell");
-      const editable = celdas[0].isContentEditable;
-
-      if (!editable) {
-        celdas.forEach(c => {
-          c.contentEditable = true;
-          c.style.background = "#fff";
-          c.style.border = "1px solid #d1d5db";
-          c.style.borderRadius = "4px";
-          c.style.padding = "2px 4px";
-        });
-        btnEditar.innerHTML = iconGuardar;
-        btnEditar.title = "Guardar";
-      } else {
-        celdas.forEach(c => {
-          c.contentEditable = false;
-          c.style.background = "#f9fafb";
-          c.style.border = "none";
-          c.style.padding = "0";
-        });
-        btnEditar.innerHTML = iconEditar;
-        btnEditar.title = "Editar";
-        guardarFacturacion();
-      }
-    });
-
-    // ================= ELIMINAR / RESTAURAR =================
-    btnEliminar.addEventListener("click", () => {
-      if (btnEliminar.title === "Eliminar") {
-        row.remove();
-      } else if (btnEliminar.title === "Restaurar") {
-        factHistBody.appendChild(row);
-        btnEliminar.innerHTML = iconEliminar;
-        btnEliminar.title = "Eliminar";
-      }
-      guardarFacturacion();
-    });
-
-    // ================= BOTÓN CARGAR DOCUMENTOS =================
-    let btnCargar = row.querySelector(".btn-cargar-doc");
-    if (!btnCargar) {
-      btnCargar = document.createElement("button");
-      btnCargar.className = "btn-cargar-doc";
-      btnCargar.innerHTML = iconAdjuntar;
-      estiloAccion(btnCargar);
-      btnCargar.title = "Adjuntar documentos";
-      btnCargar.onclick = () => abrirModal(row);
-      row.querySelector(".fact-acciones").appendChild(btnCargar);
-    }
-  }
 
   // ========================= CREAR FILA =========================
- function crearFila(d, contenedor) {
-  const row = document.createElement("div");
-  row.className = "fact-hist-row";
+  function crearFila(d, contenedor) {
+    const row = document.createElement("div");
+    row.className = "fact-hist-row";
 
-  // 🔑 IDS REALES
-  row.dataset.ordenId = d.orden_id;
-  row.dataset.detalleId = d.detalle_id;
-  row.dataset.archivos = d.archivos || "[]";
+    // 🔑 IDS REALES
+    row.dataset.ordenId = d.orden_id;
+    row.dataset.detalleId = d.detalle_id;
+    row.dataset.archivos = d.archivos || "[]";
 
-  row.innerHTML = `
+    row.innerHTML = `
     <div><input type="checkbox" class="fact-check"></div>
     <div class="fact-cell">${d.razon_social}</div>
     <div class="fact-cell">${d.origen}</div>
@@ -1152,22 +1116,22 @@ btnGenerarOrden.addEventListener("click", async () => {
     </div>
   `;
 
-  contenedor.appendChild(row);
-  agregarEventosFila(row);
-}
+    contenedor.appendChild(row);
+    agregarEventosFila(row);
+  }
 
   // ========================= CARGAR FACTURACIÓN =========================
-function cargarFacturacion() {
-  factHistBody.innerHTML = "";
-  factAprobadasBody.innerHTML = "";
+  function cargarFacturacion() {
+    factHistBody.innerHTML = "";
+    factAprobadasBody.innerHTML = "";
 
-  // 🔵 PENDIENTES DESDE BD
-  cargarOrdenesPendientes();
+    // 🔵 PENDIENTES DESDE BD
+    cargarOrdenesPendientes();
 
-  // 🟢 APROBADAS (local, por ahora)
-  const aprobadas = JSON.parse(localStorage.getItem("factAprobadas") || "[]");
-  aprobadas.forEach(d => crearFila(d, factAprobadasBody));
-}
+    // 🟢 APROBADAS (local, por ahora)
+    const aprobadas = JSON.parse(localStorage.getItem("factAprobadas") || "[]");
+    aprobadas.forEach(d => crearFila(d, factAprobadasBody));
+  }
 
 
 
