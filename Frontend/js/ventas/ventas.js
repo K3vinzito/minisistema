@@ -336,11 +336,13 @@ async function cargarOrdenesPendientes() {
   }
 }
 
-
-
 function agregarEventosFila(row) {
   const btnEditar = row.querySelector(".btn-editar");
   const btnEliminar = row.querySelector(".btn-eliminar");
+  const btnAcciones = row.querySelector(".fact-acciones");
+
+  const detalleId = row.dataset.detalleId;
+  const ordenId = row.dataset.ordenId;
 
   const iconEditar = "✏️";
   const iconGuardar = "💾";
@@ -350,23 +352,84 @@ function agregarEventosFila(row) {
   btnEditar.innerHTML = iconEditar;
   btnEliminar.innerHTML = iconEliminar;
 
-  // ===== EDITAR =====
-  btnEditar.onclick = () => {
+  /* =====================================================
+     EDITAR / GUARDAR
+  ===================================================== */
+  btnEditar.onclick = async () => {
     const celdas = row.querySelectorAll(".fact-cell");
     const editando = celdas[0].isContentEditable;
 
-    celdas.forEach(c => c.contentEditable = !editando);
-    btnEditar.innerHTML = editando ? iconEditar : iconGuardar;
-  };
+    // ===== ENTRAR EN MODO EDICIÓN =====
+    if (!editando) {
+      celdas.forEach(c => {
+        c.contentEditable = true;
+        c.style.background = "#fff";
+        c.style.border = "1px solid #d1d5db";
+        c.style.borderRadius = "4px";
+        c.style.padding = "2px 4px";
+      });
 
-  // ===== ELIMINAR (BD REAL) =====
-  btnEliminar.onclick = async () => {
-    if (!confirm("¿Eliminar este registro?")) return;
+      btnEditar.innerHTML = iconGuardar;
+      btnEditar.title = "Guardar";
+      return;
+    }
 
-    const token = localStorage.getItem("token");
-    const detalleId = row.dataset.detalleId;
+    // ===== GUARDAR CAMBIOS =====
+    const payload = {
+      origen: celdas[1].textContent.trim(),
+      cantidad: Number(celdas[2].textContent),
+      unidad: celdas[3].textContent.trim(),
+      precio: Number(celdas[4].textContent),
+      subtotal: Number(celdas[5].textContent),
+      retencion: Number(celdas[6].textContent),
+      pago: Number(celdas[7].textContent)
+    };
 
     try {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(`${API_VENTAS}/detalle/${detalleId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error("No se pudo actualizar");
+
+      // salir de edición
+      celdas.forEach(c => {
+        c.contentEditable = false;
+        c.style.background = "#f9fafb";
+        c.style.border = "none";
+        c.style.padding = "0";
+      });
+
+      btnEditar.innerHTML = iconEditar;
+      btnEditar.title = "Editar";
+
+    } catch (err) {
+      console.error(err);
+      alert("Error guardando cambios");
+    }
+  };
+
+  /* =====================================================
+     ELIMINAR (BD REAL)
+  ===================================================== */
+  btnEliminar.onclick = async () => {
+    if (!detalleId) {
+      alert("Registro inválido");
+      return;
+    }
+
+    if (!confirm("¿Eliminar este registro?")) return;
+
+    try {
+      const token = localStorage.getItem("token");
+
       const res = await fetch(`${API_VENTAS}/detalle/${detalleId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
@@ -375,20 +438,27 @@ function agregarEventosFila(row) {
       if (!res.ok) throw new Error("No se pudo eliminar");
 
       row.remove();
+
     } catch (err) {
-      alert("Error eliminando detalle");
       console.error(err);
+      alert("Error eliminando registro");
     }
   };
 
-  // ===== ADJUNTAR =====
-  let btnCargar = document.createElement("button");
-  btnCargar.innerHTML = iconAdjuntar;
-  btnCargar.title = "Adjuntar documentos";
-  btnCargar.onclick = () => abrirModal(row);
-
-  row.querySelector(".fact-acciones").appendChild(btnCargar);
+  /* =====================================================
+     ADJUNTAR DOCUMENTOS
+  ===================================================== */
+  let btnCargar = row.querySelector(".btn-cargar-doc");
+  if (!btnCargar) {
+    btnCargar = document.createElement("button");
+    btnCargar.className = "btn-cargar-doc";
+    btnCargar.innerHTML = iconAdjuntar;
+    btnCargar.title = "Adjuntar documentos";
+    btnCargar.onclick = () => abrirModal(row);
+    btnAcciones.appendChild(btnCargar);
+  }
 }
+
 
 
 

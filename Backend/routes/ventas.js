@@ -163,6 +163,33 @@ router.delete("/detalle/:id", authRequired, async (req, res) => {
     res.status(500).json({ error: "Error eliminando detalle" });
   }
 });
+router.put("/detalle/:id", authRequired, async (req, res) => {
+  const { id } = req.params;
+  const {
+    origen,
+    cantidad,
+    unidad,
+    precio,
+    subtotal,
+    retencion,
+    pago
+  } = req.body;
+
+  try {
+    await pool.query(
+      `UPDATE orden_venta_detalle
+       SET origen=$1, cantidad=$2, unidad=$3, precio=$4,
+           subtotal=$5, retencion=$6, pago=$7
+       WHERE id=$8`,
+      [origen, cantidad, unidad, precio, subtotal, retencion, pago, id]
+    );
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error actualizando detalle" });
+  }
+});
 
 /* ======================================================
    APROBAR ORDEN
