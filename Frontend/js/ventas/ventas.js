@@ -338,52 +338,56 @@ async function cargarOrdenesPendientes() {
 
 
 
-function agregarEventosFacturacion(row) {
-  const ordenId = row.dataset.ordenId;
-  const btnVer = row.querySelector(".btn-ver");
-  const btnAprobar = row.querySelector(".btn-aprobar");
+function agregarEventosFila(row) {
+  const btnEditar = row.querySelector(".btn-editar");
+  const btnEliminar = row.querySelector(".btn-eliminar");
 
-  // VER DETALLE
-  btnVer.onclick = async () => {
-    const token = localStorage.getItem("token");
+  const iconEditar = "✏️";
+  const iconGuardar = "💾";
+  const iconEliminar = "🗑️";
+  const iconAdjuntar = "📎";
 
-    const res = await fetch(`${API_BASE}/api/ventas/orden/${ordenId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+  btnEditar.innerHTML = iconEditar;
+  btnEliminar.innerHTML = iconEliminar;
 
-    const detalles = await res.json();
-    console.log("Detalle orden:", detalles);
-    alert("Detalle mostrado en consola (siguiente paso será modal)");
+  // ===== EDITAR =====
+  btnEditar.onclick = () => {
+    const celdas = row.querySelectorAll(".fact-cell");
+    const editando = celdas[0].isContentEditable;
+
+    celdas.forEach(c => c.contentEditable = !editando);
+    btnEditar.innerHTML = editando ? iconEditar : iconGuardar;
   };
 
-  // APROBAR
-  btnAprobar.onclick = async () => {
-  const seleccionadas = [...factHistBody.querySelectorAll(".fact-hist-row")]
-    .filter(r => r.querySelector(".fact-check")?.checked);
+  // ===== ELIMINAR (BD REAL) =====
+  btnEliminar.onclick = async () => {
+    if (!confirm("¿Eliminar este registro?")) return;
 
-  if (!seleccionadas.length) {
-    alert("Seleccione al menos una orden");
-    return;
-  }
+    const token = localStorage.getItem("token");
+    const detalleId = row.dataset.detalleId;
 
-  const ordenes = [...new Set(
-    seleccionadas.map(r => Number(r.dataset.ordenId))
-  )];
+    try {
+      const res = await fetch(`${API_VENTAS}/detalle/${detalleId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-  const token = localStorage.getItem("token");
+      if (!res.ok) throw new Error("No se pudo eliminar");
 
-  await fetch(`${API_VENTAS}/aprobar`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify({ ordenes })
-  });
+      row.remove();
+    } catch (err) {
+      alert("Error eliminando detalle");
+      console.error(err);
+    }
+  };
 
-  cargarFacturacion();
-};
+  // ===== ADJUNTAR =====
+  let btnCargar = document.createElement("button");
+  btnCargar.innerHTML = iconAdjuntar;
+  btnCargar.title = "Adjuntar documentos";
+  btnCargar.onclick = () => abrirModal(row);
 
+  row.querySelector(".fact-acciones").appendChild(btnCargar);
 }
 
 
@@ -1053,11 +1057,16 @@ btnGenerarOrden.addEventListener("click", async () => {
   }
 
   // ========================= CREAR FILA =========================
-  function crearFila(d, contenedor) {
-    const row = document.createElement("div");
-    row.className = "fact-hist-row";
-    row.dataset.archivos = d.archivos || "[]";
-    row.innerHTML = `
+ function crearFila(d, contenedor) {
+  const row = document.createElement("div");
+  row.className = "fact-hist-row";
+
+  // 🔑 IDS REALES
+  row.dataset.ordenId = d.orden_id;
+  row.dataset.detalleId = d.detalle_id;
+  row.dataset.archivos = d.archivos || "[]";
+
+  row.innerHTML = `
     <div><input type="checkbox" class="fact-check"></div>
     <div class="fact-cell">${d.razon_social}</div>
     <div class="fact-cell">${d.origen}</div>
@@ -1072,21 +1081,24 @@ btnGenerarOrden.addEventListener("click", async () => {
       <button class="btn-eliminar" title="Eliminar"></button>
     </div>
   `;
-    contenedor.appendChild(row);
 
-    // Agregar eventos de la fila
-    agregarEventosFila(row);
-  }
+  contenedor.appendChild(row);
+  agregarEventosFila(row);
+}
 
   // ========================= CARGAR FACTURACIÓN =========================
 function cargarFacturacion() {
+  factHistBody.innerHTML = "";
+  factAprobadasBody.innerHTML = "";
+
+  // 🔵 PENDIENTES DESDE BD
   cargarOrdenesPendientes();
 
-
-  historial.forEach(d => crearFila(d, factHistBody));
-   const aprobadas = JSON.parse(localStorage.getItem("factAprobadas") || "[]");
+  // 🟢 APROBADAS (local, por ahora)
+  const aprobadas = JSON.parse(localStorage.getItem("factAprobadas") || "[]");
   aprobadas.forEach(d => crearFila(d, factAprobadasBody));
 }
+
 
 
   // ========================= GUARDAR FACTURACIÓN =========================
@@ -1114,7 +1126,6 @@ function cargarFacturacion() {
     guardarFilas(factHistBody.querySelectorAll(".fact-hist-row"), historial);
     guardarFilas(factAprobadasBody.querySelectorAll(".fact-hist-row"), aprobadas);
 
-    /*localStorage.setItem("factHistorial", JSON.stringify(historial));*/
     localStorage.setItem("factAprobadas", JSON.stringify(aprobadas));
   }
 
