@@ -131,6 +131,49 @@ router.get("/pendientes", authRequired, async (req, res) => {
     res.status(500).json({ error: "Error al listar pendientes" });
   }
 });
+/* ======================================================
+  EDITAR ORDEN DE VENTA
+====================================================== */
+/* ======================================================
+   ACTUALIZAR DETALLE
+====================================================== */
+router.put("/detalle/:id", authRequired, async (req, res) => {
+  const { id } = req.params;
+  const {
+    origen,
+    cantidad,
+    unidad,
+    precio,
+    subtotal,
+    retencion,
+    pago
+  } = req.body;
+
+  try {
+    const result = await pool.query(
+      `UPDATE orden_venta_detalle
+       SET origen = $1,
+           cantidad = $2,
+           unidad = $3,
+           precio = $4,
+           subtotal = $5,
+           retencion = $6,
+           pago = $7
+       WHERE id = $8
+       RETURNING *`,
+      [origen, cantidad, unidad, precio, subtotal, retencion, pago, id]
+    );
+
+    if (!result.rowCount) {
+      return res.status(404).json({ error: "Detalle no encontrado" });
+    }
+
+    res.json({ ok: true, detalle: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error actualizando detalle" });
+  }
+});
 
 /* ======================================================
    DETALLE POR ORDEN
