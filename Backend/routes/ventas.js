@@ -131,13 +131,15 @@ router.get("/pendientes", authRequired, async (req, res) => {
     res.status(500).json({ error: "Error al listar pendientes" });
   }
 });
-/* ======================================================
-  EDITAR ORDEN DE VENTA
-====================================================== */
+
 /* ======================================================
    ACTUALIZAR DETALLE
 ====================================================== */
+/* ======================================================
+   ACTUALIZAR DETALLE + RECALCULAR ORDEN
+====================================================== */
 router.put("/detalle/:id", authRequired, async (req, res) => {
+  const client = await pool.connect();
   const { id } = req.params;
   const {
     origen,
@@ -150,7 +152,23 @@ router.put("/detalle/:id", authRequired, async (req, res) => {
   } = req.body;
 
   try {
-    const result = await pool.query(
+    await client.query("BEGIN");
+
+    // 1️⃣ Obtener orden_id
+    const detRes = await client.query(
+      "SELECT orden_id FROM orden_venta_detalle WHERE id = $1",
+      [id]
+    );
+
+    if (!detRes.rowCount) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Detalle no encontrado" });
+    }
+
+    const ordenId = detRes.rows[0].orden_id;
+
+    // 2️⃣ Actualizar detalle
+    await client.query(
       `UPDATE orden_venta_detalle
        SET origen = $1,
            cantidad = $2,
@@ -159,19 +177,50 @@ router.put("/detalle/:id", authRequired, async (req, res) => {
            subtotal = $5,
            retencion = $6,
            pago = $7
-       WHERE id = $8
-       RETURNING *`,
+       WHERE id = $8`,
       [origen, cantidad, unidad, precio, subtotal, retencion, pago, id]
     );
 
-    if (!result.rowCount) {
-      return res.status(404).json({ error: "Detalle no encontrado" });
-    }
+    // 3️⃣ Recalcular totales
+    const totalesRes = await client.query(
+      `SELECT
+         SUM(cantidad)  AS total_cantidad,
+         SUM(subtotal)  AS total_subtotal,
+         SUM(retencion) AS total_retencion,
+         SUM(pago)      AS total_pago
+       FROM orden_venta_detalle
+       WHERE orden_id = $1`,
+      [ordenId]
+    );
 
-    res.json({ ok: true, detalle: result.rows[0] });
+    const t = totalesRes.rows[0];
+
+    // 4️⃣ Actualizar cabecera
+    await client.query(
+      `UPDATE orden_venta
+       SET total_cantidad = $1,
+           total_subtotal = $2,
+           total_retencion = $3,
+           total_pago = $4
+       WHERE id = $5`,
+      [
+        t.total_cantidad || 0,
+        t.total_subtotal || 0,
+        t.total_retencion || 0,
+        t.total_pago || 0,
+        ordenId
+      ]
+    );
+
+    await client.query("COMMIT");
+    res.json({ ok: true });
+
   } catch (err) {
+    await client.query("ROLLBACK");
     console.error(err);
     res.status(500).json({ error: "Error actualizando detalle" });
+  } finally {
+    client.release();
   }
 });
 
