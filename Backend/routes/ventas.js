@@ -345,6 +345,74 @@ router.put("/aprobar-detalle", authRequired, async (req, res) => {
       [detalles]
     );
 
+    /* ======================================================
+   APROBAR DETALLE (NO TODA LA ORDEN)
+====================================================== */
+router.put("/detalle/:id/aprobar", authRequired, async (req, res) => {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    // marcar detalle aprobado
+    await client.query(
+      "UPDATE orden_venta_detalle SET aprobado = true WHERE id = $1",
+      [req.params.id]
+    );
+
+    // verificar si todos los detalles de la orden están aprobados
+    const { rows } = await client.query(`
+      SELECT d.orden_id,
+             BOOL_AND(d.aprobado) AS todos_aprobados
+      FROM orden_venta_detalle d
+      WHERE d.orden_id = (
+        SELECT orden_id FROM orden_venta_detalle WHERE id = $1
+      )
+      GROUP BY d.orden_id
+    `, [req.params.id]);
+
+    if (rows.length && rows[0].todos_aprobados) {
+      await client.query(
+        "UPDATE orden_venta SET estado = 'APROBADA' WHERE id = $1",
+        [rows[0].orden_id]
+      );
+    }
+
+    await client.query("COMMIT");
+    res.json({ ok: true });
+
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error(err);
+    res.status(500).json({ error: "Error aprobando detalle" });
+  } finally {
+    client.release();
+  }
+});
+
+router.get("/aprobadas-detalle", authRequired, async (req, res) => {
+  const result = await pool.query(`
+    SELECT
+      d.id AS detalle_id,
+      o.id AS orden_id,
+      o.razon_social,
+      d.origen,
+      d.cantidad,
+      d.unidad,
+      d.precio,
+      d.subtotal,
+      d.retencion,
+      d.pago
+    FROM orden_venta_detalle d
+    JOIN orden_venta o ON o.id = d.orden_id
+    WHERE d.aprobado = true
+    ORDER BY o.created_at DESC
+  `);
+
+  res.json(result.rows);
+});
+
+
     // 3. Para cada orden, verificar si TODOS los detalles están aprobados
     for (const r of rows) {
       const { rows: pendientes } = await client.query(

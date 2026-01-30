@@ -743,6 +743,30 @@ export function initVentas() {
   const factAprobadasBody = document.getElementById("fact-aprobadas-body");
   const btnAprobar = document.getElementById("aprobarFacturacion");
 
+  // ================= CARGAR APROBADAS DESDE BD =================
+async function cargarAprobadas() {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  factAprobadasBody.innerHTML = "";
+
+  try {
+    const res = await fetch(`${API_VENTAS}/aprobadas-detalle`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (!res.ok) throw new Error("No se pudo cargar aprobadas");
+
+    const data = await res.json();
+    data.forEach(d => crearFila(d, factAprobadasBody));
+
+  } catch (err) {
+    console.error(err);
+    alert("Error cargando órdenes aprobadas");
+  }
+}
+
+
   // Crear contenedor para botones en cabecera
   const headerBotonesContainer = document.createElement("div");
   headerBotonesContainer.style.display = "flex";
@@ -1180,17 +1204,16 @@ export function initVentas() {
   }
 
   // ========================= CARGAR FACTURACIÓN =========================
-  function cargarFacturacion() {
-    factHistBody.innerHTML = "";
-    factAprobadasBody.innerHTML = "";
+function cargarFacturacion() {
+  factHistBody.innerHTML = "";
+  factAprobadasBody.innerHTML = "";
 
-    // 🔵 PENDIENTES DESDE BD
-    cargarOrdenesPendientes();
+  // 🔵 Pendientes
+  cargarOrdenesPendientes();
 
-    // 🟢 APROBADAS (local, por ahora)
-    const aprobadas = JSON.parse(localStorage.getItem("factAprobadas") || "[]");
-    aprobadas.forEach(d => crearFila(d, factAprobadasBody));
-  }
+  // 🟢 Aprobadas (DESDE BD)
+  cargarAprobadas();
+}
 
 
 
@@ -1230,12 +1253,12 @@ btnAprobar.addEventListener("click", async () => {
   filas.forEach(fila => {
     const check = fila.querySelector(".fact-check");
     if (check && check.checked) {
-      detallesAprobar.push(Number(fila.dataset.detalleId));
+      detallesAprobar.push(fila.dataset.detalleId);
     }
   });
 
-  if (detallesAprobar.length === 0) {
-    alert("Seleccione al menos un registro para aprobar");
+  if (!detallesAprobar.length) {
+    alert("Seleccione al menos un registro");
     return;
   }
 
@@ -1244,17 +1267,21 @@ btnAprobar.addEventListener("click", async () => {
   try {
     const token = localStorage.getItem("token");
 
-    const res = await fetch(`${API_VENTAS}/aprobar-detalle`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({ detalles: detallesAprobar })
-    });
+    for (const detalleId of detallesAprobar) {
+      const res = await fetch(
+        `${API_VENTAS}/detalle/${detalleId}/aprobar`,
+        {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
 
-    if (!res.ok) throw new Error("Error aprobando facturación");
+      if (!res.ok) {
+        throw new Error("Error aprobando detalle " + detalleId);
+      }
+    }
 
+    // recargar vista desde BD (fuente única)
     cargarFacturacion();
 
   } catch (err) {
