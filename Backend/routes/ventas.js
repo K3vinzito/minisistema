@@ -1,6 +1,9 @@
 import express from "express";
 import pool from "../db.js";
 import { authRequired } from "../middleware/authMiddleware.js";
+import { upload } from "../middleware/upload.js";
+import path from "path";
+
 
 const router = express.Router();
 
@@ -306,5 +309,93 @@ router.put("/aprobar/:id", authRequired, async (req, res) => {
     res.status(500).json({ error: "Error aprobando orden" });
   }
 });
+
+router.post(
+  "/detalle/:id/archivo",
+  authRequired,
+  upload.array("archivos"),
+  async (req, res) => {
+    const detalleId = req.params.id;
+
+    try {
+      const files = req.files;
+
+      if (!files || !files.length) {
+        return res.status(400).json({ error: "Sin archivos" });
+      }
+
+      for (const f of files) {
+        await pool.query(
+          `INSERT INTO orden_venta_archivo
+           (detalle_id, nombre_original, nombre_archivo, tipo, size)
+           VALUES ($1,$2,$3,$4,$5)`,
+          [
+            detalleId,
+            f.originalname,
+            f.filename,
+            f.mimetype,
+            f.size
+          ]
+        );
+      }
+
+      res.json({ ok: true });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Error subiendo archivos" });
+    }
+  }
+);
+router.get(
+  "/detalle/:id/archivo",
+  authRequired,
+  async (req, res) => {
+    try {
+      const result = await pool.query(
+        "SELECT * FROM orden_venta_archivo WHERE detalle_id = $1",
+        [req.params.id]
+      );
+      res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Error listando archivos" });
+    }
+  }
+);
+
+router.delete(
+  "/archivo/:id",
+  authRequired,
+  async (req, res) => {
+    try {
+      const { rows } = await pool.query(
+        "SELECT nombre_archivo FROM orden_venta_archivo WHERE id = $1",
+        [req.params.id]
+      );
+
+      if (!rows.length) {
+        return res.status(404).json({ error: "Archivo no encontrado" });
+      }
+
+      const filePath = `Backend/uploads/${rows[0].nombre_archivo}`;
+
+      await pool.query(
+        "DELETE FROM orden_venta_archivo WHERE id = $1",
+        [req.params.id]
+      );
+
+      import("fs").then(fs => {
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      });
+
+      res.json({ ok: true });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Error eliminando archivo" });
+    }
+  }
+);
+
+
 
 export default router;

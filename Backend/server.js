@@ -27,6 +27,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/usuarios", usuariosRoutes);
 app.use("/api/clientes", clientesRoutes);
 app.use("/api/ventas", ventasRoutes);
+app.use("/uploads", express.static("Backend/uploads"));
+
 
 // ==================
 // Ruta de prueba
