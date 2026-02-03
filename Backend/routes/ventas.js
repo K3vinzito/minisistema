@@ -344,6 +344,38 @@ router.put("/aprobar-detalle", authRequired, async (req, res) => {
       `,
       [detalles]
     );
+    
+    // 3. Para cada orden, verificar si TODOS los detalles están aprobados
+    for (const r of rows) {
+      const { rows: pendientes } = await client.query(
+        `
+        SELECT COUNT(*) 
+        FROM orden_venta_detalle
+        WHERE orden_id = $1 AND aprobado = false
+        `,
+        [r.orden_id]
+      );
+
+      if (Number(pendientes[0].count) === 0) {
+        await client.query(
+          `UPDATE orden_venta SET estado = 'APROBADA' WHERE id = $1`,
+          [r.orden_id]
+        );
+      }
+    }
+
+    await client.query("COMMIT");
+    res.json({ ok: true });
+
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error(err);
+    res.status(500).json({ error: "Error aprobando facturación" });
+  } finally {
+    client.release();
+  }
+});
+
 
     /* ======================================================
    APROBAR DETALLE (NO TODA LA ORDEN)
@@ -421,36 +453,6 @@ router.get("/aprobadas-detalle", authRequired, async (req, res) => {
 });
 
 
-    // 3. Para cada orden, verificar si TODOS los detalles están aprobados
-    for (const r of rows) {
-      const { rows: pendientes } = await client.query(
-        `
-        SELECT COUNT(*) 
-        FROM orden_venta_detalle
-        WHERE orden_id = $1 AND aprobado = false
-        `,
-        [r.orden_id]
-      );
-
-      if (Number(pendientes[0].count) === 0) {
-        await client.query(
-          `UPDATE orden_venta SET estado = 'APROBADA' WHERE id = $1`,
-          [r.orden_id]
-        );
-      }
-    }
-
-    await client.query("COMMIT");
-    res.json({ ok: true });
-
-  } catch (err) {
-    await client.query("ROLLBACK");
-    console.error(err);
-    res.status(500).json({ error: "Error aprobando facturación" });
-  } finally {
-    client.release();
-  }
-});
 /* ======================================================
    SUBIR ARCHIVOS A DETALLE DE ORDEN
 ====================================================== */
