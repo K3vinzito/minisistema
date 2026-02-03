@@ -390,26 +390,34 @@ router.put("/detalle/:id/aprobar", authRequired, async (req, res) => {
   }
 });
 
+/* ======================================================
+   FACTURACIÓN — DETALLE DE ÓRDENES APROBADAS
+====================================================== */
 router.get("/aprobadas-detalle", authRequired, async (req, res) => {
-  const result = await pool.query(`
-    SELECT
-      d.id AS detalle_id,
-      o.id AS orden_id,
-      o.razon_social,
-      d.origen,
-      d.cantidad,
-      d.unidad,
-      d.precio,
-      d.subtotal,
-      d.retencion,
-      d.pago
-    FROM orden_venta_detalle d
-    JOIN orden_venta o ON o.id = d.orden_id
-    WHERE d.aprobado = true
-    ORDER BY o.created_at DESC
-  `);
+  try {
+    const result = await pool.query(`
+      SELECT
+        d.id              AS detalle_id,
+        o.id              AS orden_id,
+        o.razon_social,
+        d.origen,
+        d.cantidad,
+        d.unidad,
+        d.precio,
+        d.subtotal,
+        d.retencion,
+        d.pago
+      FROM orden_venta o
+      JOIN orden_venta_detalle d ON d.orden_id = o.id
+      WHERE d.aprobado = true
+      ORDER BY o.created_at DESC, d.id ASC
+    `);
 
-  res.json(result.rows);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error cargando aprobadas" });
+  }
 });
 
 

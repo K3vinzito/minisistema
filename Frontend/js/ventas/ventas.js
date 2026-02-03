@@ -1292,10 +1292,6 @@ btnAprobar.addEventListener("click", async () => {
 
 
   // ========================= INICIALIZACIÓN =========================
-  document.addEventListener("DOMContentLoaded", () => {
-    cargarDirectorio();
-    cargarFacturacion();
-  });
 
   /* ================= RESUMEN KARDEX ================= */
 
@@ -1525,29 +1521,29 @@ btnAprobar.addEventListener("click", async () => {
   }
 
   // ================= EVENTOS =================
-  document.addEventListener("DOMContentLoaded", () => {
-    renderResumen();
+ 
 
-    document.querySelector(".resumen-contenedor")
-      .addEventListener("input", e => {
-        if (
-          e.target.classList.contains("input-saldo-anterior") ||
-          e.target.classList.contains("input-quintales") ||
-          e.target.classList.contains("input-despacho")
-        ) {
-          recalcularTodasLasSemanas();
-        }
-      });
+
+// 👉 Autorización (fila inicial)
+agregarFilaAutorizacion(true);
+
+// 👉 Facturación (pendientes + aprobadas desde BD)
+cargarFacturacion();
+
+// 👉 Resumen (kardex)
+renderResumen();
+
+// 👉 Eventos del resumen (SIN DOMContentLoaded)
+document.querySelector(".resumen-contenedor")
+  ?.addEventListener("input", e => {
+    if (
+      e.target.classList.contains("input-saldo-anterior") ||
+      e.target.classList.contains("input-quintales") ||
+      e.target.classList.contains("input-despacho")
+    ) {
+      recalcularTodasLasSemanas();
+    }
   });
 
-
-  // 👉 Autorización (fila inicial)
-  agregarFilaAutorizacion(true);
-
-  // 👉 Facturación (historial + aprobadas)
-  cargarFacturacion();
-
-  // 👉 Resumen (kardex)
-  renderResumen();
 
 }
