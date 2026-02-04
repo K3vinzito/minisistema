@@ -421,6 +421,51 @@ router.put("/detalle/:id/aprobar", authRequired, async (req, res) => {
     client.release();
   }
 });
+/* ======================================================
+   DESAPROBAR DETALLE (REGRESA A PENDIENTES)
+====================================================== */
+router.put("/detalle/:id/desaprobar", authRequired, async (req, res) => {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    // 1️⃣ Obtener orden_id
+    const { rows } = await client.query(
+      "SELECT orden_id FROM orden_venta_detalle WHERE id = $1",
+      [req.params.id]
+    );
+
+    if (!rows.length) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Detalle no encontrado" });
+    }
+
+    const ordenId = rows[0].orden_id;
+
+    // 2️⃣ Marcar detalle como NO aprobado
+    await client.query(
+      "UPDATE orden_venta_detalle SET aprobado = false WHERE id = $1",
+      [req.params.id]
+    );
+
+    // 3️⃣ Regresar orden a estado PENDIENTE
+    await client.query(
+      "UPDATE orden_venta SET estado = 'PENDIENTE' WHERE id = $1",
+      [ordenId]
+    );
+
+    await client.query("COMMIT");
+    res.json({ ok: true });
+
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error(err);
+    res.status(500).json({ error: "Error al desaprobar detalle" });
+  } finally {
+    client.release();
+  }
+});
 
 /* ======================================================
    FACTURACIÓN — DETALLE DE ÓRDENES APROBADAS

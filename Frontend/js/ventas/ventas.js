@@ -316,7 +316,7 @@ export function initVentas() {
         crearFila({
           razon_social: d.razon_social,
           origen: d.origen,
-          cant: d.cantidad,
+          cantidad: d.cantidad,
           unidad: d.unidad,
           precio: d.precio,
           subtotal: d.subtotal,
@@ -334,14 +334,25 @@ export function initVentas() {
   }
 
   function agregarEventosFila(row) {
-    if (row.closest("#fact-aprobadas-body")) {
-  row.querySelector(".btn-editar").disabled = true;
-  row.querySelector(".btn-eliminar").disabled = true;
-}
+
+
 
     const btnEditar = row.querySelector(".btn-editar");
     const btnEliminar = row.querySelector(".btn-eliminar");
     const btnAcciones = row.querySelector(".fact-acciones");
+    const btnAdjuntar = row.querySelector(".btn-cargar-doc");
+
+    /* =====================================================
+   SOLO DESAPROBAR EN APROBADAS
+   ================================================== */
+    if (row.closest("#fact-aprobadas-body")) {
+      // ocultar botones que NO deben existir
+      if (btnEditar) btnEditar.remove();
+      if (btnEliminar) btnEliminar.remove();
+
+      if (btnAdjuntar) btnAdjuntar.remove();
+    }
+
 
     const detalleId = row.dataset.detalleId;
     const ordenId = row.dataset.ordenId;
@@ -422,7 +433,7 @@ export function initVentas() {
         function recalcular() {
           const cant = Number(inpCant.value || 0);
           const precio = Number(inpPrecio.value || 0);
-          const subtotal = cant * precio;
+          const subtotal = cantidad * precio;
           const ret = subtotal * 0.01;
           const pago = subtotal - ret;
 
@@ -489,7 +500,7 @@ export function initVentas() {
         alert("Registro inválido");
         return;
       }
-      
+
 
       if (!confirm("¿Eliminar este registro?")) return;
 
@@ -514,15 +525,60 @@ export function initVentas() {
     /* =====================================================
        ADJUNTAR DOCUMENTOS
     ===================================================== */
-    let btnCargar = row.querySelector(".btn-cargar-doc");
-    if (!btnCargar) {
-      btnCargar = document.createElement("button");
-      btnCargar.className = "btn-cargar-doc";
-      btnCargar.innerHTML = iconAdjuntar;
-      btnCargar.title = "Adjuntar documentos";
-      btnCargar.onclick = () => abrirModal(row);
-      btnAcciones.appendChild(btnCargar);
+    // ADJUNTAR DOCUMENTOS (SOLO EN PENDIENTES)
+    if (!row.closest("#fact-aprobadas-body")) {
+      let btnCargar = row.querySelector(".btn-cargar-doc");
+      if (!btnCargar) {
+        btnCargar = document.createElement("button");
+        btnCargar.className = "btn-cargar-doc";
+        btnCargar.innerHTML = iconAdjuntar;
+        btnCargar.title = "Adjuntar documentos";
+        btnCargar.onclick = () => abrirModal(row);
+        btnAcciones.appendChild(btnCargar);
+      }
     }
+
+    /* =====================================================
+   DESAPROBAR (solo en aprobadas)
+   ================================================== */
+    if (row.closest("#fact-aprobadas-body")) {
+      let btnDesaprobar = row.querySelector(".btn-desaprobar");
+
+      if (!btnDesaprobar) {
+        btnDesaprobar = document.createElement("button");
+        btnDesaprobar.className = "btn-desaprobar";
+        btnDesaprobar.innerHTML = "↩️";
+        btnDesaprobar.title = "Desaprobar y regresar a pendientes";
+
+        btnAcciones.appendChild(btnDesaprobar);
+
+        btnDesaprobar.onclick = async () => {
+          if (!confirm("¿Desaprobar este registro?")) return;
+
+          try {
+            const token = localStorage.getItem("token");
+
+            const res = await fetch(
+              `${API_VENTAS}/detalle/${detalleId}/desaprobar`,
+              {
+                method: "PUT",
+                headers: { Authorization: `Bearer ${token}` }
+              }
+            );
+
+            if (!res.ok) throw new Error("No se pudo desaprobar");
+
+            // 🔁 refrescar ambas tablas desde BD
+            cargarFacturacion();
+
+          } catch (err) {
+            console.error(err);
+            alert("Error al desaprobar registro");
+          }
+        };
+      }
+    }
+
   }
 
   // ================= AUTORIZACION =================
@@ -744,27 +800,27 @@ export function initVentas() {
   const btnAprobar = document.getElementById("aprobarFacturacion");
 
   // ================= CARGAR APROBADAS DESDE BD =================
-async function cargarAprobadas() {
-  const token = localStorage.getItem("token");
-  if (!token) return;
+  async function cargarAprobadas() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-  factAprobadasBody.innerHTML = "";
+    factAprobadasBody.innerHTML = "";
 
-  try {
-    const res = await fetch(`${API_VENTAS}/aprobadas-detalle`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    try {
+      const res = await fetch(`${API_VENTAS}/aprobadas-detalle`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-    if (!res.ok) throw new Error("No se pudo cargar aprobadas");
+      if (!res.ok) throw new Error("No se pudo cargar aprobadas");
 
-    const data = await res.json();
-    data.forEach(d => crearFila(d, factAprobadasBody));
+      const data = await res.json();
+      data.forEach(d => crearFila(d, factAprobadasBody));
 
-  } catch (err) {
-    console.error(err);
-    alert("Error cargando órdenes aprobadas");
+    } catch (err) {
+      console.error(err);
+      alert("Error cargando órdenes aprobadas");
+    }
   }
-}
 
 
   // Crear contenedor para botones en cabecera
@@ -1034,37 +1090,37 @@ async function cargarAprobadas() {
     filaActual.archivosObj.forEach(a => agregarArchivoLista(a));
 
     fileInput.onchange = async () => {
-  const files = Array.from(fileInput.files);
-  if (!files.length) return;
+      const files = Array.from(fileInput.files);
+      if (!files.length) return;
 
-  const formData = new FormData();
-  files.forEach(f => formData.append("archivos", f));
+      const formData = new FormData();
+      files.forEach(f => formData.append("archivos", f));
 
-  const detalleId = filaActual.dataset.detalleId;
-  const token = localStorage.getItem("token");
+      const detalleId = filaActual.dataset.detalleId;
+      const token = localStorage.getItem("token");
 
-  try {
-    const res = await fetch(
-      `${API_VENTAS}/detalle/${detalleId}/archivo`,
-      {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData
+      try {
+        const res = await fetch(
+          `${API_VENTAS}/detalle/${detalleId}/archivo`,
+          {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+            body: formData
+          }
+        );
+
+        if (!res.ok) throw new Error("Error subiendo archivos");
+
+        // recargar lista desde BD
+        abrirModal(filaActual);
+
+      } catch (err) {
+        console.error(err);
+        alert("Error subiendo archivos");
       }
-    );
 
-    if (!res.ok) throw new Error("Error subiendo archivos");
-
-    // recargar lista desde BD
-    abrirModal(filaActual);
-
-  } catch (err) {
-    console.error(err);
-    alert("Error subiendo archivos");
-  }
-
-  fileInput.value = "";
-};
+      fileInput.value = "";
+    };
 
   }
 
@@ -1116,26 +1172,26 @@ async function cargarAprobadas() {
     btnEliminar.style.color = "#6b7280";
 
     btnEliminar.onclick = async () => {
-  if (!confirm("¿Eliminar archivo?")) return;
+      if (!confirm("¿Eliminar archivo?")) return;
 
-  const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token");
 
-  try {
-    await fetch(
-      `${API_VENTAS}/archivo/${archivoObj.id}`,
-      {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` }
+      try {
+        await fetch(
+          `${API_VENTAS}/archivo/${archivoObj.id}`,
+          {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+
+        abrirModal(filaActual);
+
+      } catch (err) {
+        console.error(err);
+        alert("Error eliminando archivo");
       }
-    );
-
-    abrirModal(filaActual);
-
-  } catch (err) {
-    console.error(err);
-    alert("Error eliminando archivo");
-  }
-};
+    };
 
 
     fila.appendChild(info);
@@ -1146,13 +1202,13 @@ async function cargarAprobadas() {
   function mostrarPreview(archivoObj) {
     previewContainer.innerHTML = "";
 
-  const url = archivoObj.file
-  ? URL.createObjectURL(archivoObj.file)
-  : archivoObj.url;
+    const url = archivoObj.file
+      ? URL.createObjectURL(archivoObj.file)
+      : archivoObj.url;
 
 
     const file = archivoObj.file;
- 
+
 
     if (file.type === "application/pdf") {
       const iframe = document.createElement("iframe");
@@ -1184,10 +1240,15 @@ async function cargarAprobadas() {
     row.dataset.archivos = d.archivos || "[]";
 
     row.innerHTML = `
-    <div><input type="checkbox" class="fact-check"></div>
+   <div>
+  ${contenedor.id === "fact-historial-body"
+        ? `<input type="checkbox" class="fact-check">`
+        : ``}
+</div>
+
     <div class="fact-cell">${d.razon_social}</div>
     <div class="fact-cell">${d.origen}</div>
-    <div class="fact-cell">${d.cant}</div>
+    <div class="fact-cell">${d.cantidad}</div>
     <div class="fact-cell">${d.unidad}</div>
     <div class="fact-cell">${d.precio}</div>
     <div class="fact-cell">${d.subtotal}</div>
@@ -1204,16 +1265,16 @@ async function cargarAprobadas() {
   }
 
   // ========================= CARGAR FACTURACIÓN =========================
-function cargarFacturacion() {
-  factHistBody.innerHTML = "";
-  factAprobadasBody.innerHTML = "";
+  function cargarFacturacion() {
+    factHistBody.innerHTML = "";
+    factAprobadasBody.innerHTML = "";
 
-  // 🔵 Pendientes
-  cargarOrdenesPendientes();
+    // 🔵 Pendientes
+    cargarOrdenesPendientes();
 
-  // 🟢 Aprobadas (DESDE BD)
-  cargarAprobadas();
-}
+    // 🟢 Aprobadas (DESDE BD)
+    cargarAprobadas();
+  }
 
 
 
@@ -1228,7 +1289,7 @@ function cargarFacturacion() {
         arr.push({
           razon: c[0]?.textContent || "",
           origen: c[1]?.textContent || "",
-          cant: c[2]?.textContent || "",
+          cantidad: c[2]?.textContent || "",
           unidad: c[3]?.textContent || "",
           precio: c[4]?.textContent || "",
           subtotal: c[5]?.textContent || "",
@@ -1246,49 +1307,49 @@ function cargarFacturacion() {
   }
 
   // ========================= BOTÓN APROBAR =========================
-btnAprobar.addEventListener("click", async () => {
-  const filas = factHistBody.querySelectorAll(".fact-hist-row");
-  const detallesAprobar = [];
+  btnAprobar.addEventListener("click", async () => {
+    const filas = factHistBody.querySelectorAll(".fact-hist-row");
+    const detallesAprobar = [];
 
-  filas.forEach(fila => {
-    const check = fila.querySelector(".fact-check");
-    if (check && check.checked) {
-      detallesAprobar.push(fila.dataset.detalleId);
+    filas.forEach(fila => {
+      const check = fila.querySelector(".fact-check");
+      if (check && check.checked) {
+        detallesAprobar.push(fila.dataset.detalleId);
+      }
+    });
+
+    if (!detallesAprobar.length) {
+      alert("Seleccione al menos un registro");
+      return;
+    }
+
+    if (!confirm("¿Desea aprobar los registros seleccionados?")) return;
+
+    try {
+      const token = localStorage.getItem("token");
+
+      for (const detalleId of detallesAprobar) {
+        const res = await fetch(
+          `${API_VENTAS}/detalle/${detalleId}/aprobar`,
+          {
+            method: "PUT",
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+
+        if (!res.ok) {
+          throw new Error("Error aprobando detalle " + detalleId);
+        }
+      }
+
+      // recargar vista desde BD (fuente única)
+      cargarFacturacion();
+
+    } catch (err) {
+      console.error(err);
+      alert("Error aprobando facturación");
     }
   });
-
-  if (!detallesAprobar.length) {
-    alert("Seleccione al menos un registro");
-    return;
-  }
-
-  if (!confirm("¿Desea aprobar los registros seleccionados?")) return;
-
-  try {
-    const token = localStorage.getItem("token");
-
-    for (const detalleId of detallesAprobar) {
-      const res = await fetch(
-        `${API_VENTAS}/detalle/${detalleId}/aprobar`,
-        {
-          method: "PUT",
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-
-      if (!res.ok) {
-        throw new Error("Error aprobando detalle " + detalleId);
-      }
-    }
-
-    // recargar vista desde BD (fuente única)
-    cargarFacturacion();
-
-  } catch (err) {
-    console.error(err);
-    alert("Error aprobando facturación");
-  }
-});
 
 
   // ========================= INICIALIZACIÓN =========================
@@ -1521,29 +1582,29 @@ btnAprobar.addEventListener("click", async () => {
   }
 
   // ================= EVENTOS =================
- 
 
 
-// 👉 Autorización (fila inicial)
-agregarFilaAutorizacion(true);
 
-// 👉 Facturación (pendientes + aprobadas desde BD)
-cargarFacturacion();
+  // 👉 Autorización (fila inicial)
+  agregarFilaAutorizacion(true);
 
-// 👉 Resumen (kardex)
-renderResumen();
+  // 👉 Facturación (pendientes + aprobadas desde BD)
+  cargarFacturacion();
 
-// 👉 Eventos del resumen (SIN DOMContentLoaded)
-document.querySelector(".resumen-contenedor")
-  ?.addEventListener("input", e => {
-    if (
-      e.target.classList.contains("input-saldo-anterior") ||
-      e.target.classList.contains("input-quintales") ||
-      e.target.classList.contains("input-despacho")
-    ) {
-      recalcularTodasLasSemanas();
-    }
-  });
+  // 👉 Resumen (kardex)
+  renderResumen();
+
+  // 👉 Eventos del resumen (SIN DOMContentLoaded)
+  document.querySelector(".resumen-contenedor")
+    ?.addEventListener("input", e => {
+      if (
+        e.target.classList.contains("input-saldo-anterior") ||
+        e.target.classList.contains("input-quintales") ||
+        e.target.classList.contains("input-despacho")
+      ) {
+        recalcularTodasLasSemanas();
+      }
+    });
 
 
 }
