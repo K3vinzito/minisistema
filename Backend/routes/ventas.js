@@ -105,16 +105,17 @@ router.get("/pendientes-detalle", authRequired, async (req, res) => {
         d.pago
       FROM orden_venta o
       JOIN orden_venta_detalle d ON d.orden_id = o.id
-      WHERE o.estado = 'PENDIENTE'
+      WHERE d.aprobado = false
       ORDER BY o.created_at DESC, d.id ASC
     `);
 
     res.json(result.rows);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error cargando detalle de facturación" });
+    res.status(500).json({ error: "Error cargando pendientes" });
   }
 });
+
 
 /* ======================================================
    LISTAR ÓRDENES (CABECERA)
