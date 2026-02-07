@@ -892,16 +892,16 @@ export function initVentas() {
       <table>
         <thead>
           <tr>
-  <th>Razón Social</th>
-  <th>Factura</th>
-  <th>Origen</th>
-  <th>Cantidad</th>
-  <th>Unidad</th>
-  <th>Precio</th>
-  <th>Subtotal</th>
-  <th>Retención</th>
-  <th>Pago</th>
-</tr>
+          <th>Razón Social</th>
+          <th>Factura</th>
+          <th>Origen</th>
+          <th>Cantidad</th>
+          <th>Unidad</th>
+          <th>Precio</th>
+          <th>Subtotal</th>
+          <th>Retención</th>
+          <th>Pago</th>
+        </tr>
 
         </thead>
         <tbody>

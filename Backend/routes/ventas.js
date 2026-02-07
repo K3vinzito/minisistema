@@ -632,25 +632,49 @@ router.delete(
     }
   }
 );
+
 /* ======================================================
    RESUMEN — FACTURACIÓN DESDE ÓRDENES APROBADAS
+   (KARDEX MANUAL POR AHORA)
 ====================================================== */
 router.get("/resumen-facturacion", authRequired, async (req, res) => {
   try {
-    const result = await pool.query(`
+    const { rows } = await pool.query(`
       SELECT
         o.semana,
         o.razon_social,
         o.factura_numero,
-        SUM(d.cantidad) AS total_cantidad
+        SUM(d.cantidad) AS qq
       FROM orden_venta o
       JOIN orden_venta_detalle d ON d.orden_id = o.id
       WHERE o.estado = 'APROBADA'
       GROUP BY o.semana, o.razon_social, o.factura_numero
-      ORDER BY o.semana, o.factura_numero
+      ORDER BY o.semana
     `);
 
-    res.json(result.rows);
+    // Agrupar por semana (estructura que espera el frontend)
+    const semanasMap = {};
+
+    rows.forEach(r => {
+      if (!semanasMap[r.semana]) {
+        semanasMap[r.semana] = {
+          semana: r.semana,
+          dias: ["Lu", "Ma", "Mi", "Ju", "Vi"], // fijo por ahora
+          lotes: [],        // vendrá del Excel luego
+          libras: [],       // vendrá del Excel luego
+          facturacion: []
+        };
+      }
+
+      semanasMap[r.semana].facturacion.push({
+        cliente: r.razon_social,
+        factura_numero: r.factura_numero,
+        qq: Number(r.qq)
+      });
+    });
+
+    res.json(Object.values(semanasMap));
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error cargando resumen de facturación" });
