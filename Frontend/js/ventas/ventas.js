@@ -144,48 +144,6 @@ export function initVentas() {
     }
   });
 
-  /* ======================================================*/
-  function construirOrdenesDesdeUI() {
-    const filas = document.querySelectorAll(".autorizacion-inputs");
-    const mapa = new Map(); // key: cliente_id
-
-    filas.forEach(fila => {
-      const sel = fila.querySelector(".aut-razon");
-      const cliente_id = Number(sel.value);
-      const razon_social = sel.options[sel.selectedIndex]?.text?.trim() || "";
-
-      const origen = fila.querySelector(".aut-origen").value.trim();
-      const cantidad = Number(fila.querySelector(".aut-cant").value || 0);
-      const unidad = fila.querySelector(".aut-unidad").value.trim();
-      const precio = Number(fila.querySelector(".aut-precio").value || 0);
-      const subtotal = Number(fila.querySelector(".aut-subtotal").value || 0);
-      const retencion = Number(fila.querySelector(".aut-retencion").value || 0);
-      const pago = Number(fila.querySelector(".aut-pago").value || 0);
-      const semana = fila.querySelector(".aut-sem").value;
-      const fecha = fila.querySelector(".aut-fecha").value;
-
-      // validación mínima (sin inventar reglas nuevas)
-      if (!cliente_id || !razon_social) return;
-      if (!origen) return;
-      if (!cantidad || !precio) return;
-
-      const detalle = { origen, cantidad, unidad, precio, subtotal, retencion, pago };
-
-      if (!mapa.has(cliente_id)) {
-        mapa.set(cliente_id, {
-          cliente_id,
-          razon_social,
-          semana,
-          fecha,
-          detalles: [detalle],
-        });
-      } else {
-        mapa.get(cliente_id).detalles.push(detalle);
-      }
-    });
-
-    return [...mapa.values()];
-  }
 
 
   /* ======================================================
@@ -433,7 +391,7 @@ export function initVentas() {
         function recalcular() {
           const cant = Number(inpCant.value || 0);
           const precio = Number(inpPrecio.value || 0);
-          const subtotal = cantidad * precio;
+          const subtotal = cant * precio;
           const ret = subtotal * 0.01;
           const pago = subtotal - ret;
 
@@ -441,6 +399,7 @@ export function initVentas() {
           celdas[6].textContent = ret.toFixed(2);
           celdas[7].textContent = pago.toFixed(2);
         }
+
 
         inpCant.oninput = recalcular;
         inpPrecio.oninput = recalcular;
@@ -887,9 +846,13 @@ export function initVentas() {
         totalRetencion += retencion;
         totalPago += pago;
 
+
+        const factura = row.dataset.factura || "";
+
         contenido += `
         <tr>
           <td>${c[0].textContent}</td>
+          <td>${factura}</td>
           <td>${c[1].textContent}</td>
           <td>${c[2].textContent}</td>
           <td>${c[3].textContent}</td>
@@ -898,7 +861,7 @@ export function initVentas() {
           <td>${c[6].textContent}</td>
           <td>${c[7].textContent}</td>
         </tr>
-      `;
+        `;
       }
     });
 
@@ -929,15 +892,17 @@ export function initVentas() {
       <table>
         <thead>
           <tr>
-            <th>Razón Social</th>
-            <th>Origen</th>
-            <th>Cantidad</th>
-            <th>Unidad</th>
-            <th>Precio</th>
-            <th>Subtotal</th>
-            <th>Retención</th>
-            <th>Pago</th>
-          </tr>
+  <th>Razón Social</th>
+  <th>Factura</th>
+  <th>Origen</th>
+  <th>Cantidad</th>
+  <th>Unidad</th>
+  <th>Precio</th>
+  <th>Subtotal</th>
+  <th>Retención</th>
+  <th>Pago</th>
+</tr>
+
         </thead>
         <tbody>
           ${contenido}
@@ -1237,7 +1202,9 @@ export function initVentas() {
     // 🔑 IDS REALES
     row.dataset.ordenId = d.orden_id;
     row.dataset.detalleId = d.detalle_id;
+    row.dataset.factura = d.factura_numero || "";
     row.dataset.archivos = d.archivos || "[]";
+
 
     row.innerHTML = `
    <div>
@@ -1356,103 +1323,33 @@ export function initVentas() {
 
   /* ================= RESUMEN KARDEX ================= */
 
-  const resumenData = [
-    {
-      semana: "Semana 01",
-      dias: ["LU", "MA", "MI", "JU", "VI"],
-      lotes: Array.from({ length: 10 }, (_, i) => i + 1),
-      libras: [
-        [12, 10, 14, 11, 9],
-        [15, 12, 13, 14, 10],
-        [8, 9, 10, 11, 12],
-        [14, 15, 16, 14, 13],
-        [9, 10, 11, 10, 9],
-        [16, 14, 15, 16, 14],
-        [10, 11, 12, 11, 10],
-        [13, 14, 15, 13, 12],
-        [11, 12, 13, 12, 11],
-        [14, 13, 14, 15, 13]
-      ],
-      facturacion: [
-        { cliente: "Cliente A", factura: "FAC-001", qq: 3 },
-        { cliente: "Cliente B", factura: "FAC-002", qq: 1 }
-      ]
-    },
-    {
-      semana: "Semana 02",
-      dias: ["LU", "MA", "MI", "JU", "VI"],
-      lotes: Array.from({ length: 10 }, (_, i) => i + 1),
-      libras: [
-        [10, 11, 12, 10, 9],
-        [14, 13, 12, 11, 10],
-        [9, 10, 11, 10, 9],
-        [15, 14, 15, 14, 13],
-        [10, 11, 12, 11, 10],
-        [14, 15, 16, 15, 14],
-        [11, 12, 13, 12, 11],
-        [13, 14, 14, 13, 12],
-        [12, 13, 14, 13, 12],
-        [15, 14, 15, 16, 14]
-      ],
-      facturacion: [
-        { cliente: "Exportadora X", factura: "FAC-010", qq: 2 }
-      ]
-    },
-    {
-      semana: "Semana 03",
-      dias: ["LU", "MA", "MI", "JU", "VI"],
-      lotes: Array.from({ length: 10 }, (_, i) => i + 1),
-      libras: [
-        [11, 12, 13, 12, 11],
-        [13, 14, 15, 14, 13],
-        [10, 11, 12, 11, 10],
-        [16, 15, 16, 15, 14],
-        [11, 12, 13, 12, 11],
-        [15, 16, 17, 16, 15],
-        [12, 13, 14, 13, 12],
-        [14, 15, 16, 15, 14],
-        [13, 14, 15, 14, 13],
-        [16, 15, 16, 17, 15]
-      ],
-      facturacion: []
-    },
-    {
-      semana: "Semana 04",
-      dias: ["LU", "MA", "MI", "JU", "VI"],
-      lotes: Array.from({ length: 10 }, (_, i) => i + 1),
-      libras: [
-        [9, 10, 11, 10, 9],
-        [12, 13, 14, 13, 12],
-        [8, 9, 10, 9, 8],
-        [14, 15, 16, 15, 14],
-        [10, 11, 12, 11, 10],
-        [15, 16, 17, 16, 15],
-        [11, 12, 13, 12, 11],
-        [13, 14, 15, 14, 13],
-        [12, 13, 14, 13, 12],
-        [14, 15, 16, 15, 14]
-      ],
-      facturacion: [
-        { cliente: "Cliente Final", factura: "FAC-020", qq: 4 }
-      ]
-    }
-  ];
+  async function cargarFacturacionResumen() {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(`${API_VENTAS}/resumen-facturacion`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    return await res.json();
+  }
 
   // ================= RENDER =================
-  function renderResumen() {
+  async function renderResumen() {
     const contenedor = document.querySelector(".resumen-contenedor");
     if (!contenedor) return;
 
     contenedor.innerHTML = "";
 
-    resumenData.forEach((sem, index) => {
+    const data = await cargarFacturacionResumen();
+
+    data.forEach((sem, index) => {
       let totalSemana = 0;
 
       const thead = `
       <tr>
-        <th>L</th>
+        <th>Día</th>
         ${sem.lotes.map(l => `<th>${l}</th>`).join("")}
-        <th>T</th>
+        <th>Total</th>
         <th>LAT</th>
       </tr>
     `;
@@ -1479,16 +1376,16 @@ export function initVentas() {
 
       const facturacionHTML = sem.facturacion.length
         ? sem.facturacion.map(f => `
-          <div class="factura-item">
-            <span>${f.cliente}</span>
-            <small>${f.factura} · ${f.qq} qq</small>
-          </div>
-        `).join("")
+        <div class="factura-item">
+          <span>${f.cliente}</span>
+          <small>${f.factura_numero} · ${f.qq} qq</small>
+        </div>
+      `).join("")
         : `<small style="color:#9ca3af;font-size:11px;">Sin despachos</small>`;
 
       contenedor.innerHTML += `
       <div class="resumen-semana">
-        <h4>${sem.semana}</h4>
+        <h4>Semana ${sem.semana}</h4>
 
         <div class="resumen-layout">
 
@@ -1507,7 +1404,6 @@ export function initVentas() {
           <div class="control-seco">
 
             <div class="control-resumen">
-
               <div class="control-linea">
                 <span>Saldo anterior (qq)</span>
                 <input type="number" class="input-saldo-anterior" value="${index === 0 ? 0 : ""}">
@@ -1532,7 +1428,6 @@ export function initVentas() {
                 <span>Saldo final</span>
                 <strong class="valor-saldo-final">0.00</strong>
               </div>
-
             </div>
 
             <div class="control-facturacion">

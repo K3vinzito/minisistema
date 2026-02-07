@@ -7,8 +7,9 @@ import path from "path";
 
 const router = express.Router();
 
+
 /* ======================================================
-   CREAR ORDEN DE VENTA
+   CREAR ORDEN DE VENTA (SIN FACTURA: SE ASIGNA AL APROBAR)
 ====================================================== */
 router.post("/orden", authRequired, async (req, res) => {
   const { cliente_id, razon_social, semana, fecha, detalles } = req.body;
@@ -28,17 +29,18 @@ router.post("/orden", authRequired, async (req, res) => {
     let total_pago = 0;
 
     detalles.forEach(d => {
-      total_cantidad += Number(d.cantidad);
-      total_subtotal += Number(d.subtotal);
-      total_retencion += Number(d.retencion);
-      total_pago += Number(d.pago);
+      total_cantidad += Number(d.cantidad) || 0;
+      total_subtotal += Number(d.subtotal) || 0;
+      total_retencion += Number(d.retencion) || 0;
+      total_pago += Number(d.pago) || 0;
     });
 
+    // 1) Crear cabecera (factura_numero se queda NULL aquí)
     const ordenRes = await client.query(
       `INSERT INTO orden_venta
        (cliente_id, razon_social, semana, fecha,
-        total_cantidad, total_subtotal, total_retencion, total_pago)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+        total_cantidad, total_subtotal, total_retencion, total_pago, estado)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'PENDIENTE')
        RETURNING id`,
       [
         cliente_id,
@@ -54,12 +56,12 @@ router.post("/orden", authRequired, async (req, res) => {
 
     const ordenId = ordenRes.rows[0].id;
 
+    // 2) Insertar detalles (todos arrancan como aprobado = false)
     for (const d of detalles) {
       await client.query(
         `INSERT INTO orden_venta_detalle
-         (orden_id, origen, cantidad, unidad, precio,
-          subtotal, retencion, pago)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+         (orden_id, origen, cantidad, unidad, precio, subtotal, retencion, pago, aprobado)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,false)`,
         [
           ordenId,
           d.origen,
@@ -75,7 +77,11 @@ router.post("/orden", authRequired, async (req, res) => {
 
     await client.query("COMMIT");
 
-    res.json({ ok: true, orden_id: ordenId });
+    // 3) Respuesta
+    res.json({
+      ok: true,
+      orden_id: ordenId
+    });
 
   } catch (err) {
     await client.query("ROLLBACK");
@@ -381,34 +387,72 @@ router.put("/aprobar-detalle", authRequired, async (req, res) => {
     /* ======================================================
    APROBAR DETALLE (NO TODA LA ORDEN)
 ====================================================== */
+/* ======================================================
+   APROBAR DETALLE (GENERA FACTURA CUANDO TODOS ESTÁN OK)
+====================================================== */
 router.put("/detalle/:id/aprobar", authRequired, async (req, res) => {
   const client = await pool.connect();
+  const detalleId = req.params.id;
 
   try {
     await client.query("BEGIN");
 
-    // marcar detalle aprobado
-    await client.query(
-      "UPDATE orden_venta_detalle SET aprobado = true WHERE id = $1",
-      [req.params.id]
+    // 1️⃣ Obtener orden_id del detalle
+    const detRes = await client.query(
+      "SELECT orden_id FROM orden_venta_detalle WHERE id = $1",
+      [detalleId]
     );
 
-    // verificar si todos los detalles de la orden están aprobados
-    const { rows } = await client.query(`
-      SELECT d.orden_id,
-             BOOL_AND(d.aprobado) AS todos_aprobados
-      FROM orden_venta_detalle d
-      WHERE d.orden_id = (
-        SELECT orden_id FROM orden_venta_detalle WHERE id = $1
-      )
-      GROUP BY d.orden_id
-    `, [req.params.id]);
+    if (!detRes.rowCount) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Detalle no encontrado" });
+    }
 
-    if (rows.length && rows[0].todos_aprobados) {
-      await client.query(
-        "UPDATE orden_venta SET estado = 'APROBADA' WHERE id = $1",
-        [rows[0].orden_id]
+    const ordenId = detRes.rows[0].orden_id;
+
+    // 2️⃣ Aprobar el detalle
+    await client.query(
+      "UPDATE orden_venta_detalle SET aprobado = true WHERE id = $1",
+      [detalleId]
+    );
+
+    // 3️⃣ Verificar si quedan detalles pendientes
+    const pendRes = await client.query(
+      `SELECT COUNT(*) AS pendientes
+       FROM orden_venta_detalle
+       WHERE orden_id = $1 AND aprobado = false`,
+      [ordenId]
+    );
+
+    const pendientes = Number(pendRes.rows[0].pendientes);
+
+    // 4️⃣ Si NO quedan pendientes → aprobar orden y generar factura
+    if (pendientes === 0) {
+
+      // Generar número de factura solo una vez
+      const facRes = await client.query(
+        "SELECT factura_numero FROM orden_venta WHERE id = $1",
+        [ordenId]
       );
+
+      let facturaNumero = facRes.rows[0].factura_numero;
+
+      if (!facturaNumero) {
+        facturaNumero = `FAC-${String(ordenId).padStart(6, "0")}`;
+
+        await client.query(
+          `UPDATE orden_venta
+           SET estado = 'APROBADA',
+               factura_numero = $1
+           WHERE id = $2`,
+          [facturaNumero, ordenId]
+        );
+      } else {
+        await client.query(
+          "UPDATE orden_venta SET estado = 'APROBADA' WHERE id = $1",
+          [ordenId]
+        );
+      }
     }
 
     await client.query("COMMIT");
@@ -422,6 +466,7 @@ router.put("/detalle/:id/aprobar", authRequired, async (req, res) => {
     client.release();
   }
 });
+
 /* ======================================================
    DESAPROBAR DETALLE (REGRESA A PENDIENTES)
 ====================================================== */
@@ -587,6 +632,30 @@ router.delete(
     }
   }
 );
+/* ======================================================
+   RESUMEN — FACTURACIÓN DESDE ÓRDENES APROBADAS
+====================================================== */
+router.get("/resumen-facturacion", authRequired, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        o.semana,
+        o.razon_social,
+        o.factura_numero,
+        SUM(d.cantidad) AS total_cantidad
+      FROM orden_venta o
+      JOIN orden_venta_detalle d ON d.orden_id = o.id
+      WHERE o.estado = 'APROBADA'
+      GROUP BY o.semana, o.razon_social, o.factura_numero
+      ORDER BY o.semana, o.factura_numero
+    `);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error cargando resumen de facturación" });
+  }
+});
 
 
 
